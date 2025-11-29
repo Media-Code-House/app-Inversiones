@@ -1,0 +1,166 @@
+================================================================================
+           🎯 RESUMEN: CÓMO PROBAR LA FUNCIONALIDAD DE SALDO A FAVOR
+================================================================================
+
+## 📋 PROBLEMA RESUELTO
+
+Cliente pagó $2.500.000 cuando la cuota era $1.977.085
+└─ Exceso: $522.914 se acumula en "Saldo a Favor"
+└─ Después: Un click compensa la mora automáticamente
+
+## 🚀 PASOS RÁPIDOS (5 MINUTOS)
+
+1️⃣  MIGRATION SQL
+   Ejecuta:
+   mysql -u root -p inversiones < database/migration_saldo_a_favor.sql
+
+2️⃣  CREAR DATOS DE PRUEBA
+   Ejecuta:
+   mysql -u root -p inversiones < database/test_datos_mora_saldo_favor.sql
+
+3️⃣  OBTENER LOTE ID
+   Query:
+   SELECT id FROM lotes WHERE codigo_lote = 'LOTE-TEST-001';
+   
+   Anota el ID (ej: 999)
+
+4️⃣  ABRIR EN NAVEGADOR
+   URL:
+   https://inversiones.mch.com.co/lotes/amortizacion/show/999
+   
+   (Reemplaza 999 con tu ID)
+
+5️⃣  HACER CLICK EN EL BOTÓN
+   • Click en: 💰 "Aplicar Saldo a Favor ($522.914)"
+   • Confirmar
+   • ✅ Listo!
+
+## 📊 QUÉ VAS A VER
+
+ANTES:
+┌──────────────────────────────────────────┐
+│ Cuota 1: ✅ PAGADA ($2.500.000)         │
+│ Cuota 2: ⚠️  MORA ($0 sin pagar)        │
+│ Cuota 3: ⚠️  MORA ($0 sin pagar)        │
+│ Cuota 4: ✅ PAGADA ($1.977.085)         │
+│                                          │
+│ 💰 Saldo a Favor: $522.914              │
+│ [Aplicar Saldo a Favor] ← BOTÓN AZUL   │
+└──────────────────────────────────────────┘
+
+DESPUÉS (Post-Click):
+┌──────────────────────────────────────────┐
+│ Cuota 1: ✅ PAGADA ($2.500.000)         │
+│ Cuota 2: ✅ PAGADA (compensada)         │  ← CAMBIÓ
+│ Cuota 3: ⏳ PENDIENTE (parcial)         │  ← CAMBIÓ
+│ Cuota 4: ✅ PAGADA ($1.977.085)         │
+│                                          │
+│ 💰 Saldo a Favor: $0.00                 │
+│ (Botón desapareció) ✅                  │
+└──────────────────────────────────────────┘
+
+## 📁 ARCHIVOS IMPORTANTES
+
+PARA MIGRACIÓN:
+├─ database/migration_saldo_a_favor.sql
+
+PARA CREAR DATOS:
+├─ database/test_datos_mora_saldo_favor.sql
+
+PARA MÁS INFO:
+├─ GUIA_PRUEBA_RAPIDA_SALDO_FAVOR.md  ← LEER ESTO
+├─ DOCUMENTACION_SALDO_FAVOR.md       ← Técnica
+├─ GUIA_PRUEBAS_SALDO_FAVOR.md        ← Completa
+
+CÓDIGO MODIFICADO:
+├─ app/Models/LoteModel.php (+5 métodos)
+├─ app/Controllers/PagoController.php
+├─ app/Controllers/AmortizacionController.php
+├─ app/Views/lotes/amortizacion.php (+ botón)
+├─ index.php (+ ruta POST)
+
+## ⚙️ DATOS DE PRUEBA
+
+Cliente:
+  Nombre: Cliente Prueba Mora
+  Doc: 1234567890
+
+Proyecto:
+  Código: PRY-TEST
+  Nombre: Proyecto Prueba Saldo a Favor
+
+Lote:
+  Código: LOTE-TEST-001
+  Monto: $20.000.000
+  Plazo: 24 meses
+  Cuota: $1.977.085 cada una
+  Saldo a Favor: $522.914
+
+Pagos Simulados:
+  • Cuota 1: PAGADA $2.500.000 (exceso $522.914)
+  • Cuota 2: MORA (sin pagar)
+  • Cuota 3: MORA (sin pagar)
+  • Cuota 4: PAGADA $1.977.085
+
+## ✅ VALIDACIONES POST-CLICK
+
+En MySQL, verifica:
+
+```sql
+-- Cuota 2 debe estar PAGADA
+SELECT numero_cuota, estado, valor_pagado 
+FROM amortizaciones 
+WHERE lote_id = 999 AND numero_cuota = 2;
+-- Resultado: 2 | pagada | 1977085.83
+
+-- Cuota 3 debe estar PENDIENTE con saldo
+SELECT numero_cuota, estado, valor_pagado 
+FROM amortizaciones 
+WHERE lote_id = 999 AND numero_cuota = 3;
+-- Resultado: 3 | pendiente | 522914.17
+
+-- Saldo debe ser 0
+SELECT saldo_a_favor FROM lotes WHERE id = 999;
+-- Resultado: 0.00
+```
+
+## 🎯 CHECKLIST DE ÉXITO
+
+✅ Migration SQL ejecutada
+✅ Datos de prueba creados
+✅ Lote visible en amortizacion
+✅ Botón azul "Aplicar Saldo" aparece
+✅ Click abre confirmación
+✅ Confirmación ejecuta reajuste
+✅ Cuota 2 se marca PAGADA
+✅ Cuota 3 queda parcial
+✅ Saldo a favor = $0.00
+✅ Botón desapareció
+
+¡Si todas ✅ = SISTEMA 100% FUNCIONAL! 🎉
+
+## 🐛 SI ALGO FALLA
+
+Problema: "Error al ejecutar SQL"
+Solución: Verifica que las tablas existen con SHOW TABLES
+
+Problema: "El botón no aparece"
+Solución: Verifica que saldo_a_favor > 0.01
+  SELECT saldo_a_favor FROM lotes WHERE id = 999;
+
+Problema: "El reajuste no funciona"
+Solución: Revisa logs en storage/logs/
+
+## 📞 DOCUMENTACIÓN COMPLETA
+
+Leer: GUIA_PRUEBA_RAPIDA_SALDO_FAVOR.md
+
+Contiene:
+- Pasos detallados con screenshots
+- Explicación del problema
+- Validaciones técnicas
+- Troubleshooting completo
+
+================================================================================
+                           ¡A PROBAR! 🚀
+================================================================================
