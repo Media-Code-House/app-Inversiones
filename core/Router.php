@@ -61,8 +61,6 @@ class Router
     {
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         $requestUri = $this->getRequestUri();
-        
-        error_log("DEBUG ROUTER: Method={$requestMethod}, URI={$requestUri}");
 
         foreach ($this->routes as $route) {
             if ($route['method'] !== $requestMethod) {

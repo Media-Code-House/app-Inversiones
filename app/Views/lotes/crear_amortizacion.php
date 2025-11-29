@@ -329,8 +329,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const monto = parseFloat(inputMontoFinanciado.value) || 0;
         const cuotas = parseInt(inputCuotas.value) || 0;
         
-        console.log('Modal show.bs.modal - Monto:', monto, 'Cuotas:', cuotas);
-        
         // Validaciones antes de mostrar modal
         if (monto <= 0) {
             e.preventDefault();
@@ -340,7 +338,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El monto a financiar debe ser mayor a cero <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
             document.body.appendChild(alertDiv);
             setTimeout(() => alertDiv.remove(), 3000);
-            console.log('Validación falló: monto <= 0');
             return false;
         }
         
@@ -352,7 +349,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El número de cuotas debe estar entre 1 y 360 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
             document.body.appendChild(alertDiv);
             setTimeout(() => alertDiv.remove(), 3000);
-            console.log('Validación falló: cuotas fuera de rango');
             return false;
         }
         
@@ -376,36 +372,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Botón de confirmar en el modal
     document.getElementById('btnConfirmarGenerar').addEventListener('click', function() {
-        console.log('Botón Confirmar clickeado');
-        
+        const btn = this;
         const form = document.getElementById('formAmortizacion');
-        console.log('Form action:', form.action);
-        console.log('Form method:', form.method);
+        const modalElement = document.getElementById('modalConfirmar');
         
         // Deshabilitar botón y mostrar estado de carga
-        const btn = this;
         btn.disabled = true;
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
         
-        console.log('Cerrando modal...');
         // Cerrar modal
-        const modalElement = document.getElementById('modalConfirmar');
         const modalInstance = bootstrap.Modal.getInstance(modalElement);
         if (modalInstance) {
             modalInstance.hide();
         }
         
-        // Esperar a que el modal se cierre completamente antes de enviar
-        modalElement.addEventListener('hidden.bs.modal', function onModalHidden() {
-            console.log('Modal cerrado, enviando formulario...');
-            
-            // Remover el listener para evitar múltiples ejecuciones
-            modalElement.removeEventListener('hidden.bs.modal', onModalHidden);
-            
-            // Enviar formulario de forma nativa
-            console.log('Ejecutando form.submit()');
+        // Enviar formulario después de un pequeño delay para que cierre el modal
+        setTimeout(function() {
             form.submit();
-        }, { once: true });
+        }, 300);
     });
 
     // Inicializar vista previa
