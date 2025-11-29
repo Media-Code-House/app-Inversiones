@@ -185,6 +185,28 @@ $router->post('/lotes/pago/store', 'PagoController@store');
 $router->post('/lotes/pago/calcular-distribucion', 'PagoController@calcularDistribucion');
 
 // ==========================================
+// REPORTES - MÓDULO 6 (Business Intelligence)
+// ==========================================
+
+// Panel principal de reportes
+$router->get('/reportes', 'ReporteController@index');
+
+// Reporte: Lotes Vendidos
+$router->get('/reportes/lotes-vendidos', 'ReporteController@lotesVendidos');
+
+// Reporte: Ventas por Proyecto
+$router->get('/reportes/ventas-proyecto', 'ReporteController@ventasPorProyecto');
+
+// Reporte: Ventas por Vendedor
+$router->get('/reportes/ventas-vendedor', 'ReporteController@ventasPorVendedor');
+
+// Reporte: Cartera Pendiente
+$router->get('/reportes/cartera', 'ReporteController@cartera');
+
+// Reporte: Estado de Clientes
+$router->get('/reportes/estado-clientes', 'ReporteController@estadoClientes');
+
+// ==========================================
 // LOGS DEL SISTEMA (Admin)
 // ==========================================
 
