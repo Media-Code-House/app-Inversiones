@@ -86,6 +86,9 @@ class AmortizacionController extends Controller
      */
     public function store()
     {
+        // Mensaje temporal para confirmar que llega aquí
+        $_SESSION['info'] = 'Método store() ejecutándose...';
+        
         // Log para debugging
         error_log("DEBUG: Iniciando store() de amortización");
         error_log("DEBUG: POST data: " . print_r($_POST, true));
@@ -98,10 +101,13 @@ class AmortizacionController extends Controller
         }
 
         // Validar CSRF
+        error_log("DEBUG: Validando CSRF - Session token: " . ($_SESSION['csrf_token'] ?? 'NO EXISTE'));
+        error_log("DEBUG: Validando CSRF - POST token: " . ($_POST['csrf_token'] ?? 'NO EXISTE'));
+        
         if (!$this->validateCsrf()) {
-            $_SESSION['error'] = 'Token de seguridad inválido';
+            $_SESSION['error'] = 'Token de seguridad inválido. Por favor, recargue la página e intente nuevamente.';
             error_log("DEBUG: Token CSRF inválido");
-            redirect('/lotes');
+            redirect('/lotes/amortizacion/create/' . ($_POST['lote_id'] ?? ''));
             return;
         }
 
