@@ -110,7 +110,7 @@ class ReporteController extends Controller
 
         $sql .= " ORDER BY l.fecha_venta DESC";
 
-        $lotes = empty($params) ? $this->db->query($sql) : $this->db->query($sql, $params);
+        $lotes = $this->db->fetchAll($sql, $params);
 
         // Calcular totales
         $totalVentas = array_sum(array_column($lotes, 'precio_venta'));
@@ -118,7 +118,7 @@ class ReporteController extends Controller
 
         // Obtener proyectos y vendedores para filtros
         $proyectos = $this->proyectoModel->findAll();
-        $vendedores = $this->db->query("SELECT id, nombre FROM users WHERE rol = 'vendedor' ORDER BY nombre");
+        $vendedores = $this->db->fetchAll("SELECT id, nombre FROM users WHERE rol = 'vendedor' ORDER BY nombre");
 
         $data = [
             'pageTitle' => 'Reporte: Lotes Vendidos',
@@ -166,7 +166,7 @@ class ReporteController extends Controller
                 GROUP BY p.id
                 ORDER BY valor_ventas DESC";
 
-        $proyectos = $this->db->query($sql);
+        $proyectos = $this->db->fetchAll($sql);
 
         // Preparar datos para gráfico
         $labels = array_column($proyectos, 'nombre');
@@ -235,7 +235,7 @@ class ReporteController extends Controller
                   HAVING total_lotes_vendidos > 0
                   ORDER BY total_ventas DESC";
 
-        $vendedores = empty($params) ? $this->db->query($sql) : $this->db->query($sql, $params);
+        $vendedores = $this->db->fetchAll($sql, $params);
 
         $data = [
             'pageTitle' => 'Reporte: Ventas por Vendedor',
@@ -307,9 +307,9 @@ class ReporteController extends Controller
 
         $sql .= " ORDER BY dias_mora DESC, a.fecha_vencimiento ASC";
 
-        $cuotas = empty($params) ? $this->db->query($sql) : $this->db->query($sql, $params);
+        $cuotas = $this->db->fetchAll($sql, $params);
 
-        // Calcular totales
+        // Calcular KPIs
         $totalCartera = array_sum(array_column($cuotas, 'saldo'));
         $cuotasVencidas = array_filter($cuotas, fn($c) => $c['dias_mora'] > 0);
         $totalMora = array_sum(array_column($cuotasVencidas, 'saldo'));
@@ -373,7 +373,7 @@ class ReporteController extends Controller
                 GROUP BY c.id
                 ORDER BY saldo_pendiente_global DESC, dias_mora_maxima DESC";
 
-        $clientes = $this->db->query($sql);
+        $clientes = $this->db->fetchAll($sql);
 
         // Estadísticas generales
         $totalClientes = count($clientes);
