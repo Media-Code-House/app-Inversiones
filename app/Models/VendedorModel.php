@@ -110,27 +110,40 @@ class VendedorModel
      */
     public function findById($id)
     {
-        $sql = "SELECT 
-                    v.*,
-                    u.email as user_email,
-                    u.rol as user_rol,
-                    u.activo as user_activo,
-                    CONCAT(v.nombres, ' ', v.apellidos) as nombre_completo,
-                    
-                    -- Estadísticas
-                    (SELECT COUNT(*) FROM lotes l2 WHERE l2.vendedor_id = v.user_id AND l2.estado = 'vendido') as total_lotes_vendidos,
-                    (SELECT COALESCE(SUM(l2.precio_venta), 0) FROM lotes l2 WHERE l2.vendedor_id = v.user_id AND l2.estado = 'vendido') as valor_total_vendido,
-                    (SELECT COUNT(*) FROM comisiones c2 WHERE c2.vendedor_id = v.id) as total_comisiones,
-                    (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id) as total_comisiones_generadas,
-                    (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id AND c2.estado = 'pendiente') as comisiones_pendientes,
-                    (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id AND c2.estado = 'pagada') as comisiones_pagadas
-                    
-                FROM vendedores v
-                INNER JOIN users u ON v.user_id = u.id
-                WHERE v.id = ?
-                LIMIT 1";
-        
-        return $this->db->fetch($sql, [$id]);
+        try {
+            \Logger::info("VendedorModel::findById - Buscando vendedor ID: $id");
+            
+            $sql = "SELECT 
+                        v.*,
+                        u.email as user_email,
+                        u.rol as user_rol,
+                        u.activo as user_activo,
+                        CONCAT(v.nombres, ' ', v.apellidos) as nombre_completo,
+                        
+                        -- Estadísticas
+                        (SELECT COUNT(*) FROM lotes l2 WHERE l2.vendedor_id = v.user_id AND l2.estado = 'vendido') as total_lotes_vendidos,
+                        (SELECT COALESCE(SUM(COALESCE(l2.precio_venta, l2.precio_lista)), 0) FROM lotes l2 WHERE l2.vendedor_id = v.user_id AND l2.estado = 'vendido') as valor_total_vendido,
+                        (SELECT COUNT(*) FROM comisiones c2 WHERE c2.vendedor_id = v.id) as total_comisiones,
+                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id) as total_comisiones_generadas,
+                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id AND c2.estado = 'pendiente') as comisiones_pendientes,
+                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id AND c2.estado = 'pagada') as comisiones_pagadas
+                        
+                    FROM vendedores v
+                    INNER JOIN users u ON v.user_id = u.id
+                    WHERE v.id = ?
+                    LIMIT 1";
+            
+            \Logger::info("VendedorModel::findById - Ejecutando query...");
+            $resultado = $this->db->fetch($sql, [$id]);
+            \Logger::info("VendedorModel::findById - Resultado: " . ($resultado ? 'ENCONTRADO' : 'NO ENCONTRADO'));
+            
+            return $resultado;
+            
+        } catch (\Exception $e) {
+            \Logger::error("VendedorModel::findById - ERROR: " . $e->getMessage());
+            \Logger::error("VendedorModel::findById - Archivo: " . $e->getFile() . ' línea ' . $e->getLine());
+            throw $e;
+        }
     }
 
     /**
@@ -273,26 +286,41 @@ class VendedorModel
      */
     public function getLotesVendidos($vendedorId, $limit = null)
     {
-        $vendedor = $this->findById($vendedorId);
-        if (!$vendedor) return [];
-        
-        $sql = "SELECT 
-                    l.*,
-                    p.nombre as proyecto_nombre,
-                    p.codigo as proyecto_codigo,
-                    c.nombre as cliente_nombre,
-                    c.numero_documento as cliente_documento
-                FROM lotes l
-                INNER JOIN proyectos p ON l.proyecto_id = p.id
-                LEFT JOIN clientes c ON l.cliente_id = c.id
-                WHERE l.vendedor_id = ? AND l.estado = 'vendido'
-                ORDER BY l.fecha_venta DESC";
-        
-        if ($limit) {
-            $sql .= " LIMIT " . (int)$limit;
+        try {
+            \Logger::info("VendedorModel::getLotesVendidos - Vendedor ID: $vendedorId, Limit: " . ($limit ?? 'sin límite'));
+            
+            $vendedor = $this->findById($vendedorId);
+            if (!$vendedor) {
+                \Logger::info("VendedorModel::getLotesVendidos - Vendedor no encontrado");
+                return [];
+            }
+            
+            $sql = "SELECT 
+                        l.*,
+                        p.nombre as proyecto_nombre,
+                        p.codigo as proyecto_codigo,
+                        c.nombre as cliente_nombre,
+                        c.numero_documento as cliente_documento
+                    FROM lotes l
+                    INNER JOIN proyectos p ON l.proyecto_id = p.id
+                    LEFT JOIN clientes c ON l.cliente_id = c.id
+                    WHERE l.vendedor_id = ? AND l.estado = 'vendido'
+                    ORDER BY l.fecha_venta DESC";
+            
+            if ($limit) {
+                $sql .= " LIMIT " . (int)$limit;
+            }
+            
+            \Logger::info("VendedorModel::getLotesVendidos - Ejecutando query con user_id: " . $vendedor['user_id']);
+            $resultado = $this->db->fetchAll($sql, [$vendedor['user_id']]);
+            \Logger::info("VendedorModel::getLotesVendidos - Lotes encontrados: " . count($resultado));
+            
+            return $resultado;
+            
+        } catch (\Exception $e) {
+            \Logger::error("VendedorModel::getLotesVendidos - ERROR: " . $e->getMessage());
+            throw $e;
         }
-        
-        return $this->db->fetchAll($sql, [$vendedor['user_id']]);
     }
 
     /**
@@ -300,27 +328,39 @@ class VendedorModel
      */
     public function getComisiones($vendedorId, $estado = null)
     {
-        $sql = "SELECT 
-                    c.*,
-                    l.codigo_lote,
-                    p.nombre as proyecto_nombre,
-                    cl.nombre as cliente_nombre
-                FROM comisiones c
-                INNER JOIN lotes l ON c.lote_id = l.id
-                INNER JOIN proyectos p ON l.proyecto_id = p.id
-                LEFT JOIN clientes cl ON l.cliente_id = cl.id
-                WHERE c.vendedor_id = ?";
-        
-        $params = [$vendedorId];
-        
-        if ($estado) {
-            $sql .= " AND c.estado = ?";
-            $params[] = $estado;
+        try {
+            \Logger::info("VendedorModel::getComisiones - Vendedor ID: $vendedorId, Estado: " . ($estado ?? 'todos'));
+            
+            $sql = "SELECT 
+                        c.*,
+                        l.codigo_lote,
+                        p.nombre as proyecto_nombre,
+                        cl.nombre as cliente_nombre
+                    FROM comisiones c
+                    INNER JOIN lotes l ON c.lote_id = l.id
+                    INNER JOIN proyectos p ON l.proyecto_id = p.id
+                    LEFT JOIN clientes cl ON l.cliente_id = cl.id
+                    WHERE c.vendedor_id = ?";
+            
+            $params = [$vendedorId];
+            
+            if ($estado) {
+                $sql .= " AND c.estado = ?";
+                $params[] = $estado;
+            }
+            
+            $sql .= " ORDER BY c.fecha_venta DESC";
+            
+            \Logger::info("VendedorModel::getComisiones - Ejecutando query...");
+            $resultado = $this->db->fetchAll($sql, $params);
+            \Logger::info("VendedorModel::getComisiones - Comisiones encontradas: " . count($resultado));
+            
+            return $resultado;
+            
+        } catch (\Exception $e) {
+            \Logger::error("VendedorModel::getComisiones - ERROR: " . $e->getMessage());
+            throw $e;
         }
-        
-        $sql .= " ORDER BY c.fecha_venta DESC";
-        
-        return $this->db->fetchAll($sql, $params);
     }
 
     /**

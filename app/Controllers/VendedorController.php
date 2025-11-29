@@ -93,45 +93,66 @@ class VendedorController extends Controller
      */
     public function show($id)
     {
-        $this->requireAuth();
-        $this->requireRole(['administrador']);
+        try {
+            \Logger::info("VendedorController::show - Iniciando para vendedor ID: $id");
+            
+            $this->requireAuth();
+            $this->requireRole(['administrador']);
+            \Logger::info("VendedorController::show - Auth OK");
 
-        $vendedor = $this->vendedorModel->findById($id);
+            \Logger::info("VendedorController::show - Buscando vendedor...");
+            $vendedor = $this->vendedorModel->findById($id);
+            \Logger::info("VendedorController::show - Vendedor encontrado: " . ($vendedor ? 'SI' : 'NO'));
 
-        if (!$vendedor) {
-            $this->flash('error', 'Vendedor no encontrado');
-            $this->redirect('/vendedores');
-            return;
-        }
-
-        // Obtener lotes vendidos
-        $lotesVendidos = $this->vendedorModel->getLotesVendidos($id, 10);
-
-        // Obtener comisiones
-        $comisiones = $this->vendedorModel->getComisiones($id);
-
-        // Calcular estadísticas adicionales
-        $estadisticas = [
-            'comisiones_pendientes_count' => 0,
-            'comisiones_pagadas_count' => 0,
-            'ultimo_pago' => null
-        ];
-
-        foreach ($comisiones as $c) {
-            if ($c['estado'] === 'pendiente') {
-                $estadisticas['comisiones_pendientes_count']++;
-            } elseif ($c['estado'] === 'pagada') {
-                $estadisticas['comisiones_pagadas_count']++;
+            if (!$vendedor) {
+                \Logger::info("VendedorController::show - Vendedor no encontrado, redirigiendo");
+                $this->flash('error', 'Vendedor no encontrado');
+                $this->redirect('/vendedores');
+                return;
             }
-        }
 
-        $this->view('vendedores/show', [
-            'title' => 'Detalle de Vendedor',
-            'vendedor' => $vendedor,
-            'lotesVendidos' => $lotesVendidos,
-            'comisiones' => $comisiones,
-            'estadisticas' => $estadisticas
-        ]);
+            // Obtener lotes vendidos
+            \Logger::info("VendedorController::show - Obteniendo lotes vendidos...");
+            $lotesVendidos = $this->vendedorModel->getLotesVendidos($id, 10);
+            \Logger::info("VendedorController::show - Lotes obtenidos: " . count($lotesVendidos));
+
+            // Obtener comisiones
+            \Logger::info("VendedorController::show - Obteniendo comisiones...");
+            $comisiones = $this->vendedorModel->getComisiones($id);
+            \Logger::info("VendedorController::show - Comisiones obtenidas: " . count($comisiones));
+
+            // Calcular estadísticas adicionales
+            \Logger::info("VendedorController::show - Calculando estadísticas...");
+            $estadisticas = [
+                'comisiones_pendientes_count' => 0,
+                'comisiones_pagadas_count' => 0,
+                'ultimo_pago' => null
+            ];
+
+            foreach ($comisiones as $c) {
+                if ($c['estado'] === 'pendiente') {
+                    $estadisticas['comisiones_pendientes_count']++;
+                } elseif ($c['estado'] === 'pagada') {
+                    $estadisticas['comisiones_pagadas_count']++;
+                }
+            }
+
+            \Logger::info("VendedorController::show - Renderizando vista...");
+            $this->view('vendedores/show', [
+                'title' => 'Detalle de Vendedor',
+                'vendedor' => $vendedor,
+                'lotesVendidos' => $lotesVendidos,
+                'comisiones' => $comisiones,
+                'estadisticas' => $estadisticas
+            ]);
+            \Logger::info("VendedorController::show - Vista renderizada OK");
+            
+        } catch (\Exception $e) {
+            \Logger::error("VendedorController::show - ERROR: " . $e->getMessage());
+            \Logger::error("VendedorController::show - Archivo: " . $e->getFile() . ' línea ' . $e->getLine());
+            \Logger::error("VendedorController::show - Stack trace: " . $e->getTraceAsString());
+            throw $e;
+        }
     }
 
     /**
