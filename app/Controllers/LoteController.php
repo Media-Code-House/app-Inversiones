@@ -20,7 +20,6 @@ class LoteController extends Controller
 
     public function __construct()
     {
-        parent::__construct();
         $this->loteModel = new LoteModel();
         $this->proyectoModel = new ProyectoModel();
         $this->clienteModel = new ClienteModel();
