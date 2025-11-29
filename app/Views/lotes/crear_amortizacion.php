@@ -6,7 +6,7 @@
                 <i class="bi bi-calendar-plus"></i> Crear Plan de Amortización
             </h1>
             <p class="text-muted mb-0">
-                Lote: <strong><?= htmlspecialchars($lote['codigo']) ?></strong> - 
+                Lote: <strong><?= htmlspecialchars($lote['codigo_lote']) ?></strong> - 
                 Proyecto: <strong><?= htmlspecialchars($lote['proyecto_nombre']) ?></strong>
             </p>
         </div>
@@ -187,13 +187,13 @@
                         <dd class="col-sm-7"><?= htmlspecialchars($lote['proyecto_nombre']) ?></dd>
 
                         <dt class="col-sm-5">Código:</dt>
-                        <dd class="col-sm-7"><strong><?= htmlspecialchars($lote['codigo']) ?></strong></dd>
+                        <dd class="col-sm-7"><strong><?= htmlspecialchars($lote['codigo_lote']) ?></strong></dd>
 
                         <dt class="col-sm-5">Cliente:</dt>
                         <dd class="col-sm-7"><?= htmlspecialchars($lote['cliente_nombre'] ?? 'Sin asignar') ?></dd>
 
                         <dt class="col-sm-5">Área:</dt>
-                        <dd class="col-sm-7"><?= number_format($lote['area'], 2) ?> m²</dd>
+                        <dd class="col-sm-7"><?= number_format($lote['area_m2'], 2) ?> m²</dd>
 
                         <dt class="col-sm-5">Estado:</dt>
                         <dd class="col-sm-7">
@@ -298,6 +298,12 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             return false;
         }
+
+        // Si pasa todas las validaciones, mostrar indicador de carga
+        console.log('Enviando formulario...');
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
     });
 
     // Inicializar vista previa
