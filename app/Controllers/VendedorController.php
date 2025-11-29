@@ -175,9 +175,14 @@ class VendedorController extends Controller
              ORDER BY u.nombre"
         );
 
+        // Generar código sugerido
+        $ultimoVendedor = $db->fetch("SELECT codigo_vendedor FROM vendedores ORDER BY id DESC LIMIT 1");
+        $codigoSugerido = 'VEND-' . str_pad((count($db->fetchAll("SELECT id FROM vendedores")) + 1), 4, '0', STR_PAD_LEFT);
+
         $this->view('vendedores/create', [
             'title' => 'Crear Vendedor',
-            'usuariosDisponibles' => $usuariosDisponibles
+            'usuariosDisponibles' => $usuariosDisponibles,
+            'codigoSugerido' => $codigoSugerido
         ]);
     }
 
