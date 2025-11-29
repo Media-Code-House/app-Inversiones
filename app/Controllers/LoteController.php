@@ -293,7 +293,7 @@ class LoteController extends Controller
             }
 
             // Validar datos requeridos
-            $required = ['proyecto_id', 'codigo_lote', 'area', 'precio_lista'];
+            $required = ['proyecto_id', 'codigo_lote', 'area_m2', 'precio_lista'];
             foreach ($required as $field) {
                 if (empty($_POST[$field])) {
                     throw new \Exception("El campo {$field} es obligatorio");
