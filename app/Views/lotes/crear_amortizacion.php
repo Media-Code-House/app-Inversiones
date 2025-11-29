@@ -383,16 +383,20 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         
         let todosCompletos = true;
+        let camposFaltantes = [];
         camposRequeridos.forEach(campo => {
             const input = form.elements[campo];
             if (!input || !input.value || input.value.trim() === '') {
                 console.error('Campo vacío:', campo);
+                camposFaltantes.push(campo);
                 todosCompletos = false;
+            } else {
+                console.log('Campo ' + campo + ':', input.value);
             }
         });
         
         if (!todosCompletos) {
-            alert('Por favor complete todos los campos requeridos');
+            alert('Campos faltantes: ' + camposFaltantes.join(', '));
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Sí, Generar Plan';
             return;
@@ -402,17 +406,28 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.disabled = true;
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
         
+        // Agregar overlay de carga en toda la página
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+        overlay.innerHTML = '<div style="background:white;padding:30px;border-radius:10px;text-align:center;"><div class="spinner-border text-primary mb-3" role="status"></div><h4>Generando Plan de Amortización...</h4><p class="text-muted">Por favor espere...</p></div>';
+        document.body.appendChild(overlay);
+        
         // Cerrar modal
         const modalInstance = bootstrap.Modal.getInstance(modalElement);
         if (modalInstance) {
             modalInstance.hide();
         }
         
-        // Enviar formulario después de un pequeño delay para que cierre el modal
+        // Enviar formulario después de un pequeño delay
         setTimeout(function() {
-            console.log('Enviando formulario...');
+            console.log('=== ENVIANDO FORMULARIO ===');
             console.log('Action:', form.action);
             console.log('Method:', form.method);
+            console.log('Datos del formulario:');
+            const formData = new FormData(form);
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ':', pair[1]);
+            }
             form.submit();
         }, 300);
     });

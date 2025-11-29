@@ -91,7 +91,12 @@ class AmortizacionController extends Controller
             ob_end_clean();
         }
         
+        // Log de inicio
+        error_log("=== INICIO store() de AmortizacionController ===");
+        error_log("POST data: " . print_r($_POST, true));
+        
         if (!can('crear_amortizacion')) {
+            error_log("ERROR: Usuario no tiene permisos para crear_amortizacion");
             $_SESSION['error'] = 'No tienes permisos para crear planes de amortización';
             redirect('/lotes');
             return;
@@ -99,6 +104,7 @@ class AmortizacionController extends Controller
 
         // Validar CSRF
         if (!$this->validateCsrf()) {
+            error_log("ERROR: Token CSRF inválido");
             $_SESSION['error'] = 'Token de seguridad inválido. Por favor, recargue la página e intente nuevamente.';
             redirect('/lotes/amortizacion/create/' . ($_POST['lote_id'] ?? ''));
             return;
@@ -108,11 +114,14 @@ class AmortizacionController extends Controller
         $required = ['lote_id', 'cuota_inicial', 'monto_financiado', 'tasa_interes', 'numero_cuotas', 'fecha_inicio'];
         foreach ($required as $field) {
             if (empty($_POST[$field])) {
+                error_log("ERROR: Campo requerido faltante: {$field}");
                 $_SESSION['error'] = "El campo {$field} es requerido";
                 redirect($_SERVER['HTTP_REFERER'] ?? '/lotes');
                 return;
             }
         }
+        
+        error_log("Validaciones pasadas exitosamente");
 
         $lote_id = (int)$_POST['lote_id'];
         $cuota_inicial = (float)$_POST['cuota_inicial'];
@@ -123,20 +132,35 @@ class AmortizacionController extends Controller
         $observaciones = $_POST['observaciones'] ?? null;
 
         // Validar lote
+        error_log("Buscando lote con ID: {$lote_id}");
         $lote = $this->loteModel->findById($lote_id);
         
-        if (!$lote || $lote['estado'] !== 'vendido') {
-            $_SESSION['error'] = 'Lote inválido o no vendido';
+        if (!$lote) {
+            error_log("ERROR: Lote no encontrado");
+            $_SESSION['error'] = 'Lote no encontrado';
             redirect('/lotes');
             return;
         }
+        
+        if ($lote['estado'] !== 'vendido') {
+            error_log("ERROR: Lote no está en estado vendido. Estado actual: {$lote['estado']}");
+            $_SESSION['error'] = 'El lote no está en estado vendido';
+            redirect('/lotes/show/' . $lote_id);
+            return;
+        }
+        
+        error_log("Lote validado correctamente");
 
         // Validar que no exista plan activo
+        error_log("Verificando si existe plan activo...");
         if ($this->amortizacionModel->hasActiveAmortization($lote_id)) {
+            error_log("ERROR: Ya existe un plan de amortización activo");
             $_SESSION['error'] = 'Este lote ya tiene un plan de amortización activo';
             redirect('/lotes/show/' . $lote_id);
             return;
         }
+        
+        error_log("No existe plan activo, continuando...");
 
         // Validaciones de negocio
         if ($monto_financiado <= 0) {
@@ -199,12 +223,24 @@ class AmortizacionController extends Controller
             }
 
             $db->commit();
+            
+            error_log("=== PLAN CREADO EXITOSAMENTE ===");
+            error_log("Redirigiendo a: /lotes/amortizacion/show/{$lote_id}");
 
             $_SESSION['success'] = "Plan de amortización creado exitosamente con {$numero_cuotas} cuotas";
+            
+            // Limpiar buffers nuevamente antes de redirigir
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            
             redirect('/lotes/amortizacion/show/' . $lote_id);
+            exit();
 
         } catch (\Exception $e) {
-            error_log("Error al crear plan de amortización: " . $e->getMessage());
+            error_log("=== ERROR EN CREACIÓN DE PLAN ===");
+            error_log("Mensaje: " . $e->getMessage());
+            error_log("Trace: " . $e->getTraceAsString());
             
             if (isset($db)) {
                 $db->rollback();
