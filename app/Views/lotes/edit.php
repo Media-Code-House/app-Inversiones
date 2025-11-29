@@ -138,6 +138,30 @@
                                 </div>
 
                                 <div class="col-md-6 mb-3">
+                                    <label for="vendedor_id" class="form-label">
+                                        Vendedor <span class="text-muted">(Opcional)</span>
+                                    </label>
+                                    <select name="vendedor_id" id="vendedor_id" class="form-select" 
+                                            <?= !$puedeEditar ? 'disabled' : '' ?>>
+                                        <option value="">Sin vendedor asignado</option>
+                                        <?php foreach ($vendedores as $vendedor): ?>
+                                            <option value="<?= $vendedor['id'] ?>" 
+                                                    <?= $lote['vendedor_id'] == $vendedor['id'] ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($vendedor['nombre'] . ' - ' . ucfirst($vendedor['rol'])) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> El vendedor recibirá comisión por esta venta
+                                    </small>
+                                    <?php if (!$puedeEditar): ?>
+                                        <input type="hidden" name="vendedor_id" value="<?= $lote['vendedor_id'] ?>">
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
                                     <label for="precio_venta" class="form-label">Precio de Venta</label>
                                     <div class="input-group">
                                         <span class="input-group-text">$</span>
@@ -147,13 +171,13 @@
                                                <?= !$puedeEditar ? 'readonly' : '' ?>>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="mb-3">
-                                <label for="fecha_venta" class="form-label">Fecha de Venta</label>
-                                <input type="date" name="fecha_venta" id="fecha_venta" class="form-control" 
-                                       value="<?= $lote['fecha_venta'] ?? date('Y-m-d') ?>" 
-                                       <?= !$puedeEditar ? 'readonly' : '' ?>>
+                                <div class="col-md-6 mb-3">
+                                    <label for="fecha_venta" class="form-label">Fecha de Venta</label>
+                                    <input type="date" name="fecha_venta" id="fecha_venta" class="form-control" 
+                                           value="<?= $lote['fecha_venta'] ?? date('Y-m-d') ?>" 
+                                           <?= !$puedeEditar ? 'readonly' : '' ?>>
+                                </div>
                             </div>
 
                             <!-- Tipo de Pago -->

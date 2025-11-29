@@ -56,6 +56,18 @@
                                 <i class="fas fa-users"></i> Clientes
                             </a>
                         </li>
+                        <?php if (hasRole('administrador')): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= url('/vendedores') ?>">
+                                <i class="fas fa-user-tie"></i> Vendedores
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= url('/comisiones') ?>">
+                                <i class="fas fa-money-bill-wave"></i> Comisiones
+                            </a>
+                        </li>
+                        <?php endif; ?>
                         <li class="nav-item">
                             <a class="nav-link" href="<?= url('/reportes') ?>">
                                 <i class="fas fa-chart-line"></i> Reportes

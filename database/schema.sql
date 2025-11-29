@@ -1,3 +1,21 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1:3306
+-- Generation Time: Nov 29, 2025 at 01:57 PM
+-- Server version: 11.8.3-MariaDB-log
+-- PHP Version: 7.2.34
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Database: `u418271893_inversiones`
@@ -33,7 +51,7 @@ CREATE TABLE `amortizaciones` (
 --
 
 INSERT INTO `amortizaciones` (`id`, `lote_id`, `numero_cuota`, `fecha_vencimiento`, `fecha_pago`, `estado`, `valor_cuota`, `capital`, `interes`, `saldo`, `valor_pagado`, `dias_mora`, `observaciones`, `created_at`, `updated_at`) VALUES
-(1, 2, 1, '2025-12-29', NULL, 'pendiente', 1977085.83, 1557085.83, 420000.00, 40442914.17, 0.00, 0, '', '2025-11-29 10:15:03', '2025-11-29 10:15:03'),
+(1, 2, 1, '2025-12-29', '2025-11-29', 'pagada', 1977085.83, 1557085.83, 420000.00, 40442914.17, 1977085.83, 0, '', '2025-11-29 10:15:03', '2025-11-29 13:53:29'),
 (2, 2, 2, '2026-01-29', NULL, 'pendiente', 1977085.83, 1572656.69, 404429.14, 38870257.47, 0.00, 0, '', '2025-11-29 10:15:03', '2025-11-29 10:15:03'),
 (3, 2, 3, '2026-03-01', NULL, 'pendiente', 1977085.83, 1588383.26, 388702.57, 37281874.22, 0.00, 0, '', '2025-11-29 10:15:03', '2025-11-29 10:15:03'),
 (4, 2, 4, '2026-03-29', NULL, 'pendiente', 1977085.83, 1604267.09, 372818.74, 35677607.13, 0.00, 0, '', '2025-11-29 10:15:03', '2025-11-29 10:15:03'),
@@ -63,7 +81,8 @@ INSERT INTO `amortizaciones` (`id`, `lote_id`, `numero_cuota`, `fecha_vencimient
 --
 DELIMITER $$
 CREATE TRIGGER `before_amortizacion_update` BEFORE UPDATE ON `amortizaciones` FOR EACH ROW BEGIN
-    IF NEW.estado_pago = 'mora' THEN
+    -- Actualizar días de mora cuando el estado cambia a mora
+    IF NEW.estado = 'mora' THEN
         SET NEW.dias_mora = DATEDIFF(CURDATE(), NEW.fecha_vencimiento);
     END IF;
 END
@@ -174,6 +193,13 @@ CREATE TABLE `pagos` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `pagos`
+--
+
+INSERT INTO `pagos` (`id`, `amortizacion_id`, `fecha_pago`, `valor_pagado`, `metodo_pago`, `numero_recibo`, `observaciones`, `created_at`, `updated_at`) VALUES
+(8, 1, '2025-11-29', 1977085.83, 'transferencia', 'nn', '', '2025-11-29 13:53:29', '2025-11-29 13:53:29');
 
 -- --------------------------------------------------------
 
@@ -341,7 +367,7 @@ ALTER TABLE `lotes`
 -- AUTO_INCREMENT for table `pagos`
 --
 ALTER TABLE `pagos`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `proyectos`

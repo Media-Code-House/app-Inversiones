@@ -266,12 +266,23 @@ class LoteController extends Controller
 
         $proyectos = $this->proyectoModel->getAll();
         $clientes = $this->clienteModel->getAll();
+        
+        // Obtener usuarios que pueden ser vendedores (administrador y vendedor)
+        $db = \Database::getInstance();
+        $vendedores = $db->fetchAll(
+            "SELECT id, nombre, email, rol 
+             FROM users 
+             WHERE rol IN ('administrador', 'vendedor') 
+             AND activo = 1 
+             ORDER BY nombre"
+        );
 
         $this->view('lotes/edit', [
             'title' => 'Editar Lote',
             'lote' => $lote,
             'proyectos' => $proyectos,
             'clientes' => $clientes,
+            'vendedores' => $vendedores,
             'puedeEditar' => $puedeEditar,
             'mensajeBloqueo' => $mensajeBloqueo
         ]);
@@ -333,6 +344,7 @@ class LoteController extends Controller
                 $clienteId = $this->handleClienteForVenta($_POST);
                 
                 $data['cliente_id'] = $clienteId;
+                $data['vendedor_id'] = !empty($_POST['vendedor_id']) ? (int)$_POST['vendedor_id'] : null;
                 $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : $data['precio_lista'];
                 $data['fecha_venta'] = !empty($_POST['fecha_venta']) ? $_POST['fecha_venta'] : ($lote['fecha_venta'] ?? date('Y-m-d'));
                 

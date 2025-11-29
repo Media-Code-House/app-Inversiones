@@ -214,6 +214,38 @@ $router->get('/reportes/cartera', 'ReporteController@cartera');
 $router->get('/reportes/estado-clientes', 'ReporteController@estadoClientes');
 
 // ==========================================
+// COMISIONES - MÓDULO 7 (Gestión de Comisiones)
+// ==========================================
+
+// Gestión de comisiones (solo administrador)
+$router->get('/comisiones', 'ComisionController@index');
+$router->get('/comisiones/resumen', 'ComisionController@resumen');
+$router->get('/comisiones/show/{id}', 'ComisionController@show');
+$router->get('/comisiones/pagar/{id}', 'ComisionController@pagar');
+$router->post('/comisiones/registrar-pago/{id}', 'ComisionController@registrarPago');
+$router->get('/comisiones/configuracion', 'ComisionController@configuracion');
+$router->post('/comisiones/actualizar-configuracion/{id}', 'ComisionController@actualizarConfiguracion');
+
+// Mis comisiones (vendedores pueden ver sus propias comisiones)
+$router->get('/comisiones/mis-comisiones', 'ComisionController@misComisiones');
+
+// ==========================================
+// VENDEDORES - MÓDULO 8 (Gestión de Vendedores)
+// ==========================================
+
+// CRUD de vendedores
+$router->get('/vendedores', 'VendedorController@index');
+$router->get('/vendedores/create', 'VendedorController@create');
+$router->post('/vendedores/store', 'VendedorController@store');
+$router->get('/vendedores/show/{id}', 'VendedorController@show');
+$router->get('/vendedores/edit/{id}', 'VendedorController@edit');
+$router->post('/vendedores/update/{id}', 'VendedorController@update');
+
+// Ranking y estadísticas
+$router->get('/vendedores/ranking', 'VendedorController@ranking');
+$router->get('/vendedores/mi-perfil', 'VendedorController@miPerfil');
+
+// ==========================================
 // LOGS DEL SISTEMA (Admin)
 // ==========================================
 
