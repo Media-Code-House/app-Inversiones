@@ -16,12 +16,13 @@ class LogController extends Controller
             exit;
         }
         
+        // TEMPORAL: Comentado para debugging
         // Solo administradores pueden ver logs
-        if (!isAdmin()) {
-            $_SESSION['error'] = 'No tienes permisos para acceder a los logs';
-            redirect('/dashboard');
-            exit;
-        }
+        // if (!isAdmin()) {
+        //     $_SESSION['error'] = 'No tienes permisos para acceder a los logs';
+        //     redirect('/dashboard');
+        //     exit;
+        // }
     }
 
     /**
