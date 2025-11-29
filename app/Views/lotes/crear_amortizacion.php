@@ -135,7 +135,7 @@
                             <a href="/lotes/show/<?= $lote['id'] ?>" class="btn btn-secondary btn-lg">
                                 <i class="bi bi-x-circle"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-success btn-lg">
+                            <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#modalConfirmar">
                                 <i class="bi bi-check-circle-fill"></i> Generar Plan de Amortización
                             </button>
                         </div>
@@ -220,6 +220,52 @@
     </div>
 </div>
 
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="modalConfirmar" tabindex="-1" aria-labelledby="modalConfirmarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalConfirmarLabel">
+                    <i class="bi bi-check-circle"></i> Confirmar Generación de Plan
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>¿Desea generar el plan de amortización con los siguientes datos?</strong>
+                </div>
+                
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">Monto a Financiar:</dt>
+                    <dd class="col-sm-6 text-end fw-bold" id="modalMonto">$0</dd>
+                    
+                    <dt class="col-sm-6">Tasa de Interés:</dt>
+                    <dd class="col-sm-6 text-end" id="modalTasa">0%</dd>
+                    
+                    <dt class="col-sm-6">Número de Cuotas:</dt>
+                    <dd class="col-sm-6 text-end" id="modalCuotas">0 meses</dd>
+                    
+                    <dt class="col-sm-6 pt-2 border-top">Cuota Mensual:</dt>
+                    <dd class="col-sm-6 text-end pt-2 border-top fw-bold text-success" id="modalCuotaMensual">$0</dd>
+                </dl>
+                
+                <div class="alert alert-warning mt-3 mb-0">
+                    <small><i class="bi bi-exclamation-triangle"></i> Esta acción generará automáticamente todas las cuotas del plan.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btnConfirmarGenerar">
+                    <i class="bi bi-check-circle-fill"></i> Sí, Generar Plan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const precioVenta = parseFloat(document.getElementById('precio_venta').value);
@@ -277,33 +323,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Validación del formulario
-    document.getElementById('formAmortizacion').addEventListener('submit', function(e) {
+    // Actualizar datos en el modal cuando se abre
+    const modal = document.getElementById('modalConfirmar');
+    modal.addEventListener('show.bs.modal', function() {
         const monto = parseFloat(inputMontoFinanciado.value) || 0;
         const cuotas = parseInt(inputCuotas.value) || 0;
-
+        
+        // Validaciones antes de mostrar modal
         if (monto <= 0) {
-            e.preventDefault();
             alert('El monto a financiar debe ser mayor a cero');
-            return false;
+            return;
         }
-
+        
         if (cuotas < 1 || cuotas > 360) {
-            e.preventDefault();
             alert('El número de cuotas debe estar entre 1 y 360');
-            return false;
+            return;
         }
-
-        if (!confirm('¿Desea generar el plan de amortización con estos datos?')) {
-            e.preventDefault();
-            return false;
+        
+        const tasaAnual = parseFloat(inputTasa.value) || 0;
+        const tasaMensual = (tasaAnual / 100) / 12;
+        
+        let cuotaFija = 0;
+        if (tasaMensual > 0) {
+            const factor = Math.pow(1 + tasaMensual, cuotas);
+            cuotaFija = monto * (tasaMensual * factor) / (factor - 1);
+        } else {
+            cuotaFija = monto / cuotas;
         }
-
-        // Si pasa todas las validaciones, mostrar indicador de carga
+        
+        // Actualizar valores en el modal
+        document.getElementById('modalMonto').textContent = formatMoney(monto);
+        document.getElementById('modalTasa').textContent = tasaAnual.toFixed(2) + '% anual';
+        document.getElementById('modalCuotas').textContent = cuotas + ' meses';
+        document.getElementById('modalCuotaMensual').textContent = formatMoney(cuotaFija);
+    });
+    
+    // Botón de confirmar en el modal
+    document.getElementById('btnConfirmarGenerar').addEventListener('click', function() {
         console.log('Enviando formulario...');
-        const submitBtn = this.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
+        
+        // Deshabilitar botón y mostrar estado de carga
+        this.disabled = true;
+        this.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
+        
+        // Cerrar modal
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('modalConfirmar'));
+        modalInstance.hide();
+        
+        // Enviar formulario
+        document.getElementById('formAmortizacion').submit();
     });
 
     // Inicializar vista previa
