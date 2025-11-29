@@ -1,248 +1,177 @@
--- ==========================================
--- SCRIPT DDL: Sistema de Gestión de Lotes
--- Versión: 2.0 - Módulo 3
--- ==========================================
+INSERT INTO proyectos (codigo, nombre, ubicacion, descripcion, estado, fecha_inicio) VALUES
+('PRY-001', 'Urbanización El Paraíso', 'Carrera 15 #45-32, Montería', 'Proyecto residencial de 50 lotes con servicios públicos', 'activo', '2024-01-15'),
+('PRY-002', 'Parcelación Villa Verde', 'Vía Planeta Rica Km 12', 'Parcelación campestre con lotes desde 500m²', 'activo', '2024-03-01'),
+('PRY-003', 'Conjunto Cerrado Los Robles', 'Avenida Circunvalar Norte', 'Conjunto cerrado con zonas comunes y piscina', 'pausado', '2023-11-20');
 
--- Crear base de datos
-CREATE DATABASE IF NOT EXISTS sistema_lotes
-    DEFAULT CHARACTER SET utf8mb4
-    DEFAULT COLLATE utf8mb4_unicode_ci;
+-- ================================================
+-- CLIENTES DE EJEMPLO
+-- ================================================
 
-USE sistema_lotes;
+INSERT INTO clientes (tipo_documento, numero_documento, nombre, telefono, email, ciudad) VALUES
+('CC', '1234567890', 'Juan Carlos Pérez Martínez', '3001234567', 'jperez@email.com', 'Montería'),
+('CC', '9876543210', 'María Fernanda García López', '3109876543', 'mgarcia@email.com', 'Cereté'),
+('NIT', '900123456-1', 'Inversiones S.A.S.', '3201122334', 'contacto@inversiones.com', 'Montería'),
+('CC', '5555666677', 'Pedro Antonio Rojas Díaz', '3145556666', 'projas@email.com', 'Lorica'),
+('CC', '1122334455', 'Ana Lucía Morales Herrera', '3187778888', 'amorales@email.com', 'Montería');
 
--- ==========================================
--- TABLA: users
--- Gestiona los usuarios del sistema
--- ==========================================
+-- ================================================
+-- LOTES DE EJEMPLO - Proyecto 1 (El Paraíso)
+-- ================================================
 
-CREATE TABLE IF NOT EXISTS users (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    nombre VARCHAR(100) NOT NULL,
-    rol_id TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '1=Usuario, 2=Vendedor, 3=Admin',
-    reset_token VARCHAR(64) NULL COMMENT 'Token para recuperación de contraseña',
-    reset_token_expires DATETIME NULL COMMENT 'Fecha de expiración del token',
-    is_active BOOLEAN DEFAULT TRUE COMMENT 'Estado del usuario',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_email (email),
-    INDEX idx_rol (rol_id),
-    INDEX idx_reset_token (reset_token)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT INTO lotes (proyecto_id, codigo_lote, manzana, area_m2, precio_lista, estado) VALUES
+-- Manzana A - Disponibles
+(1, 'A-01', 'A', 200.00, 45000000, 'disponible'),
+(1, 'A-02', 'A', 210.00, 47000000, 'disponible'),
+(1, 'A-03', 'A', 205.00, 46000000, 'disponible'),
+(1, 'A-04', 'A', 220.00, 50000000, 'disponible'),
+(1, 'A-05', 'A', 195.00, 44000000, 'disponible'),
 
--- ==========================================
--- TABLA: proyectos
--- Gestiona los proyectos inmobiliarios
--- ==========================================
+-- Manzana B - Vendidos
+(1, 'B-01', 'B', 180.00, 40000000, 'vendido'),
+(1, 'B-02', 'B', 185.00, 41000000, 'vendido'),
+(1, 'B-03', 'B', 190.00, 42000000, 'vendido'),
 
-CREATE TABLE IF NOT EXISTS proyectos (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    codigo VARCHAR(20) NOT NULL UNIQUE COMMENT 'Código único del proyecto',
-    nombre VARCHAR(150) NOT NULL,
-    ubicacion VARCHAR(255) NULL,
-    descripcion TEXT NULL,
-    estado ENUM('activo', 'pausado', 'finalizado') NOT NULL DEFAULT 'activo',
-    fecha_inicio DATE NULL,
-    fecha_finalizacion DATE NULL,
-    total_lotes INT UNSIGNED DEFAULT 0 COMMENT 'Total de lotes en el proyecto',
-    observaciones TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_codigo (codigo),
-    INDEX idx_estado (estado),
-    INDEX idx_fecha_inicio (fecha_inicio)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Manzana C - Reservados
+(1, 'C-01', 'C', 200.00, 45000000, 'reservado'),
+(1, 'C-02', 'C', 210.00, 47000000, 'reservado');
 
--- ==========================================
--- TABLA: clientes
--- Gestiona la información de clientes
--- ==========================================
+-- Actualizar clientes en lotes vendidos
+UPDATE lotes SET cliente_id = 1, precio_venta = 39000000, fecha_venta = '2024-02-10' WHERE codigo_lote = 'B-01' AND proyecto_id = 1;
+UPDATE lotes SET cliente_id = 2, precio_venta = 41000000, fecha_venta = '2024-03-15' WHERE codigo_lote = 'B-02' AND proyecto_id = 1;
+UPDATE lotes SET cliente_id = 4, precio_venta = 42500000, fecha_venta = '2024-04-20' WHERE codigo_lote = 'B-03' AND proyecto_id = 1;
 
-CREATE TABLE IF NOT EXISTS clientes (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    tipo_documento ENUM('CC', 'CE', 'NIT', 'TI', 'PASAPORTE') NOT NULL DEFAULT 'CC',
-    numero_documento VARCHAR(20) NOT NULL UNIQUE COMMENT 'Cédula u otro documento',
-    nombre_completo VARCHAR(150) NOT NULL,
-    telefono VARCHAR(20) NULL,
-    email VARCHAR(150) NULL,
-    direccion VARCHAR(255) NULL,
-    ciudad VARCHAR(100) NULL,
-    departamento VARCHAR(100) NULL,
-    fecha_nacimiento DATE NULL,
-    estado_civil ENUM('soltero', 'casado', 'union_libre', 'viudo', 'divorciado') NULL,
-    ocupacion VARCHAR(100) NULL,
-    observaciones TEXT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_documento (numero_documento),
-    INDEX idx_nombre (nombre_completo),
-    INDEX idx_email (email),
-    INDEX idx_active (is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- ================================================
+-- LOTES DE EJEMPLO - Proyecto 2 (Villa Verde)
+-- ================================================
 
--- ==========================================
--- TABLA: lotes
--- Gestiona los lotes de cada proyecto
--- ==========================================
+INSERT INTO lotes (proyecto_id, codigo_lote, area_m2, precio_lista, estado) VALUES
+(2, 'L-01', 500.00, 85000000, 'disponible'),
+(2, 'L-02', 550.00, 92000000, 'disponible'),
+(2, 'L-03', 600.00, 100000000, 'vendido'),
+(2, 'L-04', 520.00, 88000000, 'vendido'),
+(2, 'L-05', 480.00, 82000000, 'disponible');
 
-CREATE TABLE IF NOT EXISTS lotes (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    proyecto_id INT UNSIGNED NOT NULL,
-    codigo_lote VARCHAR(20) NOT NULL COMMENT 'Código del lote dentro del proyecto',
-    manzana VARCHAR(10) NULL COMMENT 'Manzana o sector',
-    area_m2 DECIMAL(10,2) NOT NULL COMMENT 'Área en metros cuadrados',
-    precio_lista DECIMAL(15,2) NOT NULL COMMENT 'Precio de lista del lote',
-    precio_venta DECIMAL(15,2) NULL COMMENT 'Precio real de venta (si difiere)',
-    estado ENUM('disponible', 'reservado', 'vendido', 'bloqueado') NOT NULL DEFAULT 'disponible',
-    cliente_id INT UNSIGNED NULL COMMENT 'Cliente dueño (si está vendido)',
-    vendedor_id INT UNSIGNED NULL COMMENT 'Usuario vendedor',
-    fecha_venta DATETIME NULL,
-    observaciones TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (proyecto_id) REFERENCES proyectos(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (vendedor_id) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    UNIQUE KEY uk_proyecto_codigo (proyecto_id, codigo_lote),
-    INDEX idx_estado (estado),
-    INDEX idx_proyecto (proyecto_id),
-    INDEX idx_cliente (cliente_id),
-    INDEX idx_vendedor (vendedor_id),
-    INDEX idx_fecha_venta (fecha_venta)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Actualizar clientes en lotes vendidos
+UPDATE lotes SET cliente_id = 3, precio_venta = 98000000, fecha_venta = '2024-04-01' WHERE codigo_lote = 'L-03' AND proyecto_id = 2;
+UPDATE lotes SET cliente_id = 5, precio_venta = 87000000, fecha_venta = '2024-05-10' WHERE codigo_lote = 'L-04' AND proyecto_id = 2;
 
--- ==========================================
--- TABLA: amortizaciones
--- Plan de pagos para cada venta de lote
--- ==========================================
+-- ================================================
+-- PLAN DE AMORTIZACIÓN - Lote B-01 (Juan Carlos)
+-- ================================================
 
-CREATE TABLE IF NOT EXISTS amortizaciones (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    lote_id INT UNSIGNED NOT NULL,
-    cliente_id INT UNSIGNED NOT NULL,
-    numero_cuota SMALLINT UNSIGNED NOT NULL,
-    fecha_vencimiento DATE NOT NULL,
-    valor_cuota DECIMAL(15,2) NOT NULL,
-    saldo_pendiente DECIMAL(15,2) NOT NULL DEFAULT 0,
-    estado_pago ENUM('pendiente', 'pagada', 'mora', 'cancelada') NOT NULL DEFAULT 'pendiente',
-    dias_mora INT UNSIGNED DEFAULT 0,
-    observaciones TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (lote_id) REFERENCES lotes(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    INDEX idx_lote (lote_id),
-    INDEX idx_cliente (cliente_id),
-    INDEX idx_estado (estado_pago),
-    INDEX idx_fecha_vencimiento (fecha_vencimiento),
-    INDEX idx_mora (dias_mora)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Lote vendido: $39,000,000
+-- Inicial: $9,000,000 (pagado)
+-- Saldo financiado: $30,000,000
+-- Plan: 24 cuotas mensuales de $1,250,000
 
--- ==========================================
--- TABLA: pagos
--- Registro de pagos realizados
--- ==========================================
+INSERT INTO amortizaciones (lote_id, numero_cuota, valor_cuota, fecha_vencimiento, estado) VALUES
+-- Cuotas pagadas (Feb-Abr 2024)
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 1, 1250000, '2024-03-10', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 2, 1250000, '2024-04-10', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 3, 1250000, '2024-05-10', 'pagada'),
 
-CREATE TABLE IF NOT EXISTS pagos (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    amortizacion_id INT UNSIGNED NOT NULL,
-    lote_id INT UNSIGNED NOT NULL,
-    cliente_id INT UNSIGNED NOT NULL,
-    fecha_pago DATETIME NOT NULL,
-    valor_pagado DECIMAL(15,2) NOT NULL,
-    metodo_pago ENUM('efectivo', 'transferencia', 'cheque', 'tarjeta', 'otro') NOT NULL DEFAULT 'efectivo',
-    numero_recibo VARCHAR(50) NULL COMMENT 'Número de recibo o comprobante',
-    observaciones TEXT NULL,
-    registrado_por INT UNSIGNED NULL COMMENT 'Usuario que registró el pago',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (amortizacion_id) REFERENCES amortizaciones(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (lote_id) REFERENCES lotes(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE RESTRICT ON UPDATE CASCADE,
-    FOREIGN KEY (registrado_por) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,
-    INDEX idx_amortizacion (amortizacion_id),
-    INDEX idx_lote (lote_id),
-    INDEX idx_cliente (cliente_id),
-    INDEX idx_fecha_pago (fecha_pago),
-    INDEX idx_recibo (numero_recibo)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Cuotas en mora (Mayo-Jun vencidas, hoy es ~Dic 2024)
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 4, 1250000, '2024-06-10', 'pendiente'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 5, 1250000, '2024-07-10', 'pendiente'),
 
--- ==========================================
--- DATOS INICIALES
--- ==========================================
+-- Cuotas próximas a vencer
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 6, 1250000, DATE_ADD(CURDATE(), INTERVAL 5 DAY), 'pendiente'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 7, 1250000, DATE_ADD(CURDATE(), INTERVAL 10 DAY), 'pendiente'),
 
--- Usuario administrador por defecto
--- Password: admin123
-INSERT INTO users (email, password_hash, nombre, rol_id) VALUES
-('admin@sistema.com', '$2y$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyKqr0j4i9Uq', 'Administrador', 3)
-ON DUPLICATE KEY UPDATE email = email;
+-- Cuotas futuras
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 8, 1250000, DATE_ADD(CURDATE(), INTERVAL 40 DAY), 'pendiente'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 9, 1250000, DATE_ADD(CURDATE(), INTERVAL 70 DAY), 'pendiente'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1), 10, 1250000, DATE_ADD(CURDATE(), INTERVAL 100 DAY), 'pendiente');
 
--- ==========================================
--- TRIGGERS Y FUNCIONES
--- ==========================================
+-- Marcar cuotas 1-3 como pagadas
+UPDATE amortizaciones 
+SET valor_pagado = 1250000, saldo_pendiente = 0, fecha_pago = fecha_vencimiento
+WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1)
+AND numero_cuota IN (1, 2, 3);
 
--- Trigger: Actualizar total_lotes al insertar/actualizar/eliminar lotes
-DELIMITER $$
+-- ================================================
+-- PLAN DE AMORTIZACIÓN - Lote B-02 (María Fernanda)
+-- ================================================
 
-CREATE TRIGGER IF NOT EXISTS after_lote_insert
-AFTER INSERT ON lotes
-FOR EACH ROW
-BEGIN
-    UPDATE proyectos 
-    SET total_lotes = (SELECT COUNT(*) FROM lotes WHERE proyecto_id = NEW.proyecto_id)
-    WHERE id = NEW.proyecto_id;
-END$$
+-- Lote vendido: $41,000,000
+-- Inicial: $11,000,000 (pagado)
+-- Saldo financiado: $30,000,000
+-- Plan: 20 cuotas mensuales de $1,500,000
 
-CREATE TRIGGER IF NOT EXISTS after_lote_delete
-AFTER DELETE ON lotes
-FOR EACH ROW
-BEGIN
-    UPDATE proyectos 
-    SET total_lotes = (SELECT COUNT(*) FROM lotes WHERE proyecto_id = OLD.proyecto_id)
-    WHERE id = OLD.proyecto_id;
-END$$
+INSERT INTO amortizaciones (lote_id, numero_cuota, valor_cuota, fecha_vencimiento, estado) VALUES
+-- Cuotas pagadas
+((SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1), 1, 1500000, '2024-04-15', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1), 2, 1500000, '2024-05-15', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1), 3, 1500000, '2024-06-15', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1), 4, 1500000, '2024-07-15', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1), 5, 1500000, '2024-08-15', 'pagada'),
 
--- Trigger: Actualizar días de mora en amortizaciones
-CREATE TRIGGER IF NOT EXISTS before_amortizacion_update
-BEFORE UPDATE ON amortizaciones
-FOR EACH ROW
-BEGIN
-    IF NEW.estado_pago = 'mora' THEN
-        SET NEW.dias_mora = DATEDIFF(CURDATE(), NEW.fecha_vencimiento);
-    END IF;
-END$$
+-- Cuotas próximas
+((SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1), 6, 1500000, DATE_ADD(CURDATE(), INTERVAL 8 DAY), 'pendiente'),
+((SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1), 7, 1500000, DATE_ADD(CURDATE(), INTERVAL 38 DAY), 'pendiente');
 
-DELIMITER ;
+-- Marcar cuotas 1-5 como pagadas
+UPDATE amortizaciones 
+SET valor_pagado = 1500000, saldo_pendiente = 0, fecha_pago = fecha_vencimiento
+WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1)
+AND numero_cuota IN (1, 2, 3, 4, 5);
 
--- ==========================================
--- VISTAS ÚTILES
--- ==========================================
+-- ================================================
+-- REGISTRO DE PAGOS - Lote B-01
+-- ================================================
 
--- Vista: Resumen de proyectos con estadísticas
-CREATE OR REPLACE VIEW vista_proyectos_resumen AS
-SELECT 
-    p.id,
-    p.codigo,
-    p.nombre,
-    p.estado,
-    p.total_lotes,
-    COUNT(DISTINCT CASE WHEN l.estado = 'disponible' THEN l.id END) as lotes_disponibles,
-    COUNT(DISTINCT CASE WHEN l.estado = 'vendido' THEN l.id END) as lotes_vendidos,
-    COUNT(DISTINCT CASE WHEN l.estado = 'reservado' THEN l.id END) as lotes_reservados,
-    SUM(CASE WHEN l.estado IN ('disponible', 'reservado') THEN l.precio_lista ELSE 0 END) as valor_inventario,
-    SUM(CASE WHEN l.estado = 'vendido' THEN COALESCE(l.precio_venta, l.precio_lista) ELSE 0 END) as valor_ventas
-FROM proyectos p
-LEFT JOIN lotes l ON p.id = l.proyecto_id
-WHERE p.estado = 'activo'
-GROUP BY p.id, p.codigo, p.nombre, p.estado, p.total_lotes;
+INSERT INTO pagos (amortizacion_id, valor_pagado, metodo_pago, fecha_pago, numero_recibo) VALUES
+-- Cuota 1
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1) AND numero_cuota = 1), 1250000, 'transferencia', '2024-03-10', 'REC-001'),
+-- Cuota 2
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1) AND numero_cuota = 2), 1250000, 'efectivo', '2024-04-08', 'REC-002'),
+-- Cuota 3
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-01' AND proyecto_id = 1) AND numero_cuota = 3), 1250000, 'cheque', '2024-05-10', 'REC-003');
 
--- ==========================================
--- NOTAS FINALES
--- ==========================================
--- Integridad Referencial: ON DELETE RESTRICT previene eliminación accidental
--- Índices: Optimizan consultas frecuentes
--- Triggers: Mantienen consistencia automática
--- Vistas: Simplifican consultas complejas
--- ==========================================
+-- ================================================
+-- REGISTRO DE PAGOS - Lote B-02
+-- ================================================
+
+INSERT INTO pagos (amortizacion_id, valor_pagado, metodo_pago, fecha_pago, numero_recibo) VALUES
+-- Cuotas 1-5
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1) AND numero_cuota = 1), 1500000, 'transferencia', '2024-04-15', 'REC-004'),
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1) AND numero_cuota = 2), 1500000, 'transferencia', '2024-05-14', 'REC-005'),
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1) AND numero_cuota = 3), 1500000, 'transferencia', '2024-06-15', 'REC-006'),
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1) AND numero_cuota = 4), 1500000, 'efectivo', '2024-07-13', 'REC-007'),
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'B-02' AND proyecto_id = 1) AND numero_cuota = 5), 1500000, 'tarjeta', '2024-08-15', 'REC-008');
+
+-- ================================================
+-- PLAN DE AMORTIZACIÓN - Lote L-03 (Inversiones S.A.S.)
+-- ================================================
+
+-- Lote vendido: $98,000,000
+-- Inicial: $38,000,000 (pagado)
+-- Saldo financiado: $60,000,000
+-- Plan: 30 cuotas mensuales de $2,000,000
+
+INSERT INTO amortizaciones (lote_id, numero_cuota, valor_cuota, fecha_vencimiento, estado) VALUES
+-- Cuotas pagadas
+((SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2), 1, 2000000, '2024-05-01', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2), 2, 2000000, '2024-06-01', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2), 3, 2000000, '2024-07-01', 'pagada'),
+((SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2), 4, 2000000, '2024-08-01', 'pagada'),
+
+-- Cuotas próximas
+((SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2), 5, 2000000, DATE_ADD(CURDATE(), INTERVAL 3 DAY), 'pendiente'),
+((SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2), 6, 2000000, DATE_ADD(CURDATE(), INTERVAL 33 DAY), 'pendiente');
+
+-- Marcar cuotas 1-4 como pagadas
+UPDATE amortizaciones 
+SET valor_pagado = 2000000, saldo_pendiente = 0, fecha_pago = fecha_vencimiento
+WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2)
+AND numero_cuota IN (1, 2, 3, 4);
+
+-- ================================================
+-- REGISTRO DE PAGOS - Lote L-03
+-- ================================================
+
+INSERT INTO pagos (amortizacion_id, valor_pagado, metodo_pago, fecha_pago, numero_recibo) VALUES
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2) AND numero_cuota = 1), 2000000, 'transferencia', '2024-05-01', 'REC-009'),
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2) AND numero_cuota = 2), 2000000, 'transferencia', '2024-06-01', 'REC-010'),
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2) AND numero_cuota = 3), 2000000, 'transferencia', '2024-07-01', 'REC-011'),
+((SELECT id FROM amortizaciones WHERE lote_id = (SELECT id FROM lotes WHERE codigo_lote = 'L-03' AND proyecto_id = 2) AND numero_cuota = 4), 2000000, 'transferencia', '2024-08-01', 'REC-012');
