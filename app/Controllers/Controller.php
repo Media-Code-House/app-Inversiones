@@ -81,6 +81,31 @@ abstract class Controller
     }
 
     /**
+     * Valida que el usuario tenga el rol especificado
+     */
+    protected function requireRole($roles)
+    {
+        // Si es un array, verificar si tiene alguno de los roles
+        if (is_array($roles)) {
+            requireAuth();
+            $hasRole = false;
+            foreach ($roles as $rol) {
+                if (hasRole($rol)) {
+                    $hasRole = true;
+                    break;
+                }
+            }
+            if (!$hasRole) {
+                setFlash('danger', 'No tienes permisos para acceder a esta página');
+                redirect('/dashboard');
+            }
+        } else {
+            // Si es un string, usar la función helper directamente
+            requireRole($roles);
+        }
+    }
+
+    /**
      * Obtiene input POST
      */
     protected function post($key, $default = null)
