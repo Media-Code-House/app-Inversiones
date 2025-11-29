@@ -9,10 +9,17 @@ class LogController extends Controller
 {
     public function __construct()
     {
+        // Verificar que el usuario esté autenticado
+        if (!isset($_SESSION['user'])) {
+            $_SESSION['error'] = 'Debe iniciar sesión para acceder a los logs';
+            redirect('/auth/login');
+            exit;
+        }
+        
         // Solo administradores pueden ver logs
         if (!isAdmin()) {
             $_SESSION['error'] = 'No tienes permisos para acceder a los logs';
-            redirect('/');
+            redirect('/dashboard');
             exit;
         }
     }

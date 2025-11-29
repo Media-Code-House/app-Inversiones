@@ -82,6 +82,14 @@ function hasRole($rol)
 }
 
 /**
+ * Verifica si el usuario es administrador
+ */
+function isAdmin()
+{
+    return isset($_SESSION['user']['rol']) && $_SESSION['user']['rol'] === 'admin';
+}
+
+/**
  * Genera un token CSRF
  */
 function generateCsrfToken()
