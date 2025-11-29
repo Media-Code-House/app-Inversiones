@@ -155,6 +155,60 @@
                                        value="<?= $lote['fecha_venta'] ?? date('Y-m-d') ?>" 
                                        <?= !$puedeEditar ? 'readonly' : '' ?>>
                             </div>
+
+                            <!-- Tipo de Pago -->
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Pago</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="tipo_pago" 
+                                                   id="tipo_contado" value="contado" 
+                                                   <?= (!isset($lote['tipo_pago']) || $lote['tipo_pago'] == 'contado') ? 'checked' : '' ?>
+                                                   <?= !$puedeEditar ? 'disabled' : '' ?>>
+                                            <label class="form-check-label" for="tipo_contado">
+                                                <strong>Pago de Contado (100%)</strong>
+                                                <br><small class="text-muted">Sin plan de amortización</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="tipo_pago" 
+                                                   id="tipo_amortizacion" value="amortizacion" 
+                                                   <?= (isset($lote['tipo_pago']) && $lote['tipo_pago'] == 'amortizacion') ? 'checked' : '' ?>
+                                                   <?= !$puedeEditar ? 'disabled' : '' ?>>
+                                            <label class="form-check-label" for="tipo_amortizacion">
+                                                <strong>Pago con Amortización</strong>
+                                                <br><small class="text-muted">Crear plan de cuotas con intereses</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info mt-2" id="infoTipoPago">
+                                    <small>
+                                        <i class="bi bi-info-circle"></i> 
+                                        <strong>Contado:</strong> El pago se realiza al 100% sin cuotas.
+                                        <strong>Amortización:</strong> Después de guardar podrás crear el plan de cuotas.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <?php if ($lote['estado'] === 'vendido' && $lote['tiene_amortizacion'] > 0): ?>
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle-fill"></i> Este lote ya tiene un plan de amortización activo.
+                                <a href="/lotes/amortizacion/show/<?= $lote['id'] ?>" class="btn btn-sm btn-success ms-2">
+                                    Ver Plan de Amortización
+                                </a>
+                            </div>
+                            <?php elseif ($lote['estado'] === 'vendido' && isset($lote['tipo_pago']) && $lote['tipo_pago'] == 'amortizacion'): ?>
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Lote configurado para amortización pero sin plan creado.
+                                <a href="/lotes/amortizacion/create/<?= $lote['id'] ?>" class="btn btn-sm btn-warning ms-2">
+                                    Crear Plan de Amortización
+                                </a>
+                            </div>
+                            <?php endif; ?>
                         </div>
 
                         <!-- Botones -->

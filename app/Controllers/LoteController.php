@@ -171,8 +171,11 @@ class LoteController extends Controller
                 $clienteId = $this->handleClienteForVenta($_POST);
                 
                 $data['cliente_id'] = $clienteId;
-                $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : null;
+                $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : $data['precio_lista'];
                 $data['fecha_venta'] = !empty($_POST['fecha_venta']) ? $_POST['fecha_venta'] : date('Y-m-d');
+                
+                // Tipo de pago: contado o amortización
+                $data['tipo_pago'] = $_POST['tipo_pago'] ?? 'contado';
             }
 
             // Crear lote
@@ -233,7 +236,7 @@ class LoteController extends Controller
             return $clienteId;
         }
 
-        throw new \Exception("Para vender un lote debe seleccionar un cliente existente o crear uno nuevo");
+        throw new \Exception("Para marcar un lote como vendido debe asignar un cliente");
     }
 
     /**
@@ -314,14 +317,6 @@ class LoteController extends Controller
                 throw new \Exception("Ya existe un lote con el código '{$_POST['codigo_lote']}' en el proyecto '{$proyecto['nombre']}'");
             }
 
-            // Validar cambio de estado
-            if (isset($_POST['estado']) && $_POST['estado'] !== $lote['estado']) {
-                $validacion = $this->loteModel->canChangeEstado($id, $_POST['estado']);
-                if (!$validacion['valid']) {
-                    throw new \Exception($validacion['message']);
-                }
-            }
-
             // Preparar datos
             $data = [
                 'proyecto_id' => (int)$_POST['proyecto_id'],
@@ -338,8 +333,19 @@ class LoteController extends Controller
                 $clienteId = $this->handleClienteForVenta($_POST);
                 
                 $data['cliente_id'] = $clienteId;
-                $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : null;
+                $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : $data['precio_lista'];
                 $data['fecha_venta'] = !empty($_POST['fecha_venta']) ? $_POST['fecha_venta'] : ($lote['fecha_venta'] ?? date('Y-m-d'));
+                
+                // Tipo de pago: contado o amortización
+                $data['tipo_pago'] = $_POST['tipo_pago'] ?? 'contado';
+            }
+
+            // Validar cambio de estado después de procesar datos de venta
+            if (isset($_POST['estado']) && $_POST['estado'] !== $lote['estado']) {
+                $validacion = $this->loteModel->canChangeEstado($id, $_POST['estado']);
+                if (!$validacion['valid']) {
+                    throw new \Exception($validacion['message']);
+                }
             }
 
             // Actualizar lote

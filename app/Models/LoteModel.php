@@ -478,10 +478,8 @@ class LoteModel
             }
         }
 
-        // Si el nuevo estado es vendido, debe tener cliente asignado
-        if ($nuevoEstado === 'vendido' && empty($lote['cliente_id'])) {
-            return ['valid' => false, 'message' => 'Para marcar un lote como vendido debe asignar un cliente'];
-        }
+        // Nota: La validación de cliente se hace en el controlador al procesar el POST
+        // para permitir asignar cliente y estado vendido simultáneamente
 
         return ['valid' => true];
     }
