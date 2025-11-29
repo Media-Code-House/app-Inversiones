@@ -111,16 +111,35 @@ class ReporteController extends Controller
         $sql .= " ORDER BY l.fecha_venta DESC";
 
         $lotes = $this->db->fetchAll($sql, $params);
+        
+        // Asegurar que sea un array
+        if (!is_array($lotes)) {
+            $lotes = [];
+        }
 
-        // Calcular totales (con manejo seguro de NULL)
-        $preciosVenta = array_filter(array_column($lotes, 'precio_venta'), fn($v) => $v !== null);
-        $comisiones = array_filter(array_column($lotes, 'comision_vendedor'), fn($v) => $v !== null);
-        $totalVentas = array_sum($preciosVenta);
-        $totalComisiones = array_sum($comisiones);
+        // Calcular totales de forma segura
+        $totalVentas = 0;
+        $totalComisiones = 0;
+        
+        foreach ($lotes as $lote) {
+            if (isset($lote['precio_venta']) && is_numeric($lote['precio_venta'])) {
+                $totalVentas += floatval($lote['precio_venta']);
+            }
+            if (isset($lote['comision_vendedor']) && is_numeric($lote['comision_vendedor'])) {
+                $totalComisiones += floatval($lote['comision_vendedor']);
+            }
+        }
 
         // Obtener proyectos y vendedores para filtros
-        $proyectos = $this->proyectoModel->findAll() ?: [];
-        $vendedores = $this->db->fetchAll("SELECT id, nombre FROM users WHERE rol = 'vendedor' ORDER BY nombre") ?: [];
+        $proyectos = $this->proyectoModel->findAll();
+        if (!is_array($proyectos)) {
+            $proyectos = [];
+        }
+        
+        $vendedores = $this->db->fetchAll("SELECT id, nombre FROM users WHERE rol = 'vendedor' ORDER BY nombre");
+        if (!is_array($vendedores)) {
+            $vendedores = [];
+        }
 
         $data = [
             'pageTitle' => 'Reporte: Lotes Vendidos',
@@ -310,14 +329,33 @@ class ReporteController extends Controller
         $sql .= " ORDER BY dias_mora DESC, a.fecha_vencimiento ASC";
 
         $cuotas = $this->db->fetchAll($sql, $params);
+        
+        // Asegurar que sea un array
+        if (!is_array($cuotas)) {
+            $cuotas = [];
+        }
 
-        // Calcular KPIs
-        $totalCartera = array_sum(array_column($cuotas, 'saldo'));
-        $cuotasVencidas = array_filter($cuotas, fn($c) => $c['dias_mora'] > 0);
-        $totalMora = array_sum(array_column($cuotasVencidas, 'saldo'));
+        // Calcular KPIs de forma segura
+        $totalCartera = 0;
+        $totalMora = 0;
+        $cantidadVencidas = 0;
+        
+        foreach ($cuotas as $cuota) {
+            if (isset($cuota['saldo']) && is_numeric($cuota['saldo'])) {
+                $totalCartera += floatval($cuota['saldo']);
+                
+                if (isset($cuota['dias_mora']) && $cuota['dias_mora'] > 0) {
+                    $totalMora += floatval($cuota['saldo']);
+                    $cantidadVencidas++;
+                }
+            }
+        }
 
         // Proyectos para filtro
         $proyectos = $this->proyectoModel->findAll();
+        if (!is_array($proyectos)) {
+            $proyectos = [];
+        }
 
         $data = [
             'pageTitle' => 'Reporte: Cartera Pendiente',
@@ -325,7 +363,7 @@ class ReporteController extends Controller
             'totalCartera' => $totalCartera,
             'totalMora' => $totalMora,
             'totalVigente' => $totalCartera - $totalMora,
-            'cantidadCuotasVencidas' => count($cuotasVencidas),
+            'cantidadCuotasVencidas' => $cantidadVencidas,
             'cantidadCuotasTotal' => count($cuotas),
             'proyectos' => $proyectos,
             'filtros' => [
