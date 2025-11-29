@@ -127,6 +127,34 @@ $router->post('/lotes/update/{id}', 'LoteController@update');
 $router->post('/lotes/delete/{id}', 'LoteController@delete');
 
 // ==========================================
+// RUTAS DE CLIENTES
+// ==========================================
+
+// Listar clientes
+$router->get('/clientes', 'ClienteController@index');
+
+// Formulario crear cliente
+$router->get('/clientes/create', 'ClienteController@create');
+
+// Guardar nuevo cliente
+$router->post('/clientes/store', 'ClienteController@store');
+
+// Ver detalle de cliente
+$router->get('/clientes/show/{id}', 'ClienteController@show');
+
+// Formulario editar cliente
+$router->get('/clientes/edit/{id}', 'ClienteController@edit');
+
+// Actualizar cliente
+$router->post('/clientes/update/{id}', 'ClienteController@update');
+
+// Eliminar cliente
+$router->post('/clientes/delete/{id}', 'ClienteController@delete');
+
+// Buscar cliente (AJAX)
+$router->post('/clientes/buscar', 'ClienteController@buscar');
+
+// ==========================================
 // AMORTIZACIÓN (Módulo 5)
 // ==========================================
 

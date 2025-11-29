@@ -336,3 +336,43 @@ function selectOptions($options, $selected = null, $includeEmpty = true, $emptyT
     
     return $html;
 }
+
+/**
+ * Verifica si existe un error de validación para un campo
+ * 
+ * @param string $field Nombre del campo
+ * @return bool
+ */
+function hasError($field)
+{
+    return isset($_SESSION['errors'][$field]);
+}
+
+/**
+ * Obtiene el mensaje de error de validación para un campo
+ * 
+ * @param string $field Nombre del campo
+ * @return string|null
+ */
+function getError($field)
+{
+    return $_SESSION['errors'][$field] ?? null;
+}
+
+/**
+ * Guarda errores de validación en la sesión
+ * 
+ * @param array $errors Array de errores [campo => mensaje]
+ */
+function saveErrors($errors)
+{
+    $_SESSION['errors'] = $errors;
+}
+
+/**
+ * Limpia los errores de validación de la sesión
+ */
+function clearErrors()
+{
+    unset($_SESSION['errors']);
+}

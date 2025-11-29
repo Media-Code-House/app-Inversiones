@@ -509,4 +509,22 @@ class LoteModel
 
         return $this->db->execute($sql, $params);
     }
+
+    /**
+     * Obtiene todos los lotes de un cliente
+     */
+    public function getByCliente($clienteId)
+    {
+        $sql = "SELECT l.*, 
+                       p.nombre as proyecto_nombre, 
+                       p.codigo as proyecto_codigo,
+                       (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id) as tiene_amortizacion,
+                       (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id AND estado IN ('pendiente', 'pagada')) as amortizacion_activa
+                FROM lotes l 
+                INNER JOIN proyectos p ON l.proyecto_id = p.id 
+                WHERE l.cliente_id = ? 
+                ORDER BY l.fecha_venta DESC, l.created_at DESC";
+        
+        return $this->db->fetchAll($sql, [$clienteId]);
+    }
 }

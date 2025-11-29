@@ -231,4 +231,94 @@ class ClienteModel
         $this->db->execute($sql, $params);
         return $this->db->lastInsertId();
     }
+
+    /**
+     * Obtiene clientes paginados con filtros
+     */
+    public function getAllPaginated($filters = [])
+    {
+        $page = $filters['page'] ?? 1;
+        $perPage = $filters['per_page'] ?? 15;
+        $search = $filters['search'] ?? '';
+        $tipo_documento = $filters['tipo_documento'] ?? '';
+        
+        $offset = ($page - 1) * $perPage;
+        
+        // Construir WHERE
+        $where = [];
+        $params = [];
+        
+        if (!empty($search)) {
+            $where[] = "(nombre LIKE ? OR numero_documento LIKE ? OR email LIKE ?)";
+            $searchParam = "%{$search}%";
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+            $params[] = $searchParam;
+        }
+        
+        if (!empty($tipo_documento)) {
+            $where[] = "tipo_documento = ?";
+            $params[] = $tipo_documento;
+        }
+        
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        
+        // Obtener total de registros
+        $sqlCount = "SELECT COUNT(*) as total FROM clientes {$whereClause}";
+        $totalResult = $this->db->fetch($sqlCount, $params);
+        $total = $totalResult['total'];
+        
+        // Obtener datos paginados con estadísticas
+        $sql = "SELECT c.*,
+                       (SELECT COUNT(*) FROM lotes WHERE cliente_id = c.id) as total_propiedades,
+                       (SELECT COUNT(*) FROM lotes WHERE cliente_id = c.id AND estado = 'vendido') as propiedades_vendidas
+                FROM clientes c
+                {$whereClause}
+                ORDER BY c.nombre ASC
+                LIMIT ? OFFSET ?";
+        
+        $params[] = $perPage;
+        $params[] = $offset;
+        
+        $data = $this->db->fetchAll($sql, $params);
+        
+        return [
+            'data' => $data,
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => $page,
+            'last_page' => ceil($total / $perPage)
+        ];
+    }
+
+    /**
+     * Búsqueda de clientes (para AJAX)
+     */
+    public function search($search)
+    {
+        $sql = "SELECT * FROM clientes 
+                WHERE nombre LIKE ? OR numero_documento LIKE ? OR email LIKE ?
+                ORDER BY nombre ASC 
+                LIMIT 20";
+        
+        $searchParam = "%{$search}%";
+        return $this->db->fetchAll($sql, [$searchParam, $searchParam, $searchParam]);
+    }
+
+    /**
+     * Obtiene resumen de amortización de una propiedad del cliente
+     */
+    public function getResumenAmortizacion($loteId)
+    {
+        $sql = "SELECT 
+                    COUNT(*) as total_cuotas,
+                    SUM(CASE WHEN estado = 'pagada' THEN 1 ELSE 0 END) as cuotas_pagadas,
+                    SUM(CASE WHEN estado = 'pendiente' THEN 1 ELSE 0 END) as cuotas_pendientes,
+                    SUM(valor_pagado) as total_pagado,
+                    SUM(saldo_pendiente) as saldo_total
+                FROM amortizaciones 
+                WHERE lote_id = ?";
+        
+        return $this->db->fetch($sql, [$loteId]);
+    }
 }
