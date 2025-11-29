@@ -126,20 +126,34 @@ $router->post('/lotes/update/{id}', 'LoteController@update');
 // Eliminar lote
 $router->post('/lotes/delete/{id}', 'LoteController@delete');
 
-// Ver plan de amortización (Módulo 5)
-$router->get('/lotes/amortizacion/{id}', 'LoteController@verAmortizacion');
+// ==========================================
+// AMORTIZACIÓN (Módulo 5)
+// ==========================================
 
-// Formulario crear plan de amortización (Módulo 5)
-$router->get('/lotes/amortizacion/create/{id}', 'LoteController@crearAmortizacion');
+// Ver tabla de amortización completa del lote
+$router->get('/lotes/amortizacion/show/{id}', 'AmortizacionController@show');
 
-// Guardar plan de amortización (Módulo 5)
-$router->post('/lotes/amortizacion/store/{id}', 'LoteController@guardarAmortizacion');
+// Formulario para crear plan de amortización
+$router->get('/lotes/amortizacion/create/{id}', 'AmortizacionController@create');
 
-// Formulario registrar pago (Módulo 5)
-$router->get('/lotes/registrar-pago/{id}', 'LoteController@registrarPago');
+// Guardar nuevo plan de amortización (método francés)
+$router->post('/lotes/amortizacion/store', 'AmortizacionController@store');
 
-// Guardar pago (Módulo 5)
-$router->post('/lotes/pagos/store/{id}', 'LoteController@guardarPago');
+// Recalcular plan de amortización (abono a capital)
+$router->post('/lotes/amortizacion/recalcular/{id}', 'AmortizacionController@recalcular');
+
+// ==========================================
+// PAGOS (Módulo 5)
+// ==========================================
+
+// Formulario para registrar pago
+$router->get('/lotes/pago/create/{id}', 'PagoController@create');
+
+// Guardar nuevo pago (con distribución y excedentes)
+$router->post('/lotes/pago/store', 'PagoController@store');
+
+// API: Calcular distribución de pago (AJAX)
+$router->post('/lotes/pago/calcular-distribucion', 'PagoController@calcularDistribucion');
 
 // ==========================================
 // DESPACHAR RUTA

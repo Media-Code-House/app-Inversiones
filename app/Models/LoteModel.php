@@ -253,7 +253,7 @@ class LoteModel
                        c.telefono as cliente_telefono,
                        c.email as cliente_email,
                        (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id) as tiene_amortizacion,
-                       (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id AND estado = 'activa') as amortizacion_activa
+                       (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id AND estado IN ('pendiente', 'pagada')) as amortizacion_activa
                 FROM lotes l 
                 INNER JOIN proyectos p ON l.proyecto_id = p.id 
                 LEFT JOIN clientes c ON l.cliente_id = c.id 
@@ -484,5 +484,31 @@ class LoteModel
         }
 
         return ['valid' => true];
+    }
+
+    /**
+     * Actualiza los campos de amortización del lote
+     */
+    public function updateAmortizacionFields($id, $data)
+    {
+        $sql = "UPDATE lotes SET 
+                cuota_inicial = ?,
+                monto_financiado = ?,
+                tasa_interes = ?,
+                numero_cuotas = ?,
+                fecha_inicio_amortizacion = ?,
+                updated_at = NOW()
+                WHERE id = ?";
+        
+        $params = [
+            $data['cuota_inicial'] ?? null,
+            $data['monto_financiado'] ?? null,
+            $data['tasa_interes'] ?? null,
+            $data['numero_cuotas'] ?? null,
+            $data['fecha_inicio_amortizacion'] ?? null,
+            $id
+        ];
+
+        return $this->db->execute($sql, $params);
     }
 }

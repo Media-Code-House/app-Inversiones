@@ -20,7 +20,11 @@ class AmortizacionModel
      */
     public function getByLote($loteId)
     {
-        $sql = "SELECT * FROM amortizaciones WHERE lote_id = ? ORDER BY numero_cuota ASC";
+        $sql = "SELECT *, 
+                       DATEDIFF(CURDATE(), fecha_vencimiento) as dias_mora_calculado
+                FROM amortizaciones 
+                WHERE lote_id = ? 
+                ORDER BY numero_cuota ASC";
         return $this->db->fetchAll($sql, [$loteId]);
     }
 

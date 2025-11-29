@@ -13,19 +13,23 @@
             
             <!-- Botones Financieros (Módulo 5) -->
             <?php if ($lote['estado'] === 'vendido'): ?>
-                <?php if (empty($amortizacion) || $amortizacion['total_cuotas'] == 0): ?>
+                <?php if ($lote['tiene_amortizacion'] > 0): ?>
+                    <!-- Si SÍ tiene plan de amortización: Botón para ver y registrar pago -->
+                    <a href="/lotes/amortizacion/show/<?= $lote['id'] ?>" class="btn btn-info">
+                        <i class="bi bi-calendar-check"></i> Ver Amortización
+                    </a>
+                    <?php if (can('registrar_pagos')): ?>
+                    <a href="/lotes/pago/create/<?= $lote['id'] ?>" class="btn btn-warning">
+                        <i class="bi bi-cash-coin"></i> Registrar Pago
+                    </a>
+                    <?php endif; ?>
+                <?php else: ?>
                     <!-- Si NO tiene plan de amortización: Botón para crear plan -->
+                    <?php if (can('crear_amortizacion')): ?>
                     <a href="/lotes/amortizacion/create/<?= $lote['id'] ?>" class="btn btn-success">
                         <i class="bi bi-calendar-plus"></i> Generar Plan de Amortización
                     </a>
-                <?php else: ?>
-                    <!-- Si SÍ tiene plan de amortización: Botón para ver y registrar pago -->
-                    <a href="/lotes/amortizacion/<?= $lote['id'] ?>" class="btn btn-info">
-                        <i class="bi bi-calendar-check"></i> Ver Amortización
-                    </a>
-                    <a href="/lotes/registrar-pago/<?= $lote['id'] ?>" class="btn btn-warning">
-                        <i class="bi bi-cash-coin"></i> Registrar Pago
-                    </a>
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endif; ?>
             
@@ -252,16 +256,16 @@
                             <?php endif; ?>
 
                             <div class="mt-4">
-                                <a href="/amortizaciones/lote/<?= $lote['id'] ?>" class="btn btn-outline-warning btn-sm">
+                                <a href="/lotes/amortizacion/show/<?= $lote['id'] ?>" class="btn btn-outline-warning btn-sm">
                                     <i class="bi bi-list-task"></i> Ver Plan de Amortización
                                 </a>
                             </div>
                         <?php else: ?>
                             <div class="alert alert-info mb-0">
                                 <i class="bi bi-info-circle"></i> Este lote no tiene un plan de amortización configurado.
-                                <?php if ($lote['amortizacion_activa'] == 0): ?>
+                                <?php if (can('crear_amortizacion')): ?>
                                     <hr>
-                                    <a href="/amortizaciones/crear/<?= $lote['id'] ?>" class="btn btn-sm btn-primary mt-2">
+                                    <a href="/lotes/amortizacion/create/<?= $lote['id'] ?>" class="btn btn-sm btn-primary mt-2">
                                         <i class="bi bi-plus-circle"></i> Crear Plan de Amortización
                                     </a>
                                 <?php endif; ?>

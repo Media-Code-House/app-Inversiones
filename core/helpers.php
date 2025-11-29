@@ -223,8 +223,30 @@ function can($permission)
     
     // Mapeo básico de permisos por rol
     $rolePermissions = [
-        'vendedor' => ['ver_lotes', 'crear_lotes', 'editar_lotes', 'ver_clientes', 'crear_clientes', 'ver_proyectos', 'crear_proyectos', 'editar_proyectos', 'eliminar_lotes'],
-        'usuario' => ['ver_lotes', 'ver_clientes', 'ver_proyectos']
+        'administrador' => [
+            'ver_lotes', 'crear_lotes', 'editar_lotes', 'eliminar_lotes',
+            'ver_clientes', 'crear_clientes', 'editar_clientes', 'eliminar_clientes',
+            'ver_proyectos', 'crear_proyectos', 'editar_proyectos', 'eliminar_proyectos',
+            'crear_amortizacion', 'ver_amortizacion', 'editar_amortizacion',
+            'registrar_pagos', 'ver_pagos', 'eliminar_pagos',
+            'ver_usuarios', 'crear_usuarios', 'editar_usuarios', 'eliminar_usuarios',
+            'ver_reportes', 'exportar_datos'
+        ],
+        'vendedor' => [
+            'ver_lotes', 'crear_lotes', 'editar_lotes', 'eliminar_lotes',
+            'ver_clientes', 'crear_clientes',
+            'ver_proyectos', 'crear_proyectos', 'editar_proyectos',
+            'crear_amortizacion', 'ver_amortizacion', 'editar_amortizacion',
+            'registrar_pagos', 'ver_pagos'
+        ],
+        'consulta' => [
+            'ver_lotes', 'ver_clientes', 'ver_proyectos',
+            'ver_amortizacion', 'ver_pagos', 'ver_reportes'
+        ],
+        'usuario' => [
+            'ver_lotes', 'ver_clientes', 'ver_proyectos',
+            'ver_amortizacion', 'ver_pagos'
+        ]
     ];
     
     $userRole = $_SESSION['user']['rol'] ?? 'usuario';

@@ -130,13 +130,22 @@
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <?php endif; ?>
-                                            <?php if ($lote['tiene_amortizacion'] > 0): ?>
-                                            <a href="/lotes/amortizacion/<?= $lote['id'] ?>" 
-                                               class="btn btn-outline-info" 
-                                               data-bs-toggle="tooltip" 
-                                               title="Ver amortización">
-                                                <i class="bi bi-calendar-check"></i>
-                                            </a>
+                                            <?php if ($lote['estado'] === 'vendido'): ?>
+                                                <?php if ($lote['tiene_amortizacion'] > 0): ?>
+                                                <a href="/lotes/amortizacion/show/<?= $lote['id'] ?>" 
+                                                   class="btn btn-outline-info" 
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Ver amortización">
+                                                    <i class="bi bi-calendar-check"></i>
+                                                </a>
+                                                <?php elseif (can('crear_amortizacion')): ?>
+                                                <a href="/lotes/amortizacion/create/<?= $lote['id'] ?>" 
+                                                   class="btn btn-outline-success" 
+                                                   data-bs-toggle="tooltip" 
+                                                   title="Crear plan de amortización">
+                                                    <i class="bi bi-calendar-plus"></i>
+                                                </a>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </div>
                                     </td>

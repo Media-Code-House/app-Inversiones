@@ -416,6 +416,7 @@ class LoteController extends Controller
             'title' => 'Detalle del Lote: ' . $lote['codigo_lote'],
             'lote' => $lote,
             'amortizacion' => $resumenPlan,
+            'resumenAmortizacion' => $resumenAmortizacion ?? null,
             'cuotas' => $cuotas,
             'pagos' => $pagos,
             'historial' => $historial,
