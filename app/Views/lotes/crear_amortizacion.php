@@ -331,12 +331,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Validaciones antes de mostrar modal
         if (monto <= 0) {
-            alert('El monto a financiar debe ser mayor a cero');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El monto a financiar debe ser mayor a cero <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
             return;
         }
         
         if (cuotas < 1 || cuotas > 360) {
-            alert('El número de cuotas debe estar entre 1 y 360');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El número de cuotas debe estar entre 1 y 360 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 3000);
             return;
         }
         

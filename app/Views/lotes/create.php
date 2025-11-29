@@ -310,7 +310,11 @@ document.getElementById('formLote').addEventListener('submit', function(e) {
             // Solo validar si se empezó a llenar
             if ((numDoc && !nombre) || (!numDoc && nombre)) {
                 e.preventDefault();
-                alert('Si va a crear un cliente, complete al menos: Número de documento y Nombre completo');
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+                alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Complete al menos: Número de documento y Nombre completo <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                this.insertBefore(alertDiv, this.firstChild);
+                setTimeout(() => alertDiv.remove(), 5000);
                 return false;
             }
         }

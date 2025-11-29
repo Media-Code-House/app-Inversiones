@@ -323,14 +323,14 @@ document.getElementById('formLote').addEventListener('submit', function(e) {
     
     if (estado === 'vendido' && !clienteId) {
         e.preventDefault();
-        alert('Debe seleccionar un cliente para marcar el lote como vendido');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+        alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Debe seleccionar un cliente para marcar el lote como vendido <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+        this.insertBefore(alertDiv, this.firstChild);
+        document.getElementById('cliente_id').focus();
         return false;
     }
     
-    // Confirmación antes de guardar
-    if (!confirm('¿Está seguro de guardar los cambios al lote?')) {
-        e.preventDefault();
-        return false;
-    }
+    // Sin confirmación, se guarda directamente
 });
 </script>

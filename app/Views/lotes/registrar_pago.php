@@ -384,7 +384,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (monto > saldoMaximo) {
             this.value = saldoMaximo;
-            alert('El monto no puede exceder el saldo pendiente: ' + formatMoney(saldoMaximo));
+            // Mostrar notificación temporal
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-warning position-fixed top-0 start-50 translate-middle-x mt-3';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El monto no puede exceder el saldo pendiente: ' + formatMoney(saldoMaximo);
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         if (monto > 0) {
@@ -465,20 +471,25 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (monto <= 0) {
             e.preventDefault();
-            alert('El monto del pago debe ser mayor a cero');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+            alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El monto del pago debe ser mayor a cero <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            this.insertBefore(alertDiv, this.firstChild);
+            inputMonto.focus();
             return false;
         }
         
         if (monto > saldoMaximo) {
             e.preventDefault();
-            alert('El monto no puede ser mayor al saldo pendiente');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El monto no puede ser mayor al saldo pendiente <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            this.insertBefore(alertDiv, this.firstChild);
+            inputMonto.focus();
             return false;
         }
         
-        if (!confirm('¿Confirma el registro de este pago por ' + formatMoney(monto) + '?')) {
-            e.preventDefault();
-            return false;
-        }
+        // Sin confirmación, se envía directamente
     });
 
     function formatMoney(amount) {
