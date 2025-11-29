@@ -184,6 +184,22 @@ $router->post('/lotes/pago/store', 'PagoController@store');
 $router->post('/lotes/pago/calcular-distribucion', 'PagoController@calcularDistribucion');
 
 // ==========================================
+// LOGS DEL SISTEMA (Admin)
+// ==========================================
+
+// Ver logs del sistema
+$router->get('/logs', 'LogController@index');
+
+// Obtener logs en JSON (AJAX)
+$router->get('/logs/fetch', 'LogController@fetch');
+
+// Limpiar logs
+$router->post('/logs/clear', 'LogController@clear');
+
+// Descargar archivo de logs
+$router->get('/logs/download', 'LogController@download');
+
+// ==========================================
 // DESPACHAR RUTA
 // ==========================================
 

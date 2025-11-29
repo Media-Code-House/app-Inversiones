@@ -92,11 +92,11 @@ class AmortizacionController extends Controller
         }
         
         // Log de inicio
-        error_log("=== INICIO store() de AmortizacionController ===");
-        error_log("POST data: " . print_r($_POST, true));
+        \Logger::info("=== INICIO store() de AmortizacionController ===");
+        \Logger::debug("POST data", $_POST);
         
         if (!can('crear_amortizacion')) {
-            error_log("ERROR: Usuario no tiene permisos para crear_amortizacion");
+            \Logger::error("Usuario no tiene permisos para crear_amortizacion");
             $_SESSION['error'] = 'No tienes permisos para crear planes de amortización';
             redirect('/lotes');
             return;
@@ -104,7 +104,7 @@ class AmortizacionController extends Controller
 
         // Validar CSRF
         if (!$this->validateCsrf()) {
-            error_log("ERROR: Token CSRF inválido");
+            \Logger::error("Token CSRF inválido");
             $_SESSION['error'] = 'Token de seguridad inválido. Por favor, recargue la página e intente nuevamente.';
             redirect('/lotes/amortizacion/create/' . ($_POST['lote_id'] ?? ''));
             return;
@@ -114,14 +114,14 @@ class AmortizacionController extends Controller
         $required = ['lote_id', 'cuota_inicial', 'monto_financiado', 'tasa_interes', 'numero_cuotas', 'fecha_inicio'];
         foreach ($required as $field) {
             if (empty($_POST[$field])) {
-                error_log("ERROR: Campo requerido faltante: {$field}");
+                \Logger::error("Campo requerido faltante: {$field}");
                 $_SESSION['error'] = "El campo {$field} es requerido";
                 redirect($_SERVER['HTTP_REFERER'] ?? '/lotes');
                 return;
             }
         }
         
-        error_log("Validaciones pasadas exitosamente");
+        \Logger::info("Validaciones pasadas exitosamente");
 
         $lote_id = (int)$_POST['lote_id'];
         $cuota_inicial = (float)$_POST['cuota_inicial'];
@@ -132,35 +132,35 @@ class AmortizacionController extends Controller
         $observaciones = $_POST['observaciones'] ?? null;
 
         // Validar lote
-        error_log("Buscando lote con ID: {$lote_id}");
+        \Logger::info("Buscando lote con ID: {$lote_id}");
         $lote = $this->loteModel->findById($lote_id);
         
         if (!$lote) {
-            error_log("ERROR: Lote no encontrado");
+            \Logger::error("Lote no encontrado");
             $_SESSION['error'] = 'Lote no encontrado';
             redirect('/lotes');
             return;
         }
         
         if ($lote['estado'] !== 'vendido') {
-            error_log("ERROR: Lote no está en estado vendido. Estado actual: {$lote['estado']}");
+            \Logger::error("Lote no está en estado vendido", ['estado_actual' => $lote['estado']]);
             $_SESSION['error'] = 'El lote no está en estado vendido';
             redirect('/lotes/show/' . $lote_id);
             return;
         }
         
-        error_log("Lote validado correctamente");
+        \Logger::info("Lote validado correctamente");
 
         // Validar que no exista plan activo
-        error_log("Verificando si existe plan activo...");
+        \Logger::info("Verificando si existe plan activo...");
         if ($this->amortizacionModel->hasActiveAmortization($lote_id)) {
-            error_log("ERROR: Ya existe un plan de amortización activo");
+            \Logger::error("Ya existe un plan de amortización activo");
             $_SESSION['error'] = 'Este lote ya tiene un plan de amortización activo';
             redirect('/lotes/show/' . $lote_id);
             return;
         }
         
-        error_log("No existe plan activo, continuando...");
+        \Logger::info("No existe plan activo, continuando...");
 
         // Validaciones de negocio
         if ($monto_financiado <= 0) {
@@ -224,8 +224,8 @@ class AmortizacionController extends Controller
 
             $db->commit();
             
-            error_log("=== PLAN CREADO EXITOSAMENTE ===");
-            error_log("Redirigiendo a: /lotes/amortizacion/show/{$lote_id}");
+            \Logger::info("=== PLAN CREADO EXITOSAMENTE ===");
+            \Logger::info("Redirigiendo a: /lotes/amortizacion/show/{$lote_id}");
 
             $_SESSION['success'] = "Plan de amortización creado exitosamente con {$numero_cuotas} cuotas";
             
@@ -238,9 +238,12 @@ class AmortizacionController extends Controller
             exit();
 
         } catch (\Exception $e) {
-            error_log("=== ERROR EN CREACIÓN DE PLAN ===");
-            error_log("Mensaje: " . $e->getMessage());
-            error_log("Trace: " . $e->getTraceAsString());
+            \Logger::error("=== ERROR EN CREACIÓN DE PLAN ===", [
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             if (isset($db)) {
                 $db->rollback();
