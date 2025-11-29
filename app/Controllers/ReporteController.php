@@ -349,14 +349,14 @@ class ReporteController extends Controller
             return;
         }
 
-        // Query consolidado por cliente
+        // Query consolidado por cliente (incluye lotes sin cliente asignado)
         $sql = "SELECT 
-                    c.id,
-                    c.nombre as cliente_nombre,
-                    c.tipo_documento,
-                    c.numero_documento,
-                    c.telefono,
-                    c.email,
+                    COALESCE(c.id, 0) as id,
+                    COALESCE(c.nombre, 'Sin cliente asignado') as cliente_nombre,
+                    COALESCE(c.tipo_documento, '-') as tipo_documento,
+                    COALESCE(c.numero_documento, '-') as numero_documento,
+                    COALESCE(c.telefono, '') as telefono,
+                    COALESCE(c.email, '') as email,
                     COUNT(DISTINCT l.id) as total_lotes_comprados,
                     SUM(COALESCE(l.precio_venta, l.precio_lista)) as valor_total_compras,
                     SUM(CASE WHEN a.estado = 'pendiente' THEN a.saldo ELSE 0 END) as saldo_pendiente_global,
@@ -369,10 +369,11 @@ class ReporteController extends Controller
                         WHEN COUNT(CASE WHEN a.estado = 'pendiente' THEN 1 END) > 0 THEN 'AL DÍA'
                         ELSE 'PAGADO'
                     END as estado_credito
-                FROM clientes c
-                INNER JOIN lotes l ON c.id = l.cliente_id AND l.estado = 'vendido'
+                FROM lotes l
+                LEFT JOIN clientes c ON l.cliente_id = c.id
                 LEFT JOIN amortizaciones a ON l.id = a.lote_id
-                GROUP BY c.id
+                WHERE l.estado = 'vendido'
+                GROUP BY COALESCE(c.id, 0), c.nombre, c.tipo_documento, c.numero_documento, c.telefono, c.email
                 ORDER BY saldo_pendiente_global DESC, dias_mora_maxima DESC";
 
         $clientes = $this->db->fetchAll($sql);
