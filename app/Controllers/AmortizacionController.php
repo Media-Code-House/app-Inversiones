@@ -86,6 +86,10 @@ class AmortizacionController extends Controller
      */
     public function store()
     {
+        // Limpiar cualquier output buffer
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
         
         if (!can('crear_amortizacion')) {
             $_SESSION['error'] = 'No tienes permisos para crear planes de amortización';

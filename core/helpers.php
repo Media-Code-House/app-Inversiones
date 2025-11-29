@@ -9,14 +9,19 @@
  */
 function redirect($path)
 {
+    // Limpiar cualquier salida previa
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    
     // Si el path ya es una URL completa (empieza con http:// o https://), usarla directamente
     if (preg_match('/^https?:\/\//', $path)) {
-        header("Location: " . $path);
+        header("Location: " . $path, true, 302);
         exit;
     }
     
     // Si no, construir la URL completa
-    header("Location: " . APP_URL . "/" . ltrim($path, '/'));
+    header("Location: " . APP_URL . "/" . ltrim($path, '/'), true, 302);
     exit;
 }
 
