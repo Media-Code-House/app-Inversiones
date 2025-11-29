@@ -25,21 +25,38 @@ class VendedorController extends Controller
      */
     public function index()
     {
-        $this->requireAuth();
-        $this->requireRole(['administrador']);
+        try {
+            \Logger::info('VendedorController::index - Iniciando');
+            
+            $this->requireAuth();
+            $this->requireRole(['administrador']);
+            
+            \Logger::info('VendedorController::index - Auth verificada');
 
-        $filtros = [
-            'search' => $_GET['search'] ?? '',
-            'estado' => $_GET['estado'] ?? ''
-        ];
+            $filtros = [
+                'search' => $_GET['search'] ?? '',
+                'estado' => $_GET['estado'] ?? ''
+            ];
+            
+            \Logger::info('VendedorController::index - Filtros: ' . json_encode($filtros));
 
-        $vendedores = $this->vendedorModel->getAll($filtros);
+            $vendedores = $this->vendedorModel->getAll($filtros);
+            
+            \Logger::info('VendedorController::index - Vendedores obtenidos: ' . count($vendedores));
 
-        $this->view('vendedores/index', [
-            'title' => 'Gestión de Vendedores',
-            'vendedores' => $vendedores,
-            'filtros' => $filtros
-        ]);
+            $this->view('vendedores/index', [
+                'title' => 'Gestión de Vendedores',
+                'vendedores' => $vendedores,
+                'filtros' => $filtros
+            ]);
+            
+            \Logger::info('VendedorController::index - Vista renderizada correctamente');
+            
+        } catch (\Exception $e) {
+            \Logger::error('VendedorController::index - ERROR: ' . $e->getMessage());
+            \Logger::error('VendedorController::index - Stack trace: ' . $e->getTraceAsString());
+            throw $e;
+        }
     }
 
     /**

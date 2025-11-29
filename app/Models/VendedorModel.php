@@ -20,55 +20,73 @@ class VendedorModel
      */
     public function getAll($filtros = [])
     {
-        $sql = "SELECT 
-                    v.*,
-                    u.email as user_email,
-                    u.rol as user_rol,
-                    u.activo as user_activo,
-                    CONCAT(v.nombres, ' ', v.apellidos) as nombre_completo,
-                    
-                    -- Estadísticas de ventas
-                    COUNT(DISTINCT l.id) as total_lotes_vendidos,
-                    COALESCE(SUM(CASE WHEN l.estado = 'vendido' THEN l.precio_venta ELSE 0 END), 0) as valor_total_vendido,
-                    
-                    -- Estadísticas de comisiones
-                    COUNT(DISTINCT c.id) as total_comisiones,
-                    COALESCE(SUM(c.valor_comision), 0) as total_comisiones_generadas,
-                    COALESCE(SUM(CASE WHEN c.estado = 'pendiente' THEN c.valor_comision ELSE 0 END), 0) as comisiones_pendientes,
-                    COALESCE(SUM(CASE WHEN c.estado = 'pagada' THEN c.valor_comision ELSE 0 END), 0) as comisiones_pagadas
-                    
-                FROM vendedores v
-                INNER JOIN users u ON v.user_id = u.id
-                LEFT JOIN lotes l ON u.id = l.vendedor_id
-                LEFT JOIN comisiones c ON v.id = c.vendedor_id
-                WHERE 1=1";
-        
-        $params = [];
-        
-        // Filtro por estado
-        if (!empty($filtros['estado'])) {
-            $sql .= " AND v.estado = ?";
-            $params[] = $filtros['estado'];
+        try {
+            \Logger::info('VendedorModel::getAll - Iniciando con filtros: ' . json_encode($filtros));
+            
+            $sql = "SELECT 
+                        v.*,
+                        u.email as user_email,
+                        u.rol as user_rol,
+                        u.activo as user_activo,
+                        CONCAT(v.nombres, ' ', v.apellidos) as nombre_completo,
+                        
+                        -- Estadísticas de ventas
+                        COUNT(DISTINCT l.id) as total_lotes_vendidos,
+                        COALESCE(SUM(CASE WHEN l.estado = 'vendido' THEN l.precio_venta ELSE 0 END), 0) as valor_total_vendido,
+                        
+                        -- Estadísticas de comisiones
+                        COUNT(DISTINCT c.id) as total_comisiones,
+                        COALESCE(SUM(c.valor_comision), 0) as total_comisiones_generadas,
+                        COALESCE(SUM(CASE WHEN c.estado = 'pendiente' THEN c.valor_comision ELSE 0 END), 0) as comisiones_pendientes,
+                        COALESCE(SUM(CASE WHEN c.estado = 'pagada' THEN c.valor_comision ELSE 0 END), 0) as comisiones_pagadas
+                        
+                    FROM vendedores v
+                    INNER JOIN users u ON v.user_id = u.id
+                    LEFT JOIN lotes l ON u.id = l.vendedor_id
+                    LEFT JOIN comisiones c ON v.id = c.vendedor_id
+                    WHERE 1=1";
+            
+            \Logger::info('VendedorModel::getAll - Query base construida');
+            
+            $params = [];
+            
+            // Filtro por estado
+            if (!empty($filtros['estado'])) {
+                $sql .= " AND v.estado = ?";
+                $params[] = $filtros['estado'];
+            }
+            
+            // Filtro por búsqueda (nombre, código, documento)
+            if (!empty($filtros['search'])) {
+                $sql .= " AND (v.nombres LIKE ? OR v.apellidos LIKE ? OR v.codigo_vendedor LIKE ? OR v.numero_documento LIKE ?)";
+                $searchTerm = '%' . $filtros['search'] . '%';
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+                $params[] = $searchTerm;
+            }
+            
+            $sql .= " GROUP BY v.id, v.user_id, v.codigo_vendedor, v.tipo_documento, v.numero_documento, 
+                      v.nombres, v.apellidos, v.telefono, v.celular, v.email, v.direccion, v.ciudad,
+                      v.fecha_ingreso, v.fecha_salida, v.tipo_contrato, v.porcentaje_comision_default,
+                      v.banco, v.tipo_cuenta, v.numero_cuenta, v.estado, v.observaciones, v.foto_perfil,
+                      v.created_at, v.updated_at, u.email, u.rol, u.activo
+                      ORDER BY v.nombres, v.apellidos";
+            
+            \Logger::info('VendedorModel::getAll - Query final: ' . $sql);
+            \Logger::info('VendedorModel::getAll - Params: ' . json_encode($params));
+            
+            $resultado = $this->db->fetchAll($sql, $params);
+            
+            \Logger::info('VendedorModel::getAll - Resultados: ' . count($resultado));
+            
+            return $resultado;
+            
+        } catch (\Exception $e) {
+            \Logger::error('VendedorModel::getAll - ERROR: ' . $e->getMessage());
+            \Logger::error('VendedorModel::getAll - Stack trace: ' . $e->getTraceAsString());
+            throw $e;
         }
-        
-        // Filtro por búsqueda (nombre, código, documento)
-        if (!empty($filtros['search'])) {
-            $sql .= " AND (v.nombres LIKE ? OR v.apellidos LIKE ? OR v.codigo_vendedor LIKE ? OR v.numero_documento LIKE ?)";
-            $searchTerm = '%' . $filtros['search'] . '%';
-            $params[] = $searchTerm;
-            $params[] = $searchTerm;
-            $params[] = $searchTerm;
-            $params[] = $searchTerm;
-        }
-        
-        $sql .= " GROUP BY v.id, v.user_id, v.codigo_vendedor, v.tipo_documento, v.numero_documento, 
-                  v.nombres, v.apellidos, v.telefono, v.celular, v.email, v.direccion, v.ciudad,
-                  v.fecha_ingreso, v.fecha_salida, v.tipo_contrato, v.porcentaje_comision_default,
-                  v.banco, v.tipo_cuenta, v.numero_cuenta, v.estado, v.observaciones, v.foto_perfil,
-                  v.created_at, v.updated_at, u.email, u.rol, u.activo
-                  ORDER BY v.nombres, v.apellidos";
-        
-        return $this->db->fetchAll($sql, $params);
     }
 
     /**
