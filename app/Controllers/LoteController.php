@@ -33,6 +33,8 @@ class LoteController extends Controller
      */
     public function index()
     {
+        $this->requireAuth();
+        
         // Construir filtros desde parámetros GET
         $filters = [];
         
@@ -72,8 +74,17 @@ class LoteController extends Controller
      */
     public function create()
     {
+        $this->requireAuth();
+        
         $proyectos = $this->proyectoModel->getAll();
         $clientes = $this->clienteModel->getAll();
+        
+        // Validar que existan proyectos
+        if (empty($proyectos)) {
+            $this->flash('warning', 'Debes crear al menos un proyecto antes de poder agregar lotes');
+            $this->redirect('/proyectos/create');
+            return;
+        }
 
         $this->view('lotes/create', [
             'title' => 'Crear Nuevo Lote',
@@ -88,6 +99,8 @@ class LoteController extends Controller
      */
     public function store()
     {
+        $this->requireAuth();
+        
         try {
             // Validar datos requeridos
             $required = ['proyecto_id', 'codigo_lote', 'area', 'precio_lista'];
@@ -97,18 +110,24 @@ class LoteController extends Controller
                 }
             }
 
+            // INTEGRIDAD: Validar que el proyecto existe
+            $proyecto = $this->proyectoModel->findById($_POST['proyecto_id']);
+            if (!$proyecto) {
+                throw new \Exception("El proyecto seleccionado no existe");
+            }
+
             // Validar valores positivos
             $errors = $this->loteModel->validatePositiveValues($_POST);
             if (!empty($errors)) {
                 throw new \Exception(implode(', ', $errors));
             }
 
-            // Validar código único en el proyecto
+            // INTEGRIDAD: Validar unicidad compuesta (proyecto_id + codigo_lote)
             if ($this->loteModel->codigoExists($_POST['proyecto_id'], $_POST['codigo_lote'])) {
-                throw new \Exception("Ya existe un lote con ese código en el proyecto seleccionado");
+                throw new \Exception("Ya existe un lote con el código '{$_POST['codigo_lote']}' en el proyecto '{$proyecto['nombre']}'");
             }
 
-            // Preparar datos
+            // Preparar datos base
             $data = [
                 'proyecto_id' => (int)$_POST['proyecto_id'],
                 'codigo_lote' => trim($_POST['codigo_lote']),
@@ -119,13 +138,11 @@ class LoteController extends Controller
                 'descripcion' => $_POST['descripcion'] ?? null
             ];
 
-            // Si el estado es vendido, validar y agregar datos de venta
+            // LÓGICA DE VENTA: Si el estado es vendido, manejar cliente
             if ($data['estado'] === 'vendido') {
-                if (empty($_POST['cliente_id'])) {
-                    throw new \Exception("Debe seleccionar un cliente para marcar el lote como vendido");
-                }
+                $clienteId = $this->handleClienteForVenta($_POST);
                 
-                $data['cliente_id'] = (int)$_POST['cliente_id'];
+                $data['cliente_id'] = $clienteId;
                 $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : null;
                 $data['fecha_venta'] = !empty($_POST['fecha_venta']) ? $_POST['fecha_venta'] : date('Y-m-d');
             }
@@ -133,7 +150,7 @@ class LoteController extends Controller
             // Crear lote
             $loteId = $this->loteModel->create($data);
 
-            $this->flash('success', 'Lote creado exitosamente');
+            $this->flash('success', 'Lote creado exitosamente en el proyecto ' . $proyecto['nombre']);
             $this->redirect('/lotes/show/' . $loteId);
 
         } catch (\Exception $e) {
@@ -143,11 +160,62 @@ class LoteController extends Controller
     }
 
     /**
+     * Maneja la asociación de cliente para venta
+     * Crea el cliente automáticamente si no existe
+     */
+    private function handleClienteForVenta($postData)
+    {
+        // Opción 1: Cliente existente seleccionado
+        if (!empty($postData['cliente_id'])) {
+            $cliente = $this->clienteModel->findById($postData['cliente_id']);
+            if (!$cliente) {
+                throw new \Exception("El cliente seleccionado no existe");
+            }
+            return (int)$postData['cliente_id'];
+        }
+
+        // Opción 2: Crear cliente nuevo con datos mínimos
+        if (!empty($postData['nuevo_cliente'])) {
+            // Validar datos mínimos del nuevo cliente
+            if (empty($postData['cliente_tipo_documento']) || 
+                empty($postData['cliente_numero_documento']) || 
+                empty($postData['cliente_nombre'])) {
+                throw new \Exception("Para crear un nuevo cliente se requiere: tipo de documento, número de documento y nombre");
+            }
+
+            // Verificar si ya existe por documento
+            $existente = $this->clienteModel->findByDocumento(
+                $postData['cliente_tipo_documento'], 
+                $postData['cliente_numero_documento']
+            );
+
+            if ($existente) {
+                // Si existe, usar ese cliente
+                return (int)$existente['id'];
+            }
+
+            // Crear nuevo cliente
+            $clienteId = $this->clienteModel->createQuick([
+                'tipo_documento' => $postData['cliente_tipo_documento'],
+                'numero_documento' => $postData['cliente_numero_documento'],
+                'nombre' => $postData['cliente_nombre'],
+                'telefono' => $postData['cliente_telefono'] ?? null
+            ]);
+
+            return $clienteId;
+        }
+
+        throw new \Exception("Para vender un lote debe seleccionar un cliente existente o crear uno nuevo");
+    }
+
+    /**
      * Muestra formulario para editar lote
      * GET /lotes/edit/{id}
      */
     public function edit($id)
     {
+        $this->requireAuth();
+        
         $lote = $this->loteModel->findById($id);
 
         if (!$lote) {
@@ -184,6 +252,8 @@ class LoteController extends Controller
      */
     public function update($id)
     {
+        $this->requireAuth();
+        
         try {
             $lote = $this->loteModel->findById($id);
 
@@ -199,15 +269,21 @@ class LoteController extends Controller
                 }
             }
 
+            // INTEGRIDAD: Validar que el proyecto existe
+            $proyecto = $this->proyectoModel->findById($_POST['proyecto_id']);
+            if (!$proyecto) {
+                throw new \Exception("El proyecto seleccionado no existe");
+            }
+
             // Validar valores positivos
             $errors = $this->loteModel->validatePositiveValues($_POST);
             if (!empty($errors)) {
                 throw new \Exception(implode(', ', $errors));
             }
 
-            // Validar código único (excluyendo este lote)
+            // INTEGRIDAD: Validar unicidad compuesta (proyecto_id + codigo_lote) excluyendo este lote
             if ($this->loteModel->codigoExists($_POST['proyecto_id'], $_POST['codigo_lote'], $id)) {
-                throw new \Exception("Ya existe un lote con ese código en el proyecto seleccionado");
+                throw new \Exception("Ya existe un lote con el código '{$_POST['codigo_lote']}' en el proyecto '{$proyecto['nombre']}'");
             }
 
             // Validar cambio de estado
@@ -229,13 +305,11 @@ class LoteController extends Controller
                 'descripcion' => $_POST['descripcion'] ?? null
             ];
 
-            // Si el estado es vendido, gestionar datos de venta
+            // LÓGICA DE VENTA: Si el estado es vendido, manejar cliente
             if ($data['estado'] === 'vendido') {
-                if (empty($_POST['cliente_id'])) {
-                    throw new \Exception("Debe seleccionar un cliente para marcar el lote como vendido");
-                }
+                $clienteId = $this->handleClienteForVenta($_POST);
                 
-                $data['cliente_id'] = (int)$_POST['cliente_id'];
+                $data['cliente_id'] = $clienteId;
                 $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : null;
                 $data['fecha_venta'] = !empty($_POST['fecha_venta']) ? $_POST['fecha_venta'] : ($lote['fecha_venta'] ?? date('Y-m-d'));
             }
@@ -243,7 +317,7 @@ class LoteController extends Controller
             // Actualizar lote
             $this->loteModel->update($id, $data);
 
-            $this->flash('success', 'Lote actualizado exitosamente');
+            $this->flash('success', 'Lote actualizado exitosamente en el proyecto ' . $proyecto['nombre']);
             $this->redirect('/lotes/show/' . $id);
 
         } catch (\Exception $e) {
@@ -258,6 +332,8 @@ class LoteController extends Controller
      */
     public function show($id)
     {
+        $this->requireAuth();
+        
         $lote = $this->loteModel->findById($id);
 
         if (!$lote) {
