@@ -300,11 +300,28 @@ class PagoController extends Controller
                 }
             }
 
-            // Si hay excedente y se eligió aplicar a capital, recalcular tabla
-            if ($resultado_distribucion['excedente'] > 0 && $opcion_excedente === 'aplicar_capital') {
-                \Logger::info("Aplicando excedente a capital: " . $resultado_distribucion['excedente']);
-                $this->aplicarAbonoCapital($lote_id, $resultado_distribucion['excedente'], $db);
-                \Logger::info("Abono a capital aplicado exitosamente");
+            // Manejar excedente según opción seleccionada
+            if ($resultado_distribucion['excedente'] > 0) {
+                if ($opcion_excedente === 'aplicar_capital') {
+                    \Logger::info("Aplicando excedente a capital: " . $resultado_distribucion['excedente']);
+                    $this->aplicarAbonoCapital($lote_id, $resultado_distribucion['excedente'], $db);
+                    \Logger::info("Abono a capital aplicado exitosamente");
+                } else {
+                    // OPCIÓN B: Acumular en saldo_a_favor global del lote
+                    \Logger::info("Acumulando excedente en saldo_a_favor: " . $resultado_distribucion['excedente']);
+                    
+                    // Actualizar saldo_a_favor en tabla lotes (dentro de la transacción)
+                    $sql_saldo = "UPDATE lotes SET 
+                                  saldo_a_favor = saldo_a_favor + ?,
+                                  updated_at = NOW()
+                                  WHERE id = ?";
+                    $db->execute($sql_saldo, [$resultado_distribucion['excedente'], $lote_id]);
+                    
+                    \Logger::info("Saldo a favor incrementado exitosamente", [
+                        'lote_id' => $lote_id,
+                        'excedente' => $resultado_distribucion['excedente']
+                    ]);
+                }
             }
 
             \Logger::info("Confirmando transacción (commit)");
@@ -320,7 +337,7 @@ class PagoController extends Controller
                 if ($opcion_excedente === 'aplicar_capital') {
                     $mensaje .= "Excedente de " . formatMoney($resultado_distribucion['excedente']) . " aplicado como abono a capital. Plan recalculado.";
                 } else {
-                    $mensaje .= "Excedente de " . formatMoney($resultado_distribucion['excedente']) . " aplicado a cuotas siguientes.";
+                    $mensaje .= "Excedente de " . formatMoney($resultado_distribucion['excedente']) . " acumulado en Saldo a Favor (" . formatMoney($this->loteModel->getSaldoAFavor($lote_id)) . "). Podrá usar el botón de reajuste para compensar mora.";
                 }
             }
 

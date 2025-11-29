@@ -49,7 +49,7 @@ require_once __DIR__ . '/core/helpers.php';
 
 // Crear instancia del router
 $router = new Router();
-
+ 
 // ==========================================
 // RUTAS DE AUTENTICACIÓN
 // ==========================================
@@ -177,6 +177,9 @@ $router->post('/lotes/amortizacion/store', 'AmortizacionController@store');
 
 // Recalcular plan de amortización (abono a capital)
 $router->post('/lotes/amortizacion/recalcular/{id}', 'AmortizacionController@recalcular');
+
+// Reajustar plan aplicando saldo a favor (compensar mora)
+$router->post('/lotes/amortizacion/reajustar/{id}', 'AmortizacionController@reajustarPlan');
 
 // ==========================================
 // PAGOS (Módulo 5)

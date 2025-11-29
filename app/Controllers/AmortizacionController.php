@@ -355,7 +355,8 @@ class AmortizacionController extends Controller
             'cuotas' => $cuotas,
             'resumen' => $resumen,
             'metricas' => $metricas,
-            'kpis' => $kpis
+            'kpis' => $kpis,
+            'saldo_a_favor' => $this->loteModel->getSaldoAFavor($loteId)
         ];
 
             $this->view('lotes/amortizacion', $data);
@@ -517,6 +518,227 @@ class AmortizacionController extends Controller
             }
             
             $_SESSION['error'] = 'Error al recalcular: ' . $e->getMessage();
+            redirect('/lotes/amortizacion/show/' . $loteId);
+        }
+    }
+
+    /**
+     * Reajusta el plan aplicando saldo a favor para compensar mora
+     * POST /lotes/amortizacion/reajustar/{lote_id}
+     * 
+     * Lógica:
+     * - Obtiene saldo_a_favor del lote
+     * - Itera sobre cuotas futuras pendientes (orden cronológico)
+     * - Aplica saldo_a_favor al valor_pagado de cada cuota
+     * - Marca como pagada si es cubierta completamente
+     * - Reduce saldo_a_favor hasta agotarlo
+     * - Evita que cuotas entren en mora
+     */
+    public function reajustarPlan($loteId)
+    {
+        \Logger::info("=== INICIO reajustarPlan() ===", ['lote_id' => $loteId]);
+        
+        if (!can('registrar_pagos')) {
+            \Logger::error("Permiso denegado: registrar_pagos");
+            $_SESSION['error'] = 'No tienes permisos para reajustar el plan de amortización';
+            redirect('/lotes');
+            return;
+        }
+
+        // Validar CSRF
+        if (!$this->validateCsrf()) {
+            \Logger::error("Token CSRF inválido");
+            $_SESSION['error'] = 'Token de seguridad inválido';
+            redirect('/lotes/amortizacion/show/' . $loteId);
+            return;
+        }
+
+        try {
+            // Obtener información del lote
+            $lote = $this->loteModel->findById($loteId);
+            
+            if (!$lote) {
+                \Logger::error("Lote no encontrado: {$loteId}");
+                throw new \Exception('Lote no encontrado');
+            }
+            
+            \Logger::info("Lote encontrado: {$lote['codigo_lote']}");
+
+            // Obtener saldo_a_favor disponible
+            $saldo_a_favor = $this->loteModel->getSaldoAFavor($loteId);
+            
+            \Logger::info("Saldo a favor disponible: {$saldo_a_favor}");
+
+            if ($saldo_a_favor <= 0.01) {
+                \Logger::warning("Saldo a favor insuficiente o cero");
+                $_SESSION['warning'] = 'No hay saldo a favor disponible para reajustar';
+                redirect('/lotes/amortizacion/show/' . $loteId);
+                return;
+            }
+
+            // Obtener cuotas pendientes en orden cronológico (numero_cuota ascendente)
+            $sql_cuotas_pendientes = "SELECT * FROM amortizaciones 
+                                      WHERE lote_id = ? AND estado = 'pendiente' 
+                                      ORDER BY numero_cuota ASC";
+            
+            $db = \Database::getInstance();
+            $cuotas_pendientes = $db->fetchAll($sql_cuotas_pendientes, [$loteId]);
+            
+            \Logger::info("Cuotas pendientes encontradas: " . count($cuotas_pendientes));
+
+            if (empty($cuotas_pendientes)) {
+                \Logger::warning("No hay cuotas pendientes para reajustar");
+                $_SESSION['warning'] = 'No hay cuotas pendientes para compensar';
+                redirect('/lotes/amortizacion/show/' . $loteId);
+                return;
+            }
+
+            // Iniciar transacción
+            $db->beginTransaction();
+            \Logger::info("Transacción iniciada");
+
+            $saldo_aplicable = $saldo_a_favor;
+            $cuotas_compensadas = 0;
+            $monto_total_aplicado = 0;
+            $cuotas_actualizadas = [];
+
+            // Iterar sobre cuotas futuras y aplicar saldo
+            foreach ($cuotas_pendientes as $cuota) {
+                if ($saldo_aplicable <= 0.01) {
+                    \Logger::debug("Saldo agotado, finalizando compensación");
+                    break;
+                }
+
+                $cuota_id = $cuota['id'];
+                $numero_cuota = $cuota['numero_cuota'];
+                $valor_cuota = $cuota['valor_cuota'];
+                $valor_pagado_actual = $cuota['valor_pagado'];
+                $saldo_pendiente_cuota = $valor_cuota - $valor_pagado_actual;
+
+                \Logger::debug("Procesando cuota", [
+                    'numero' => $numero_cuota,
+                    'saldo_pendiente' => $saldo_pendiente_cuota,
+                    'saldo_aplicable' => $saldo_aplicable
+                ]);
+
+                // Calcular cuánto aplicar a esta cuota
+                $monto_a_aplicar = min($saldo_aplicable, $saldo_pendiente_cuota);
+
+                // Actualizar cuota
+                $nuevo_valor_pagado = $valor_pagado_actual + $monto_a_aplicar;
+                $nuevo_saldo_pendiente = $valor_cuota - $nuevo_valor_pagado;
+                $nuevo_estado = $nuevo_saldo_pendiente <= 0.01 ? 'pagada' : 'pendiente';
+
+                \Logger::debug("Aplicando compensación", [
+                    'cuota_id' => $cuota_id,
+                    'monto_a_aplicar' => $monto_a_aplicar,
+                    'nuevo_valor_pagado' => $nuevo_valor_pagado,
+                    'nuevo_estado' => $nuevo_estado
+                ]);
+
+                $sql_update = "UPDATE amortizaciones 
+                              SET valor_pagado = ?, 
+                                  saldo_pendiente = ?,
+                                  estado = ?,
+                                  updated_at = NOW()
+                              WHERE id = ?";
+                
+                $params_update = [
+                    $nuevo_valor_pagado,
+                    max(0, $nuevo_saldo_pendiente),
+                    $nuevo_estado,
+                    $cuota_id
+                ];
+
+                $db->execute($sql_update, $params_update);
+
+                // Registrar en tabla de pagos (para auditoría)
+                $sql_pago = "INSERT INTO pagos 
+                            (amortizacion_id, valor_pagado, metodo_pago, fecha_pago, numero_recibo, observaciones, created_at) 
+                            VALUES (?, ?, 'saldo_a_favor', ?, ?, ?, NOW())";
+                
+                $numero_recibo = 'REAJ-SAF-' . date('YmdHis') . '-' . $cuota_id;
+                $observaciones = 'Aplicación automática de Saldo a Favor - Reajuste de Mora';
+
+                $params_pago = [
+                    $cuota_id,
+                    $monto_a_aplicar,
+                    date('Y-m-d'),
+                    $numero_recibo,
+                    $observaciones
+                ];
+
+                $db->execute($sql_pago, $params_pago);
+
+                // Actualizar saldo aplicable
+                $saldo_aplicable -= $monto_a_aplicar;
+                $monto_total_aplicado += $monto_a_aplicar;
+
+                if ($nuevo_estado === 'pagada') {
+                    $cuotas_compensadas++;
+                }
+
+                $cuotas_actualizadas[] = [
+                    'numero_cuota' => $numero_cuota,
+                    'monto_aplicado' => $monto_a_aplicar,
+                    'nuevo_estado' => $nuevo_estado
+                ];
+
+                \Logger::info("Cuota compensada exitosamente", [
+                    'numero_cuota' => $numero_cuota,
+                    'monto_aplicado' => $monto_a_aplicar,
+                    'nuevo_estado' => $nuevo_estado
+                ]);
+            }
+
+            // Actualizar saldo_a_favor del lote (restar lo que se aplicó)
+            $nuevo_saldo_a_favor = $saldo_a_favor - $monto_total_aplicado;
+            $sql_saldo = "UPDATE lotes SET 
+                          saldo_a_favor = GREATEST(0, saldo_a_favor - ?),
+                          updated_at = NOW()
+                          WHERE id = ?";
+            
+            $db->execute($sql_saldo, [$monto_total_aplicado, $loteId]);
+
+            \Logger::info("Saldo a favor actualizado", [
+                'saldo_anterior' => $saldo_a_favor,
+                'monto_aplicado' => $monto_total_aplicado,
+                'saldo_nuevo' => $nuevo_saldo_a_favor
+            ]);
+
+            // Confirmar transacción
+            $db->commit();
+            \Logger::info("Transacción completada exitosamente");
+
+            // Construir mensaje de éxito
+            $mensaje = "Plan reajustado exitosamente. ";
+            $mensaje .= "Monto aplicado: " . formatMoney($monto_total_aplicado) . ". ";
+            $mensaje .= "Cuotas compensadas (pagadas): {$cuotas_compensadas}. ";
+            $mensaje .= "Saldo a favor restante: " . formatMoney($nuevo_saldo_a_favor) . ".";
+
+            \Logger::info("=== REAJUSTE COMPLETADO EXITOSAMENTE ===", [
+                'lote_id' => $loteId,
+                'monto_total_aplicado' => $monto_total_aplicado,
+                'cuotas_compensadas' => $cuotas_compensadas,
+                'saldo_a_favor_restante' => $nuevo_saldo_a_favor
+            ]);
+
+            $_SESSION['success'] = $mensaje;
+            redirect('/lotes/amortizacion/show/' . $loteId);
+
+        } catch (\Exception $e) {
+            \Logger::error("=== ERROR EN REAJUSTE DE PLAN ===");
+            \Logger::error("Mensaje: " . $e->getMessage());
+            \Logger::error("Archivo: " . $e->getFile() . " Línea: " . $e->getLine());
+            \Logger::error("Stack trace: " . $e->getTraceAsString());
+            
+            if (isset($db)) {
+                \Logger::info("Ejecutando rollback");
+                $db->rollback();
+                \Logger::info("Rollback completado");
+            }
+            
+            $_SESSION['error'] = 'Error al reajustar plan: ' . $e->getMessage();
             redirect('/lotes/amortizacion/show/' . $loteId);
         }
     }

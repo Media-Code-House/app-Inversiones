@@ -1,0 +1,681 @@
+# DIAGRAMA VISUAL - Sistema de Saldo a Favor Global
+
+## 1. COMPONENTES DEL SISTEMA
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    SISTEMA DE SALDO A FAVOR GLOBAL                  │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌────────────────┐      ┌──────────────────┐      ┌─────────────────┐
+│  BASE DE DATOS │      │     MODELOS      │      │   CONTROLADORES │
+├────────────────┤      ├──────────────────┤      ├─────────────────┤
+│ lotes          │      │ LoteModel        │      │ PagoController  │
+│ ├─ saldo_a_    │◄────►│ ├─ getSaldo...   │◄────►│ ├─ store()      │
+│ │  favor (NEW) │      │ ├─ setSaldo...   │      │ │ (modificado)   │
+│ ├─ idx_saldo   │      │ ├─ incrementar.. │      │ │                │
+│ └─ (INDEX)     │      │ ├─ decrementar.. │      │ └─────────────┬──┘
+│                │      │ └─ getLotes...   │      │               │
+│ amortizaciones │      │                  │      │ Amortizacion  │
+│ ├─ estado      │◄────►│ Amortizacion     │      │ Controller    │
+│ │  (actualiza) │      │ Model            │      │ ├─ show()     │
+│ ├─ valor_      │      │ ├─ getByLote()   │◄────►│ │ (actualizado)
+│ │  pagado      │      │ ├─ getPendientes │      │ │              │
+│ └─ saldo_      │      │ └─ ...           │      │ ├─ reajustar  │
+│    pendiente   │      │                  │      │ │ Plan() (NEW) │
+│                │      │                  │      │ └──────────────┘
+│ pagos (NEW)    │      │                  │      │
+│ ├─ metodo_pago │      │                  │      │
+│ │  (saldo_     │      │                  │      │ VISTAS
+│ │   a_favor)   │      │                  │      │ ├─ amortizacion
+│ └─ ...         │      │                  │      │ │ .php (modificada
+│                │      │                  │      │ │ con botón)
+└────────────────┘      └──────────────────┘      └─────────────────┘
+```
+
+---
+
+## 2. FLUJO DE REGISTRO DE PAGO CON EXCEDENTE
+
+```
+USUARIO REGISTRA PAGO
+    │
+    ▼
+┌─────────────────────────────────────────┐
+│ /lotes/pago/create/{id}                 │
+│ Formulario de Pago                      │
+│ ┌──────────────────────────────────────┐│
+│ │ Lote: 444                            ││
+│ │ Monto Pago: $12.000.000              ││
+│ │ Cuota #1 Requerida: $1.977.085,83    ││
+│ │ Opción Excedente: ● Pagar Siguientes ││
+│ └──────────────────────────────────────┘│
+└────────────────────┬────────────────────┘
+                     │ SUBMIT
+                     ▼
+            PagoController@store()
+                     │
+        ┌────────────┼────────────┐
+        │            │            │
+        ▼            ▼            ▼
+   VALIDAR    DISTRIBUIR    REGISTRAR
+   PERMISOS    PAGO          PAGOS
+        │            │            │
+        │    ┌───────┴───────┐    │
+        │    │               │    │
+        │    ▼               ▼    │
+        │  Cuota 1:    Excedente: │
+        │  $1.977K     $10.022M   │
+        │  → PAGADA              │
+        │                        │
+        │    Opción Excedente    │
+        │    ┌───────┬───────┐   │
+        │    │       │       │   │
+        │    ▼       ▼       ▼   │
+        │  Capital  Pagar   MUY  │
+        │  (Retest) Siguientes(★) │
+        │           (NUEVO)       │
+        │                        │
+        │         ★ EJECUTA:     │
+        │    INCREMENT_SALDO_    │
+        │    A_FAVOR(2, 10M)    │
+        │                        │
+        └────────────┬───────────┘
+                     │
+                     ▼
+        ┌─────────────────────────┐
+        │ BASE DE DATOS           │
+        │ UPDATE lotes SET        │
+        │ saldo_a_favor = 0+10M   │
+        │ WHERE id = 2            │
+        └────────────┬────────────┘
+                     │
+                     ▼
+        ┌─────────────────────────┐
+        │ USUARIO VE MENSAJE:     │
+        │ ✓ Pago registrado       │
+        │ ✓ Monto: $12M           │
+        │ ✓ Cuotas: 1 actualizada │
+        │ ✓ Excedente $10M        │
+        │   acumulado en          │
+        │   SALDO A FAVOR         │
+        │ ✓ Botón disponible      │
+        │   para reajustar        │
+        └─────────────────────────┘
+                     │
+                     ▼
+        ┌─────────────────────────┐
+        │ REDIRECT A:             │
+        │ /lotes/amortizacion/    │
+        │ show/2                  │
+        └────────────┬────────────┘
+                     │
+                     ▼
+            AmortizacionController
+            @show(2)
+                     │
+        ┌────────────┴──────────────┐
+        │                           │
+        ▼                           ▼
+   Obtiene datos         saldo_a_favor =
+   del lote              getSaldoAFavor(2)
+        │                = 10.022.914,17
+        │                           │
+        └────────────┬──────────────┘
+                     │
+                     ▼ $data['saldo_a_favor']
+        ┌──────────────────────────┐
+        │ VISTA: amortizacion.php  │
+        │                          │
+        │ if(saldo > 0.01 AND      │
+        │    permisos)             │
+        │                          │
+        │   ┌──────────────────┐   │
+        │   │ BOTÓN APARECE:   │   │
+        │   │                  │   │
+        │   │ [Aplicar Saldo   │   │
+        │   │  a Favor         │   │
+        │   │  $10.022.914]    │   │
+        │   │                  │   │
+        │   │ (btn-info, azul) │   │
+        │   └────────┬─────────┘   │
+        │            │             │
+        │   Usuario  │ CLICK       │
+        │   confirma │             │
+        │      │     │             │
+        │      ▼     ▼             │
+        │  SUBMIT    │             │
+        │  FORM      ▼             │
+        │   │    [¿Seguro?]        │
+        │   │      OK              │
+        │   │       │              │
+        │   │       ▼              │
+        │   │  POST REQUEST        │
+        └───┼──────┬──────────────┘
+            │      │
+            ▼      ▼
+        /lotes/amortizacion/reajustar/2
+```
+
+---
+
+## 3. FLUJO DE REAJUSTE
+
+```
+POST /lotes/amortizacion/reajustar/2
+
+    ▼
+
+AmortizacionController@reajustarPlan(2)
+
+    ├─ Validar CSRF ✓
+    ├─ Verificar permisos ✓
+    ├─ Obtener lote ✓
+    │
+    ▼
+┌─────────────────────────────────────┐
+│ saldo_disponible = 10.022.914,17    │
+└────────────────┬────────────────────┘
+                 │
+    ┌────────────┴────────────┐
+    │                         │
+    ▼                         ▼
+DB BEGIN              Obtener cuotas
+TRANSACTION           pendientes
+    │                 (ORDER BY numero_cuota)
+    │                         │
+    │      ┌──────────────────┘
+    │      │
+    │      ▼
+    │  ┌─────────────────────────────┐
+    │  │ FOR EACH cuota_pendiente:   │
+    │  │                             │
+    │  │ ITERATION 1:                │
+    │  │ ├─ Cuota 2: $1.977.085,83   │
+    │  │ ├─ monto_aplicar =          │
+    │  │ │  MIN($10.022M, $1.977K)   │
+    │  │ │  = $1.977K                │
+    │  │ ├─ UPDATE amortizaciones:   │
+    │  │ │  valor_pagado += $1.977K  │
+    │  │ │  estado = 'pagada' ✓      │
+    │  │ ├─ INSERT INTO pagos        │
+    │  │ │  metodo = 'saldo_a_favor' │
+    │  │ ├─ saldo_disponible -= $1.977K
+    │  │ │  = $8.045.828,34          │
+    │  │ └─ count_compensadas++      │
+    │  │                             │
+    │  │ ITERATION 2:                │
+    │  │ ├─ Cuota 3: $1.977.085,83   │
+    │  │ ├─ PAGADA ✓                 │
+    │  │ ├─ saldo_disponible =       │
+    │  │ │  $6.068.742,51            │
+    │  │ │                             │
+    │  │ ITERATION 3:                │
+    │  │ ├─ Cuota 4: PAGADA ✓        │
+    │  │ ├─ saldo_disponible =       │
+    │  │ │  $4.091.656,68            │
+    │  │ │                             │
+    │  │ ITERATION 4:                │
+    │  │ ├─ Cuota 5: PAGADA ✓        │
+    │  │ ├─ saldo_disponible =       │
+    │  │ │  $2.114.570,85            │
+    │  │ │                             │
+    │  │ ITERATION 5:                │
+    │  │ ├─ Cuota 6: $1.977.085,83   │
+    │  │ ├─ monto_aplicar =          │
+    │  │ │  MIN($2.114K, $1.977K)    │
+    │  │ │  = $1.977K                │
+    │  │ │  (Se cubre completamente) │
+    │  │ ├─ valor_pagado = $1.977K   │
+    │  │ ├─ estado = 'pagada' ✓      │
+    │  │ ├─ saldo_disponible = 0     │
+    │  │ │                             │
+    │  │ BREAK (saldo agotado)       │
+    │  │                             │
+    │  └─────────────────────────────┘
+    │         Fin iteración
+    │
+    ├─ UPDATE lotes:
+    │  └─ saldo_a_favor = 0
+    │     WHERE id = 2
+    │
+    ├─ DB COMMIT ✓
+    │
+    ├─ Log: "REAJUSTE COMPLETADO"
+    │
+    ▼
+┌────────────────────────────────────────┐
+│ RESULTADO:                             │
+│                                        │
+│ Cuotas Compensadas: 4                  │
+│ Monto Total Aplicado: $10.022.914,17   │
+│ Saldo Restante: $0                     │
+│                                        │
+│ ESTADO FINAL:                          │
+│ Cuota 1: PAGADA $0                     │
+│ Cuota 2: PAGADA $0 ✓                   │
+│ Cuota 3: PAGADA $0 ✓                   │
+│ Cuota 4: PAGADA $0 ✓                   │
+│ Cuota 5: PAGADA $0 ✓                   │
+│ Cuota 6: PENDIENTE $1.114.570,91       │
+│ Cuota 7-24: PENDIENTE                  │
+│                                        │
+│ RESULTADO NEGOCIO:                     │
+│ ✓ Cliente NO entra en mora             │
+│ ✓ 4 cuotas compensadas automáticas     │
+│ ✓ Registro en tabla pagos (auditoría)  │
+│ ✓ Botón desaparece (saldo = 0)         │
+└────────────────────────────────────────┘
+         │
+         ▼
+    REDIRECT A:
+    /lotes/amortizacion/show/2
+         │
+         ▼
+    ┌────────────────────────────────┐
+    │ USUARIO VE:                    │
+    │                                │
+    │ ✓ Plan reajustado             │
+    │ ✓ Monto aplicado: $10.022.914 │
+    │ ✓ Cuotas compensadas: 4       │
+    │ ✓ Saldo restante: $0           │
+    │                                │
+    │ TABLA DE AMORTIZACIÓN:         │
+    │ [Cuotas 1-5 verdes: PAGADAS]   │
+    │ [Cuota 6 en amarillo: próxima] │
+    │ [Cuotas 7+ grises: futuras]    │
+    │                                │
+    │ ✗ Botón desaparece            │
+    └────────────────────────────────┘
+```
+
+---
+
+## 4. COMPONENTES DE BD
+
+```
+┌────────────────────────────────────────────┐
+│           TABLA: LOTES                     │
+├────────────────────────────────────────────┤
+│ id                                         │
+│ proyecto_id                                │
+│ codigo_lote                                │
+│ ...otros campos...                         │
+│ numero_cuotas                              │
+│ ★ saldo_a_favor ← NUEVO (DECIMAL 15,2)   │
+│   DEFAULT: 0.00                            │
+│                                            │
+│ ★ INDEX: idx_lotes_saldo_a_favor          │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│         TABLA: AMORTIZACIONES              │
+├────────────────────────────────────────────┤
+│ id                                         │
+│ lote_id → FOREIGN KEY                      │
+│ numero_cuota                               │
+│ fecha_vencimiento                          │
+│ fecha_pago                                 │
+│ estado: 'pendiente'|'pagada'|'cancelada'   │
+│        ↑ Actualiza en reajuste
+│ valor_cuota                                │
+│ valor_pagado ← Incrementa en reajuste      │
+│ saldo_pendiente                            │
+│ ...otros campos...                         │
+└────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────┐
+│            TABLA: PAGOS                    │
+├────────────────────────────────────────────┤
+│ id                                         │
+│ amortizacion_id                            │
+│ valor_pagado                               │
+│ metodo_pago: 'transferencia'               │
+│              'efectivo'                    │
+│              'cheque'                      │
+│              ★ 'saldo_a_favor' (NUEVO)    │
+│ fecha_pago                                 │
+│ numero_recibo: 'PAG-...'                   │
+│              ★ 'REAJ-SAF-...' (NUEVO)     │
+│ observaciones: Notas                       │
+│ created_at                                 │
+│                                            │
+│ Estos registros son creados en reajuste   │
+│ para trazabilidad completa                 │
+└────────────────────────────────────────────┘
+```
+
+---
+
+## 5. MÉTODOS IMPLEMENTADOS
+
+```
+┌─────────────────────────────────────────┐
+│         LoteModel.php (NUEVOS)          │
+├─────────────────────────────────────────┤
+│                                         │
+│ getSaldoAFavor($loteId)                │
+│ └─ SELECT saldo_a_favor FROM lotes     │
+│    Retorna: float                       │
+│                                         │
+│ setSaldoAFavor($loteId, $monto)        │
+│ └─ UPDATE lotes SET saldo_a_favor = ? │
+│    Retorna: bool                        │
+│                                         │
+│ incrementarSaldoAFavor($id, $monto)    │
+│ └─ UPDATE lotes                         │
+│    SET saldo_a_favor += ?               │
+│    Retorna: bool                        │
+│                                         │
+│ decrementarSaldoAFavor($id, $monto)    │
+│ └─ UPDATE lotes                         │
+│    SET saldo_a_favor = MAX(0, - ?)     │
+│    Retorna: bool                        │
+│                                         │
+│ getLotesConSaldoAFavor($minimo = 0.01) │
+│ └─ SELECT * WHERE saldo_a_favor > ?    │
+│    Retorna: array                       │
+│                                         │
+└─────────────────────────────────────────┘
+
+┌──────────────────────────────────────────┐
+│    AmortizacionController.php (NUEVO)    │
+├──────────────────────────────────────────┤
+│                                          │
+│ reajustarPlan($loteId)                  │
+│ ├─ Valida permisos                      │
+│ ├─ Obtiene saldo_a_favor                │
+│ ├─ Itera cuotas pendientes              │
+│ ├─ Aplica saldo a cada cuota            │
+│ ├─ Marca como PAGADA si cubre           │
+│ ├─ Registra en tabla pagos              │
+│ ├─ Decrementa saldo_a_favor             │
+│ ├─ Transacción ACID                     │
+│ └─ Logging comprensivo                  │
+│                                          │
+│ Líneas: 180+                             │
+│ Complejidad: O(n) donde n=cuotas        │
+│                                          │
+└──────────────────────────────────────────┘
+```
+
+---
+
+## 6. SEGURIDAD - VALIDACIONES
+
+```
+┌──────────────────────────────────────┐
+│    VALIDACIONES IMPLEMENTADAS       │
+├──────────────────────────────────────┤
+│                                      │
+│ ✓ PERMISOS                          │
+│   if (!can('registrar_pagos'))       │
+│       ERROR 403 FORBIDDEN            │
+│                                      │
+│ ✓ CSRF TOKEN                        │
+│   if (!$this->validateCsrf())        │
+│       ERROR 419 INVALID TOKEN        │
+│                                      │
+│ ✓ EXISTENCIA DE LOTE                │
+│   if (!$lote)                        │
+│       ERROR 404 NOT FOUND            │
+│                                      │
+│ ✓ SALDO POSITIVO                    │
+│   if ($saldo_a_favor <= 0.01)        │
+│       ERROR 400 NO BALANCE           │
+│                                      │
+│ ✓ CUOTAS PENDIENTES                 │
+│   if (empty($cuotas_pendientes))     │
+│       ERROR 400 NO PENDING QUOTES    │
+│                                      │
+│ ✓ TRANSACCIÓN COMPLETA              │
+│   try {                              │
+│       BEGIN                          │
+│       ...updates...                  │
+│       COMMIT                         │
+│   } catch {                          │
+│       ROLLBACK                       │
+│       ERROR                          │
+│   }                                  │
+│                                      │
+│ ✓ AUDITORÍA COMPLETA                │
+│   INSERT INTO pagos (...)            │
+│   metodo_pago = 'saldo_a_favor'     │
+│   numero_recibo = 'REAJ-SAF-...'    │
+│                                      │
+│ ✓ LOGGING DETALLADO                 │
+│   \Logger::info/warning/error        │
+│   Stack traces                       │
+│   Timestamps                         │
+│                                      │
+└──────────────────────────────────────┘
+```
+
+---
+
+## 7. VISTA - BOTÓN CONDICIONAL
+
+```
+┌─────────────────────────────────────────┐
+│      amortizacion.php - HEADER          │
+├─────────────────────────────────────────┤
+│                                         │
+│  ╔═════════════════════════════════╗   │
+│  ║  Amortización del Lote 444      ║   │
+│  ║  Proyecto: X | Cliente: Y       ║   │
+│  ╚═════════════════════════════════╝   │
+│                                         │
+│  ┌─────────────────────────────────┐   │
+│  │ BOTONES (GRUPO 1):              │   │
+│  │                                 │   │
+│  │ [Registrar Pago]                │   │
+│  │ └─ Siempre visible              │   │
+│  │    if (can('registrar_pagos'))  │   │
+│  │                                 │   │
+│  │ [Aplicar Saldo a Favor $10M]    │   │
+│  │ └─ NUEVO - Condicional          │   │
+│  │    if ($saldo > 0.01 AND        │   │
+│  │        can('registrar_pagos'))  │   │
+│  │    ├─ Color: btn-info (azul)    │   │
+│  │    ├─ Icono: 💲                 │   │
+│  │    └─ POST form con CSRF        │   │
+│  │                                 │   │
+│  │ [Ver Lote]                      │   │
+│  │ └─ Siempre visible              │   │
+│  │                                 │   │
+│  │ [Volver a Lotes]                │   │
+│  │ └─ Siempre visible              │   │
+│  └─────────────────────────────────┘   │
+│                                         │
+└─────────────────────────────────────────┘
+
+HTML GENERADO:
+
+<?php if ($saldo_a_favor > 0.01 AND 
+         can('registrar_pagos')): ?>
+
+  <form method="POST" 
+        action="/lotes/amortizacion/reajustar/2"
+        style="display: inline;">
+    
+    <input type="hidden" name="csrf_token" 
+           value="<?= $_SESSION['csrf_token'] ?>">
+    
+    <button type="submit" 
+            class="btn btn-info text-white"
+            onclick="return confirm(
+              '¿Aplicar Saldo a Favor de ' +
+              formatCurrency(10022914.17) +
+              ' para compensar cuotas?');">
+      
+      <i class="bi bi-cash-coin"></i>
+      Aplicar Saldo a Favor 
+      (<?= formatMoney(10022914.17) ?>)
+    
+    </button>
+  </form>
+
+<?php endif; ?>
+```
+
+---
+
+## 8. CICLO DE VIDA - SALDO A FAVOR
+
+```
+CUOTA #1 PAGADA - EXCEDENTE ACUMULADO
+       │
+       ├─ Cliente paga $12M (cuota = $1.97M)
+       │
+       └─→ saldo_a_favor = 0 + $10M
+           ├─ Estado: 💾 ALMACENADO EN DB
+           │
+           └─→ Usuarios con permisos ven:
+               └─ BOTÓN AZUL: "Aplicar Saldo"
+                  ├─ Click
+                  │
+                  └─→ CONFIRMACIÓN: ¿Realmente?
+                     ├─ OK
+                     │
+                     └─→ POST /reajustar/2
+                        ├─ Itera cuotas
+                        │
+                        ├─ Cuota 2: -$1.97M ✓
+                        ├─ Cuota 3: -$1.97M ✓
+                        ├─ Cuota 4: -$1.97M ✓
+                        ├─ Cuota 5: -$1.97M ✓
+                        └─ Cuota 6: -$1.11M
+                           │
+                           ├─ saldo_a_favor = 0
+                           │  (AGOTADO)
+                           │
+                           └─→ BOTÓN DESAPARECE
+                              Estado: ✓ COMPLETADO
+```
+
+---
+
+## 9. SEGURIDAD - FLUJO DE DATOS
+
+```
+ENTRADA (HTTP):
+┌─────────────────┐
+│ POST REQUEST    │
+├─────────────────┤
+│ csrf_token: ABC │
+│ lote_id: 2      │
+│ ...             │
+└────────┬────────┘
+         │ VALIDAR
+         ▼
+    if csrf_token != 
+       $_SESSION['csrf_token']
+         │ ✗ NO VÁLIDO
+         ▼
+    ERROR 419
+         │ ✓ VÁLIDO
+         ▼
+    ┌──────────────────┐
+    │ Permiso OK?      │
+    │ can(             │
+    │ 'registrar_pago' │
+    │ )                │
+    └────┬─────────────┘
+         │ ✗ NO
+         ▼
+    ERROR 403
+         │ ✓ SÍ
+         ▼
+    ┌──────────────────────┐
+    │ Datos válidos?       │
+    │ - Lote existe?       │
+    │ - saldo > 0?         │
+    │ - Cuotas pendientes? │
+    └────┬─────────────────┘
+         │ ✗ FALLA
+         ▼
+    ERROR 400
+         │ ✓ OK
+         ▼
+    ┌──────────────────────┐
+    │ TRANSACCIÓN INICIADA │
+    │ BEGIN TRANSACTION    │
+    └────┬─────────────────┘
+         │
+         ├─ UPDATE amortizaciones
+         ├─ INSERT INTO pagos
+         ├─ UPDATE lotes
+         │
+         ├─ ✓ TODO OK
+         └─→ COMMIT
+         
+         ├─ ✗ ERROR
+         └─→ ROLLBACK
+
+
+SALIDA (RESPONSE):
+┌──────────────────────┐
+│ REDIRECT             │
+│ /lotes/amortizacion/ │
+│ show/2               │
+├──────────────────────┤
+│ $_SESSION['success']=│
+│ "Plan reajustado ... │
+│  4 cuotas            │
+│  compensadas"        │
+└──────────────────────┘
+         │
+         ▼
+    ┌──────────────────┐
+    │ USUARIO VE:      │
+    │ ✓ Mensaje verde  │
+    │ ✓ Tabla          │
+    │   actualizada    │
+    │ ✓ Botón          │
+    │   desaparecido   │
+    └──────────────────┘
+```
+
+---
+
+## 10. CASOS DE PRUEBA RESUMIDOS
+
+```
+TC-1: Acumular Saldo
+┌────────────────────────────────┐
+│ DADO:  Lote 2, Cuota = $1.97M  │
+│ CUANDO: Pago = $12M            │
+│ ENTONCES:                      │
+│ ✓ Cuota 1 = PAGADA             │
+│ ✓ saldo_a_favor = $10.02M      │
+│ ✓ Botón visible                │
+└────────────────────────────────┘
+
+TC-2: Reajustar
+┌────────────────────────────────┐
+│ DADO:  saldo_a_favor = $10.02M │
+│ CUANDO: Click botón + OK       │
+│ ENTONCES:                      │
+│ ✓ Cuotas 2-5 = PAGADA          │
+│ ✓ Cuota 6 = PENDIENTE (parcial)│
+│ ✓ saldo_a_favor = $0           │
+│ ✓ Botón invisible              │
+│ ✓ Auditoría en tabla pagos     │
+└────────────────────────────────┘
+
+TC-3: Sin Saldo
+┌────────────────────────────────┐
+│ DADO:  saldo_a_favor = $0      │
+│ CUANDO: Acceso a amortizacion  │
+│ ENTONCES:                      │
+│ ✓ Botón NO aparece             │
+│ ✓ Solo 3 botones visibles      │
+│ ✓ Sin errores                  │
+└────────────────────────────────┘
+```
+
+---
+
+**Diagrama Visual Completo**  
+**Sistema de Saldo a Favor Global**  
+**Versión 1.0 - 29 de Noviembre de 2025**

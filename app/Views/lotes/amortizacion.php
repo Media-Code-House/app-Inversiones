@@ -17,6 +17,18 @@
                 <i class="bi bi-cash-coin"></i> Registrar Pago
             </a>
             <?php endif; ?>
+            
+            <!-- Botón de Reajuste (Solo si hay Saldo a Favor) -->
+            <?php if (isset($saldo_a_favor) && $saldo_a_favor > 0.01 && can('registrar_pagos')): ?>
+            <form method="POST" action="/lotes/amortizacion/reajustar/<?= $lote['id'] ?>" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                <button type="submit" class="btn btn-info text-white" 
+                        onclick="return confirm('¿Aplicar Saldo a Favor de ' + formatCurrency(<?= $saldo_a_favor ?>) + ' para compensar cuotas futuras?\n\nEsta acción reajustará el plan y evitará mora.');">
+                    <i class="bi bi-cash-coin"></i> Aplicar Saldo a Favor (<?= formatMoney($saldo_a_favor) ?>)
+                </button>
+            </form>
+            <?php endif; ?>
+            
             <a href="/lotes/show/<?= $lote['id'] ?>" class="btn btn-info text-white">
                 <i class="bi bi-eye-fill"></i> Ver Lote
             </a>
@@ -287,6 +299,16 @@
 </div>
 
 <script>
+// Función para formatear moneda en confirmación
+function formatCurrency(value) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(value);
+}
+
 // Activar tooltips
 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
 var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

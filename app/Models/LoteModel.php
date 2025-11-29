@@ -527,4 +527,84 @@ class LoteModel
         
         return $this->db->fetchAll($sql, [$clienteId]);
     }
+
+    /**
+     * Obtiene el saldo a favor de un lote
+     * @param int $loteId ID del lote
+     * @return float Saldo a favor disponible
+     */
+    public function getSaldoAFavor($loteId)
+    {
+        $sql = "SELECT saldo_a_favor FROM lotes WHERE id = ?";
+        $result = $this->db->fetch($sql, [$loteId]);
+        return (float) ($result['saldo_a_favor'] ?? 0);
+    }
+
+    /**
+     * Actualiza el saldo a favor de un lote
+     * @param int $loteId ID del lote
+     * @param float $monto Nuevo monto de saldo a favor
+     * @return bool Resultado de la actualización
+     */
+    public function setSaldoAFavor($loteId, $monto)
+    {
+        $monto = max(0, (float)$monto); // Asegurar que no sea negativo
+        $sql = "UPDATE lotes SET saldo_a_favor = ?, updated_at = NOW() WHERE id = ?";
+        return $this->db->execute($sql, [$monto, $loteId]);
+    }
+
+    /**
+     * Incrementa el saldo a favor de un lote (suma un monto)
+     * @param int $loteId ID del lote
+     * @param float $monto Monto a sumar al saldo a favor
+     * @return bool Resultado de la actualización
+     */
+    public function incrementarSaldoAFavor($loteId, $monto)
+    {
+        $monto = (float)$monto;
+        if ($monto == 0) return true; // No hacer nada si es cero
+        
+        $sql = "UPDATE lotes SET 
+                saldo_a_favor = saldo_a_favor + ?,
+                updated_at = NOW() 
+                WHERE id = ?";
+        return $this->db->execute($sql, [$monto, $loteId]);
+    }
+
+    /**
+     * Decrementa el saldo a favor de un lote (resta un monto)
+     * @param int $loteId ID del lote
+     * @param float $monto Monto a restar del saldo a favor
+     * @return bool Resultado de la actualización
+     */
+    public function decrementarSaldoAFavor($loteId, $monto)
+    {
+        $monto = (float)$monto;
+        if ($monto == 0) return true;
+        
+        $sql = "UPDATE lotes SET 
+                saldo_a_favor = GREATEST(0, saldo_a_favor - ?),
+                updated_at = NOW() 
+                WHERE id = ?";
+        return $this->db->execute($sql, [$monto, $loteId]);
+    }
+
+    /**
+     * Obtiene lotes con saldo a favor disponible
+     * @param float $minimoSaldo Monto mínimo de saldo a favor
+     * @return array Lotes con saldo a favor > minimoSaldo
+     */
+    public function getLotesConSaldoAFavor($minimoSaldo = 0.01)
+    {
+        $sql = "SELECT l.*, 
+                       p.nombre as proyecto_nombre,
+                       c.nombre as cliente_nombre
+                FROM lotes l 
+                INNER JOIN proyectos p ON l.proyecto_id = p.id 
+                LEFT JOIN clientes c ON l.cliente_id = c.id 
+                WHERE l.saldo_a_favor > ? 
+                ORDER BY l.saldo_a_favor DESC, l.updated_at DESC";
+        
+        return $this->db->fetchAll($sql, [$minimoSaldo]);
+    }
 }
