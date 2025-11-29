@@ -5,8 +5,8 @@
  * Este archivo está en la raíz para compatibilidad con hosting
  */
 
-// DEBUG TEMPORAL - Mostrar errores
-if (isset($_GET['debug']) || (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'mch.com.co') !== false)) {
+// DEBUG TEMPORAL - Activar con ?debug=1 en la URL
+if (isset($_GET['debug']) && $_GET['debug'] == '1') {
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);

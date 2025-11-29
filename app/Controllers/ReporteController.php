@@ -73,13 +73,13 @@ class ReporteController extends Controller
                     l.id,
                     l.codigo_lote,
                     l.fecha_venta,
-                    l.precio_venta,
+                    COALESCE(l.precio_venta, l.precio_lista) as precio_venta,
                     p.nombre as proyecto_nombre,
                     p.codigo as proyecto_codigo,
-                    c.nombre as cliente_nombre,
-                    c.numero_documento as cliente_documento,
-                    u.nombre as vendedor_nombre,
-                    (l.precio_venta * 0.03) as comision_vendedor
+                    COALESCE(c.nombre, 'Sin cliente asignado') as cliente_nombre,
+                    COALESCE(c.numero_documento, '') as cliente_documento,
+                    COALESCE(u.nombre, 'Sin vendedor asignado') as vendedor_nombre,
+                    (COALESCE(l.precio_venta, l.precio_lista) * 0.03) as comision_vendedor
                 FROM lotes l
                 INNER JOIN proyectos p ON l.proyecto_id = p.id
                 LEFT JOIN clientes c ON l.cliente_id = c.id
@@ -112,13 +112,15 @@ class ReporteController extends Controller
 
         $lotes = $this->db->fetchAll($sql, $params);
 
-        // Calcular totales
-        $totalVentas = array_sum(array_column($lotes, 'precio_venta'));
-        $totalComisiones = array_sum(array_column($lotes, 'comision_vendedor'));
+        // Calcular totales (con manejo seguro de NULL)
+        $preciosVenta = array_filter(array_column($lotes, 'precio_venta'), fn($v) => $v !== null);
+        $comisiones = array_filter(array_column($lotes, 'comision_vendedor'), fn($v) => $v !== null);
+        $totalVentas = array_sum($preciosVenta);
+        $totalComisiones = array_sum($comisiones);
 
         // Obtener proyectos y vendedores para filtros
-        $proyectos = $this->proyectoModel->findAll();
-        $vendedores = $this->db->fetchAll("SELECT id, nombre FROM users WHERE rol = 'vendedor' ORDER BY nombre");
+        $proyectos = $this->proyectoModel->findAll() ?: [];
+        $vendedores = $this->db->fetchAll("SELECT id, nombre FROM users WHERE rol = 'vendedor' ORDER BY nombre") ?: [];
 
         $data = [
             'pageTitle' => 'Reporte: Lotes Vendidos',
@@ -159,8 +161,8 @@ class ReporteController extends Controller
                     COUNT(l.id) as total_lotes,
                     SUM(CASE WHEN l.estado = 'disponible' THEN 1 ELSE 0 END) as lotes_disponibles,
                     SUM(CASE WHEN l.estado = 'vendido' THEN 1 ELSE 0 END) as lotes_vendidos,
-                    SUM(CASE WHEN l.estado = 'vendido' THEN l.precio_venta ELSE 0 END) as valor_ventas,
-                    ROUND(SUM(CASE WHEN l.estado = 'vendido' THEN 1 ELSE 0 END) * 100.0 / COUNT(l.id), 1) as porcentaje_vendido
+                    SUM(CASE WHEN l.estado = 'vendido' THEN COALESCE(l.precio_venta, l.precio_lista) ELSE 0 END) as valor_ventas,
+                    ROUND(SUM(CASE WHEN l.estado = 'vendido' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(l.id), 0), 1) as porcentaje_vendido
                 FROM proyectos p
                 LEFT JOIN lotes l ON p.id = l.proyecto_id
                 GROUP BY p.id
@@ -207,8 +209,8 @@ class ReporteController extends Controller
                     u.nombre as vendedor_nombre,
                     u.email as vendedor_email,
                     COUNT(l.id) as total_lotes_vendidos,
-                    SUM(l.precio_venta) as total_ventas,
-                    SUM(l.precio_venta * 0.03) as total_comisiones,
+                    SUM(COALESCE(l.precio_venta, l.precio_lista)) as total_ventas,
+                    SUM(COALESCE(l.precio_venta, l.precio_lista) * 0.03) as total_comisiones,
                     MIN(l.fecha_venta) as primera_venta,
                     MAX(l.fecha_venta) as ultima_venta
                 FROM users u
@@ -275,11 +277,11 @@ class ReporteController extends Controller
                     a.saldo,
                     a.estado,
                     l.codigo_lote,
-                    l.precio_venta as valor_lote,
+                    COALESCE(l.precio_venta, l.precio_lista) as valor_lote,
                     p.nombre as proyecto_nombre,
-                    c.nombre as cliente_nombre,
-                    c.telefono as cliente_telefono,
-                    c.email as cliente_email,
+                    COALESCE(c.nombre, 'Sin cliente') as cliente_nombre,
+                    COALESCE(c.telefono, '') as cliente_telefono,
+                    COALESCE(c.email, '') as cliente_email,
                     DATEDIFF(CURDATE(), a.fecha_vencimiento) as dias_mora,
                     CASE 
                         WHEN DATEDIFF(CURDATE(), a.fecha_vencimiento) > 0 THEN 'VENCIDA'
@@ -289,7 +291,7 @@ class ReporteController extends Controller
                 FROM amortizaciones a
                 INNER JOIN lotes l ON a.lote_id = l.id
                 INNER JOIN proyectos p ON l.proyecto_id = p.id
-                INNER JOIN clientes c ON l.cliente_id = c.id
+                LEFT JOIN clientes c ON l.cliente_id = c.id
                 WHERE a.estado = 'pendiente' AND a.saldo > 0";
 
         $params = [];
@@ -356,7 +358,7 @@ class ReporteController extends Controller
                     c.telefono,
                     c.email,
                     COUNT(DISTINCT l.id) as total_lotes_comprados,
-                    SUM(l.precio_venta) as valor_total_compras,
+                    SUM(COALESCE(l.precio_venta, l.precio_lista)) as valor_total_compras,
                     SUM(CASE WHEN a.estado = 'pendiente' THEN a.saldo ELSE 0 END) as saldo_pendiente_global,
                     COUNT(CASE WHEN a.estado = 'pendiente' AND DATEDIFF(CURDATE(), a.fecha_vencimiento) > 0 THEN 1 END) as cuotas_vencidas,
                     MAX(CASE WHEN a.estado = 'pendiente' AND DATEDIFF(CURDATE(), a.fecha_vencimiento) > 0 
