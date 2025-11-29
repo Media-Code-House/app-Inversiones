@@ -72,9 +72,9 @@
                             </label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text bg-success text-white">$</span>
-                                <input type="number" class="form-control fw-bold" name="monto_financiado" 
+                                <input type="number" class="form-control fw-bold bg-light" name="monto_financiado" 
                                        id="monto_financiado" value="<?= $monto_financiado_sugerido ?>" 
-                                       step="0.01" min="0" required readonly>
+                                       step="0.01" min="0" required>
                             </div>
                             <small class="form-text text-muted">
                                 Se calcula automáticamente: Precio Venta - Cuota Inicial
@@ -376,6 +376,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('formAmortizacion');
         const modalElement = document.getElementById('modalConfirmar');
         
+        // Validar que todos los campos requeridos tengan valor
+        const camposRequeridos = [
+            'lote_id', 'cuota_inicial', 'monto_financiado', 
+            'tasa_interes', 'numero_cuotas', 'fecha_inicio'
+        ];
+        
+        let todosCompletos = true;
+        camposRequeridos.forEach(campo => {
+            const input = form.elements[campo];
+            if (!input || !input.value || input.value.trim() === '') {
+                console.error('Campo vacío:', campo);
+                todosCompletos = false;
+            }
+        });
+        
+        if (!todosCompletos) {
+            alert('Por favor complete todos los campos requeridos');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Sí, Generar Plan';
+            return;
+        }
+        
         // Deshabilitar botón y mostrar estado de carga
         btn.disabled = true;
         btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
@@ -388,6 +410,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Enviar formulario después de un pequeño delay para que cierre el modal
         setTimeout(function() {
+            console.log('Enviando formulario...');
+            console.log('Action:', form.action);
+            console.log('Method:', form.method);
             form.submit();
         }, 300);
     });
