@@ -85,11 +85,23 @@ try {
 } catch (Exception $e) {
     // Manejo de errores
     http_response_code(500);
+    
+    // Log del error
+    error_log("Error en aplicación: " . $e->getMessage() . " en " . $e->getFile() . ":" . $e->getLine());
+    
     if (DEBUG_MODE) {
-        echo "<h1>Error</h1>";
-        echo "<p>" . $e->getMessage() . "</p>";
-        echo "<pre>" . $e->getTraceAsString() . "</pre>";
+        echo "<!DOCTYPE html><html><head><title>Error</title><style>body{font-family:Arial;padding:20px;background:#f5f5f5;}h1{color:#dc3545;}pre{background:#fff;padding:15px;border-radius:5px;overflow:auto;}</style></head><body>";
+        echo "<h1>Error en la aplicación</h1>";
+        echo "<p><strong>Mensaje:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
+        echo "<p><strong>Archivo:</strong> " . htmlspecialchars($e->getFile()) . "</p>";
+        echo "<p><strong>Línea:</strong> " . $e->getLine() . "</p>";
+        echo "<h2>Stack Trace:</h2>";
+        echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+        echo "</body></html>";
     } else {
-        echo "Ha ocurrido un error. Por favor, contacte al administrador.";
+        echo "<!DOCTYPE html><html><head><title>Error</title><style>body{font-family:Arial;padding:50px;text-align:center;background:#f5f5f5;}</style></head><body>";
+        echo "<h1>Ha ocurrido un error</h1>";
+        echo "<p>Por favor, contacte al administrador del sistema.</p>";
+        echo "</body></html>";
     }
 }
