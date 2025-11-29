@@ -58,8 +58,8 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="area" class="form-label">Área (m²) <span class="text-danger">*</span></label>
-                                <input type="number" name="area" id="area" class="form-control" 
+                                <label for="area_m2" class="form-label">Área (m²) <span class="text-danger">*</span></label>
+                                <input type="number" name="area_m2" id="area_m2" class="form-control" 
                                        value="<?= $lote['area_m2'] ?>" 
                                        step="0.01" min="0.01" 
                                        <?= !$puedeEditar ? 'readonly' : '' ?> required>

@@ -131,7 +131,7 @@ class LoteController extends Controller
         
         try {
             // Validar datos requeridos
-            $required = ['proyecto_id', 'codigo_lote', 'area', 'precio_lista'];
+            $required = ['proyecto_id', 'codigo_lote', 'area_m2', 'precio_lista'];
             foreach ($required as $field) {
                 if (empty($_POST[$field])) {
                     throw new \Exception("El campo {$field} es obligatorio");
@@ -159,7 +159,7 @@ class LoteController extends Controller
             $data = [
                 'proyecto_id' => (int)$_POST['proyecto_id'],
                 'codigo_lote' => trim($_POST['codigo_lote']),
-                'area_m2' => (float)$_POST['area'],
+                'area_m2' => (float)$_POST['area_m2'],
                 'precio_lista' => (float)$_POST['precio_lista'],
                 'estado' => $_POST['estado'] ?? 'disponible',
                 'ubicacion' => $_POST['ubicacion'] ?? null,
@@ -321,7 +321,7 @@ class LoteController extends Controller
             $data = [
                 'proyecto_id' => (int)$_POST['proyecto_id'],
                 'codigo_lote' => trim($_POST['codigo_lote']),
-                'area' => (float)$_POST['area'],
+                'area_m2' => (float)$_POST['area_m2'],
                 'precio_lista' => (float)$_POST['precio_lista'],
                 'estado' => $_POST['estado'] ?? $lote['estado'],
                 'ubicacion' => $_POST['ubicacion'] ?? null,
