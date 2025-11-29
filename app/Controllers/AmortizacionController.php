@@ -86,8 +86,13 @@ class AmortizacionController extends Controller
      */
     public function store()
     {
+        // Log para debugging
+        error_log("DEBUG: Iniciando store() de amortización");
+        error_log("DEBUG: POST data: " . print_r($_POST, true));
+        
         if (!can('crear_amortizacion')) {
             $_SESSION['error'] = 'No tienes permisos para crear planes de amortización';
+            error_log("DEBUG: Sin permisos para crear amortización");
             redirect('/lotes');
             return;
         }
@@ -95,6 +100,7 @@ class AmortizacionController extends Controller
         // Validar CSRF
         if (!$this->validateCsrf()) {
             $_SESSION['error'] = 'Token de seguridad inválido';
+            error_log("DEBUG: Token CSRF inválido");
             redirect('/lotes');
             return;
         }
@@ -104,10 +110,13 @@ class AmortizacionController extends Controller
         foreach ($required as $field) {
             if (empty($_POST[$field])) {
                 $_SESSION['error'] = "El campo {$field} es requerido";
+                error_log("DEBUG: Falta campo requerido: {$field}");
                 redirect($_SERVER['HTTP_REFERER'] ?? '/lotes');
                 return;
             }
         }
+        
+        error_log("DEBUG: Todas las validaciones pasaron");
 
         $lote_id = (int)$_POST['lote_id'];
         $cuota_inicial = (float)$_POST['cuota_inicial'];
@@ -153,6 +162,8 @@ class AmortizacionController extends Controller
         }
 
         try {
+            error_log("DEBUG: Iniciando cálculo del plan");
+            
             // MÉTODO FRANCÉS: Calcular tabla de amortización con cuota fija
             $plan = $this->calcularPlanAmortizacionFrances(
                 $monto_financiado,
@@ -160,6 +171,8 @@ class AmortizacionController extends Controller
                 $numero_cuotas,
                 $fecha_inicio
             );
+            
+            error_log("DEBUG: Plan calculado con " . count($plan) . " cuotas");
 
             // Guardar cuota inicial en lotes (actualizar campos)
             $updateLote = $this->loteModel->updateAmortizacionFields($lote_id, [
@@ -169,10 +182,14 @@ class AmortizacionController extends Controller
                 'numero_cuotas' => $numero_cuotas,
                 'fecha_inicio_amortizacion' => $fecha_inicio
             ]);
+            
+            error_log("DEBUG: Lote actualizado");
 
             // Insertar cuotas en la tabla amortizaciones
             $db = \Database::getInstance();
             $db->beginTransaction();
+            
+            error_log("DEBUG: Iniciando transacción");
 
             foreach ($plan as $cuota) {
                 $sql = "INSERT INTO amortizaciones 
@@ -191,16 +208,23 @@ class AmortizacionController extends Controller
                 ];
 
                 $db->execute($sql, $params);
+                error_log("DEBUG: Cuota " . $cuota['numero'] . " insertada");
             }
 
             $db->commit();
+            error_log("DEBUG: Transacción completada con éxito");
 
             $_SESSION['success'] = "Plan de amortización creado exitosamente con {$numero_cuotas} cuotas";
+            error_log("DEBUG: Redirigiendo a /lotes/amortizacion/show/" . $lote_id);
             redirect('/lotes/amortizacion/show/' . $lote_id);
 
         } catch (\Exception $e) {
+            error_log("DEBUG ERROR: " . $e->getMessage());
+            error_log("DEBUG ERROR Trace: " . $e->getTraceAsString());
+            
             if (isset($db)) {
                 $db->rollback();
+                error_log("DEBUG: Rollback ejecutado");
             }
             
             $_SESSION['error'] = 'Error al crear el plan: ' . $e->getMessage();
