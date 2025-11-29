@@ -131,7 +131,7 @@ class ReporteController extends Controller
         }
 
         // Obtener proyectos y vendedores para filtros
-        $proyectos = $this->proyectoModel->findAll();
+        $proyectos = $this->proyectoModel->getAll();
         if (!is_array($proyectos)) {
             $proyectos = [];
         }
@@ -352,7 +352,7 @@ class ReporteController extends Controller
         }
 
         // Proyectos para filtro
-        $proyectos = $this->proyectoModel->findAll();
+        $proyectos = $this->proyectoModel->getAll();
         if (!is_array($proyectos)) {
             $proyectos = [];
         }
