@@ -32,7 +32,7 @@ class VendedorModel
                         
                         -- Estadísticas de ventas
                         COUNT(DISTINCT l.id) as total_lotes_vendidos,
-                        COALESCE(SUM(CASE WHEN l.estado = 'vendido' THEN l.precio_venta ELSE 0 END), 0) as valor_total_vendido,
+                        COALESCE(SUM(CASE WHEN l.estado = 'vendido' THEN COALESCE(l.precio_venta, l.precio_lista) ELSE 0 END), 0) as valor_total_vendido,
                         
                         -- Estadísticas de comisiones
                         COUNT(DISTINCT c.id) as total_comisiones,
@@ -42,7 +42,7 @@ class VendedorModel
                         
                     FROM vendedores v
                     INNER JOIN users u ON v.user_id = u.id
-                    LEFT JOIN lotes l ON u.id = l.vendedor_id
+                    LEFT JOIN lotes l ON u.id = l.vendedor_id AND l.estado = 'vendido'
                     LEFT JOIN comisiones c ON v.id = c.vendedor_id
                     WHERE 1=1";
             
