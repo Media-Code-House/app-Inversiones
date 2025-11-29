@@ -325,29 +325,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Actualizar datos en el modal cuando se abre
     const modal = document.getElementById('modalConfirmar');
-    modal.addEventListener('show.bs.modal', function() {
+    modal.addEventListener('show.bs.modal', function(e) {
         const monto = parseFloat(inputMontoFinanciado.value) || 0;
         const cuotas = parseInt(inputCuotas.value) || 0;
         
+        console.log('Modal show.bs.modal - Monto:', monto, 'Cuotas:', cuotas);
+        
         // Validaciones antes de mostrar modal
         if (monto <= 0) {
+            e.preventDefault();
             const alertDiv = document.createElement('div');
             alertDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
             alertDiv.style.zIndex = '9999';
             alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El monto a financiar debe ser mayor a cero <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
             document.body.appendChild(alertDiv);
             setTimeout(() => alertDiv.remove(), 3000);
-            return;
+            console.log('Validación falló: monto <= 0');
+            return false;
         }
         
         if (cuotas < 1 || cuotas > 360) {
+            e.preventDefault();
             const alertDiv = document.createElement('div');
             alertDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
             alertDiv.style.zIndex = '9999';
             alertDiv.innerHTML = '<i class="bi bi-exclamation-triangle"></i> El número de cuotas debe estar entre 1 y 360 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
             document.body.appendChild(alertDiv);
             setTimeout(() => alertDiv.remove(), 3000);
-            return;
+            console.log('Validación falló: cuotas fuera de rango');
+            return false;
         }
         
         const tasaAnual = parseFloat(inputTasa.value) || 0;
@@ -370,18 +376,36 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Botón de confirmar en el modal
     document.getElementById('btnConfirmarGenerar').addEventListener('click', function() {
-        console.log('Enviando formulario...');
+        console.log('Botón Confirmar clickeado');
+        
+        const form = document.getElementById('formAmortizacion');
+        console.log('Form action:', form.action);
+        console.log('Form method:', form.method);
         
         // Deshabilitar botón y mostrar estado de carga
-        this.disabled = true;
-        this.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Generando...';
         
+        console.log('Cerrando modal...');
         // Cerrar modal
-        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('modalConfirmar'));
-        modalInstance.hide();
+        const modalElement = document.getElementById('modalConfirmar');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
         
-        // Enviar formulario
-        document.getElementById('formAmortizacion').submit();
+        // Esperar a que el modal se cierre completamente antes de enviar
+        modalElement.addEventListener('hidden.bs.modal', function onModalHidden() {
+            console.log('Modal cerrado, enviando formulario...');
+            
+            // Remover el listener para evitar múltiples ejecuciones
+            modalElement.removeEventListener('hidden.bs.modal', onModalHidden);
+            
+            // Enviar formulario de forma nativa
+            console.log('Ejecutando form.submit()');
+            form.submit();
+        }, { once: true });
     });
 
     // Inicializar vista previa
