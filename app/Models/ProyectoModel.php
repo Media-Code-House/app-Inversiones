@@ -186,4 +186,14 @@ class ProyectoModel
 
         return $result['count'] > 0;
     }
+
+    /**
+     * Cuenta los lotes asociados a un proyecto
+     */
+    public function countLotes($proyectoId)
+    {
+        $sql = "SELECT COUNT(*) as total FROM lotes WHERE proyecto_id = ?";
+        $result = $this->db->fetch($sql, [$proyectoId]);
+        return $result['total'] ?? 0;
+    }
 }

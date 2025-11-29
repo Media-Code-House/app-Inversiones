@@ -34,6 +34,11 @@ class ProyectoController extends Controller
         // Obtener proyectos filtrados
         $proyectos = $this->proyectoModel->getAll($filtros);
 
+        // Agregar conteo de lotes a cada proyecto
+        foreach ($proyectos as &$proyecto) {
+            $proyecto['total_lotes'] = $this->proyectoModel->countLotes($proyecto['id']);
+        }
+
         $this->view('proyectos/index', [
             'title' => 'Gestión de Proyectos',
             'proyectos' => $proyectos,
@@ -187,6 +192,9 @@ class ProyectoController extends Controller
             $this->redirect('/proyectos');
             return;
         }
+
+        // Agregar conteo de lotes
+        $proyecto['total_lotes'] = $this->proyectoModel->countLotes($id);
 
         $this->view('proyectos/edit', [
             'title' => 'Editar Proyecto: ' . $proyecto['nombre'],
@@ -355,5 +363,54 @@ class ProyectoController extends Controller
             return unlink($fullPath);
         }
         return false;
+    }
+
+    /**
+     * Elimina un proyecto
+     * POST /proyectos/delete/{id}
+     */
+    public function delete($id)
+    {
+        $this->requireAuth();
+
+        // Verificar permisos
+        if (!can('eliminar_proyectos')) {
+            setFlash('error', 'No tienes permisos para eliminar proyectos');
+            redirect('/proyectos');
+        }
+
+        // Validar CSRF
+        if (!$this->validateCsrf()) {
+            setFlash('error', 'Token de seguridad inválido');
+            redirect('/proyectos');
+        }
+
+        // Verificar si el proyecto existe
+        $proyecto = $this->proyectoModel->findById($id);
+        if (!$proyecto) {
+            setFlash('error', 'Proyecto no encontrado');
+            redirect('/proyectos');
+        }
+
+        // Verificar si tiene lotes asociados
+        $totalLotes = $this->proyectoModel->countLotes($id);
+        if ($totalLotes > 0) {
+            setFlash('error', "No se puede eliminar el proyecto porque tiene {$totalLotes} lote(s) asociado(s). Elimina los lotes primero.");
+            redirect('/proyectos');
+        }
+
+        // Eliminar imagen si existe
+        if (!empty($proyecto['plano_imagen'])) {
+            $this->deleteImage($proyecto['plano_imagen']);
+        }
+
+        // Eliminar proyecto
+        if ($this->proyectoModel->delete($id)) {
+            setFlash('success', 'Proyecto eliminado correctamente');
+        } else {
+            setFlash('error', 'Error al eliminar el proyecto');
+        }
+
+        redirect('/proyectos');
     }
 }

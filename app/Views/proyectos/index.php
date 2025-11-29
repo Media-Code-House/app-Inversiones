@@ -139,6 +139,14 @@
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                             <?php endif; ?>
+                                            <?php if (can('eliminar_proyectos')): ?>
+                                                <button type="button" 
+                                                        class="btn btn-outline-danger" 
+                                                        title="Eliminar"
+                                                        onclick="confirmarEliminacion(<?= $proyecto['id'] ?>, '<?= htmlspecialchars($proyecto['nombre']) ?>', <?= $proyecto['total_lotes'] ?? 0 ?>)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -157,3 +165,25 @@
         </div>
     </div>
 </div>
+
+<!-- Formulario oculto para eliminar -->
+<form id="formEliminar" method="POST" style="display: none;">
+    <?= csrfField() ?>
+</form>
+
+<script>
+function confirmarEliminacion(proyectoId, nombreProyecto, totalLotes) {
+    if (totalLotes > 0) {
+        alert(`No se puede eliminar el proyecto "${nombreProyecto}" porque tiene ${totalLotes} lote(s) asociado(s).\n\nDebes eliminar los lotes primero.`);
+        return;
+    }
+    
+    const mensaje = `¿Estás seguro de que deseas eliminar el proyecto "${nombreProyecto}"?\n\nEsta acción NO se puede deshacer.`;
+    
+    if (confirm(mensaje)) {
+        const form = document.getElementById('formEliminar');
+        form.action = `/proyectos/delete/${proyectoId}`;
+        form.submit();
+    }
+}
+</script>

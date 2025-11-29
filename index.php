@@ -98,6 +98,9 @@ $router->get('/proyectos/edit/{id}', 'ProyectoController@edit');
 // Actualizar proyecto
 $router->post('/proyectos/update/{id}', 'ProyectoController@update');
 
+// Eliminar proyecto
+$router->post('/proyectos/delete/{id}', 'ProyectoController@delete');
+
 // ==========================================
 // RUTAS DE LOTES
 // ==========================================

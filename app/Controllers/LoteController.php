@@ -155,11 +155,11 @@ class LoteController extends Controller
                 throw new \Exception("Ya existe un lote con el código '{$_POST['codigo_lote']}' en el proyecto '{$proyecto['nombre']}'");
             }
 
-            // Preparar datos base
+            // Preparar datos actualizados
             $data = [
                 'proyecto_id' => (int)$_POST['proyecto_id'],
                 'codigo_lote' => trim($_POST['codigo_lote']),
-                'area' => (float)$_POST['area'],
+                'area_m2' => (float)$_POST['area'],
                 'precio_lista' => (float)$_POST['precio_lista'],
                 'estado' => $_POST['estado'] ?? 'disponible',
                 'ubicacion' => $_POST['ubicacion'] ?? null,

@@ -179,9 +179,16 @@
 
                 <!-- Botones -->
                 <div class="d-flex justify-content-between mt-4">
-                    <a href="/proyectos/show/<?= $proyecto['id'] ?>" class="btn btn-secondary">
-                        <i class="bi bi-x-circle"></i> Cancelar
-                    </a>
+                    <div>
+                        <a href="/proyectos/show/<?= $proyecto['id'] ?>" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                        <?php if (can('eliminar_proyectos')): ?>
+                            <button type="button" class="btn btn-danger" onclick="confirmarEliminacion()">
+                                <i class="bi bi-trash"></i> Eliminar Proyecto
+                            </button>
+                        <?php endif; ?>
+                    </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-save"></i> Guardar Cambios
                     </button>
@@ -190,6 +197,13 @@
         </div>
     </div>
 </div>
+
+<!-- Formulario oculto para eliminar -->
+<?php if (can('eliminar_proyectos')): ?>
+<form id="formEliminar" method="POST" action="/proyectos/delete/<?= $proyecto['id'] ?>" style="display: none;">
+    <?= csrfField() ?>
+</form>
+<?php endif; ?>
 
 <!-- JavaScript para preview de imagen -->
 <script>
@@ -250,4 +264,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function confirmarEliminacion() {
+    <?php 
+    // Obtener el total de lotes
+    $totalLotes = $proyecto['total_lotes'] ?? 0;
+    ?>
+    const totalLotes = <?= $totalLotes ?>;
+    
+    if (totalLotes > 0) {
+        alert(`No se puede eliminar el proyecto porque tiene ${totalLotes} lote(s) asociado(s).\n\nDebes eliminar los lotes primero.`);
+        return;
+    }
+    
+    const mensaje = '¿Estás seguro de que deseas eliminar este proyecto?\n\n' +
+                    'Proyecto: <?= htmlspecialchars($proyecto['nombre']) ?>\n' +
+                    'Código: <?= htmlspecialchars($proyecto['codigo']) ?>\n\n' +
+                    'Esta acción NO se puede deshacer.';
+    
+    if (confirm(mensaje)) {
+        document.getElementById('formEliminar').submit();
+    }
+}
 </script>

@@ -71,7 +71,7 @@
                     <div class="row mb-3">
                         <div class="col-6">
                             <label class="text-muted small">Área</label>
-                            <p class="mb-0"><?= number_format($lote['area'], 2) ?> m²</p>
+                            <p class="mb-0"><?= number_format($lote['area_m2'], 2) ?> m²</p>
                         </div>
                         <div class="col-6">
                             <label class="text-muted small">Precio de Lista</label>
