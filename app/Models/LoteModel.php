@@ -445,7 +445,7 @@ class LoteModel
     {
         $errors = [];
 
-        if (isset($data['area']) && $data['area'] <= 0) {
+        if (isset($data['area_m2']) && $data['area_m2'] <= 0) {
             $errors[] = "El área debe ser un valor positivo";
         }
 
