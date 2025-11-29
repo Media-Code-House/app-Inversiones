@@ -170,10 +170,22 @@ class ProyectoController extends Controller
         // Obtener estadísticas del proyecto
         $estadisticas = $this->proyectoModel->getEstadisticas($id);
 
+        // Obtener todos los lotes del proyecto
+        $loteModel = new \App\Models\LoteModel();
+        $lotes = $loteModel->getByProyecto($id);
+
+        // Calcular precio por m² para cada lote
+        foreach ($lotes as &$lote) {
+            $lote['precio_m2'] = $lote['area_m2'] > 0 
+                ? round($lote['precio_lista'] / $lote['area_m2'], 0) 
+                : 0;
+        }
+
         $this->view('proyectos/show', [
             'title' => 'Detalle del Proyecto',
             'proyecto' => $proyecto,
-            'estadisticas' => $estadisticas
+            'estadisticas' => $estadisticas,
+            'lotes' => $lotes
         ]);
     }
 

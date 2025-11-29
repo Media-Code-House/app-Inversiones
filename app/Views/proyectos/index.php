@@ -1,13 +1,14 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">
-            <i class="bi bi-building"></i> Gestión de Proyectos
-        </h1>
-        <?php if (can('crear_proyectos')): ?>
-            <a href="/proyectos/create" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Nuevo Proyecto
-            </a>
-        <?php endif; ?>
+        <div>
+            <h1 class="h3 mb-0">
+                <i class="bi bi-building"></i> Gestión de Proyectos
+            </h1>
+            <small class="text-muted">Administra tus proyectos inmobiliarios</small>
+        </div>
+        <a href="/proyectos/create" class="btn btn-success btn-lg">
+            <i class="bi bi-plus-circle"></i> Crear Nuevo Proyecto
+        </a>
     </div>
 
     <!-- Filtros -->
@@ -71,13 +72,12 @@
         <div class="card-body">
             <?php if (empty($proyectos)): ?>
                 <div class="text-center py-5">
-                    <i class="bi bi-inbox display-1 text-muted"></i>
-                    <p class="lead text-muted mt-3">No se encontraron proyectos</p>
-                    <?php if (can('crear_proyectos')): ?>
-                        <a href="/proyectos/create" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Crear Primer Proyecto
-                        </a>
-                    <?php endif; ?>
+                    <i class="bi bi-building display-1 text-muted"></i>
+                    <p class="lead text-muted mt-3">No hay proyectos registrados</p>
+                    <p class="text-muted">Comienza creando tu primer proyecto inmobiliario</p>
+                    <a href="/proyectos/create" class="btn btn-success btn-lg mt-3">
+                        <i class="bi bi-plus-circle"></i> Crear Primer Proyecto
+                    </a>
                 </div>
             <?php else: ?>
                 <div class="table-responsive">
@@ -126,25 +126,23 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="btn-group btn-group-sm" role="group">
+                                        <div class="d-flex gap-1 justify-content-center">
                                             <a href="/proyectos/show/<?= $proyecto['id'] ?>" 
-                                               class="btn btn-outline-info" 
-                                               title="Ver detalles">
-                                                <i class="bi bi-eye"></i>
+                                               class="btn btn-sm btn-info" 
+                                               title="Ver proyecto y lotes">
+                                                <i class="bi bi-eye-fill"></i> Ver
                                             </a>
-                                            <?php if (can('editar_proyectos')): ?>
-                                                <a href="/proyectos/edit/<?= $proyecto['id'] ?>" 
-                                                   class="btn btn-outline-primary" 
-                                                   title="Editar">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                            <?php endif; ?>
+                                            <a href="/proyectos/edit/<?= $proyecto['id'] ?>" 
+                                               class="btn btn-sm btn-primary" 
+                                               title="Editar proyecto">
+                                                <i class="bi bi-pencil-fill"></i> Editar
+                                            </a>
                                             <?php if (can('eliminar_proyectos')): ?>
                                                 <button type="button" 
-                                                        class="btn btn-outline-danger" 
-                                                        title="Eliminar"
+                                                        class="btn btn-sm btn-danger" 
+                                                        title="Eliminar proyecto"
                                                         onclick="confirmarEliminacion(<?= $proyecto['id'] ?>, '<?= htmlspecialchars($proyecto['nombre']) ?>', <?= $proyecto['total_lotes'] ?? 0 ?>)">
-                                                    <i class="bi bi-trash"></i>
+                                                    <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             <?php endif; ?>
                                         </div>

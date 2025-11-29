@@ -512,4 +512,49 @@ class LoteController extends Controller
             'cuotas_pendientes' => $cuotasPendientes
         ]);
     }
+
+    /**
+     * Elimina un lote
+     * POST /lotes/delete/{id}
+     */
+    public function delete($id)
+    {
+        $this->requireAuth();
+
+        // Verificar permisos
+        if (!can('eliminar_lotes')) {
+            setFlash('error', 'No tienes permisos para eliminar lotes');
+            redirect('/lotes');
+        }
+
+        // Validar CSRF
+        if (!$this->validateCsrf()) {
+            setFlash('error', 'Token de seguridad inválido');
+            redirect('/lotes');
+        }
+
+        // Verificar si el lote existe
+        $lote = $this->loteModel->findById($id);
+        if (!$lote) {
+            setFlash('error', 'Lote no encontrado');
+            redirect('/lotes');
+        }
+
+        $proyectoId = $lote['proyecto_id'];
+
+        // Advertencia especial si está vendido (validación adicional en el futuro)
+        if ($lote['estado'] === 'vendido') {
+            // Por ahora solo advertimos, en Módulo 6 se validará contra pagos
+            // setFlash('warning', 'El lote estaba vendido. Se ha eliminado toda la información asociada.');
+        }
+
+        // Eliminar lote
+        if ($this->loteModel->delete($id)) {
+            setFlash('success', 'Lote eliminado correctamente');
+        } else {
+            setFlash('error', 'Error al eliminar el lote');
+        }
+
+        redirect('/proyectos/show/' . $proyectoId);
+    }
 }

@@ -123,6 +123,9 @@ $router->get('/lotes/edit/{id}', 'LoteController@edit');
 // Actualizar lote
 $router->post('/lotes/update/{id}', 'LoteController@update');
 
+// Eliminar lote
+$router->post('/lotes/delete/{id}', 'LoteController@delete');
+
 // Ver plan de amortización (Módulo 5)
 $router->get('/lotes/amortizacion/{id}', 'LoteController@verAmortizacion');
 
