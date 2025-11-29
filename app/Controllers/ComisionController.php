@@ -37,10 +37,10 @@ class ComisionController extends Controller
         // Obtener lista de vendedores para filtro
         $db = \Database::getInstance();
         $vendedores = $db->fetchAll(
-            "SELECT id, nombre FROM users 
-             WHERE rol IN ('administrador', 'vendedor') 
-             AND activo = 1 
-             ORDER BY nombre"
+            "SELECT v.id, CONCAT(v.nombres, ' ', v.apellidos) as nombre
+             FROM vendedores v
+             WHERE v.estado = 'activo'
+             ORDER BY v.nombres, v.apellidos"
         );
 
         // Calcular totales
@@ -203,15 +203,18 @@ class ComisionController extends Controller
         // Obtener vendedores con su configuración
         $vendedores = $db->fetchAll(
             "SELECT 
-                u.id, u.nombre, u.email, u.rol,
-                COALESCE(cc.porcentaje_comision, 3.00) as porcentaje_comision,
-                cc.observaciones,
-                cc.updated_at as fecha_actualizacion
-             FROM users u
-             LEFT JOIN configuracion_comisiones cc ON u.id = cc.vendedor_id AND cc.activo = 1
-             WHERE u.rol IN ('administrador', 'vendedor')
+                v.id,
+                CONCAT(v.nombres, ' ', v.apellidos) as nombre,
+                v.email,
+                u.rol,
+                v.porcentaje_comision_default as porcentaje_comision,
+                v.observaciones,
+                v.updated_at as fecha_actualizacion
+             FROM vendedores v
+             INNER JOIN users u ON v.user_id = u.id
+             WHERE v.estado = 'activo'
              AND u.activo = 1
-             ORDER BY u.nombre"
+             ORDER BY v.nombres, v.apellidos"
         );
 
         $this->view('comisiones/configuracion', [

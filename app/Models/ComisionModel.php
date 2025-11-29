@@ -22,14 +22,15 @@ class ComisionModel
     {
         $sql = "SELECT 
                     c.*,
-                    u.nombre as vendedor_nombre,
-                    u.email as vendedor_email,
+                    v.codigo_vendedor,
+                    CONCAT(v.nombres, ' ', v.apellidos) as vendedor_nombre,
+                    v.email as vendedor_email,
                     l.codigo_lote,
                     l.precio_venta as lote_precio_venta,
                     p.nombre as proyecto_nombre,
                     cl.nombre as cliente_nombre
                 FROM comisiones c
-                INNER JOIN users u ON c.vendedor_id = u.id
+                INNER JOIN vendedores v ON c.vendedor_id = v.id
                 INNER JOIN lotes l ON c.lote_id = l.id
                 INNER JOIN proyectos p ON l.proyecto_id = p.id
                 LEFT JOIN clientes cl ON l.cliente_id = cl.id
@@ -72,8 +73,9 @@ class ComisionModel
     {
         $sql = "SELECT 
                     c.*,
-                    u.nombre as vendedor_nombre,
-                    u.email as vendedor_email,
+                    v.codigo_vendedor,
+                    CONCAT(v.nombres, ' ', v.apellidos) as vendedor_nombre,
+                    v.email as vendedor_email,
                     u.rol as vendedor_rol,
                     l.codigo_lote,
                     l.precio_venta as lote_precio_venta,
@@ -82,7 +84,8 @@ class ComisionModel
                     cl.nombre as cliente_nombre,
                     cl.numero_documento as cliente_documento
                 FROM comisiones c
-                INNER JOIN users u ON c.vendedor_id = u.id
+                INNER JOIN vendedores v ON c.vendedor_id = v.id
+                INNER JOIN users u ON v.user_id = u.id
                 INNER JOIN lotes l ON c.lote_id = l.id
                 INNER JOIN proyectos p ON l.proyecto_id = p.id
                 LEFT JOIN clientes cl ON l.cliente_id = cl.id
@@ -97,22 +100,30 @@ class ComisionModel
      */
     public function marcarComoPagada($id, $data)
     {
-        $sql = "UPDATE comisiones 
-                SET estado = 'pagada',
-                    fecha_pago_comision = ?,
-                    metodo_pago = ?,
-                    referencia_pago = ?,
-                    observaciones = ?,
-                    updated_at = NOW()
-                WHERE id = ?";
+        // Crear registro en pagos_comisiones
+        $comision = $this->findById($id);
+        if (!$comision) {
+            throw new \Exception('Comisión no encontrada');
+        }
         
-        return $this->db->execute($sql, [
+        $sqlPago = "INSERT INTO pagos_comisiones 
+                    (comision_id, vendedor_id, valor_pagado, fecha_pago, 
+                     metodo_pago, numero_comprobante, referencia, observaciones, usuario_registro_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        return $this->db->execute($sqlPago, [
+            $id,
+            $comision['vendedor_id'],
+            $comision['valor_comision'],
             $data['fecha_pago'],
             $data['metodo_pago'],
             $data['referencia_pago'] ?? null,
+            $data['referencia'] ?? null,
             $data['observaciones'] ?? null,
-            $id
+            $_SESSION['user']['id'] ?? null
         ]);
+        
+        // El trigger after_pago_comision_insert actualizará el estado automáticamente
     }
 
     /**
@@ -121,27 +132,28 @@ class ComisionModel
     public function getResumenPorVendedor($vendedorId = null)
     {
         $sql = "SELECT 
-                    u.id as vendedor_id,
-                    u.nombre as vendedor_nombre,
+                    v.id as vendedor_id,
+                    CONCAT(v.nombres, ' ', v.apellidos) as vendedor_nombre,
                     COUNT(c.id) as total_ventas,
                     SUM(CASE WHEN c.estado = 'pendiente' THEN 1 ELSE 0 END) as comisiones_pendientes,
                     SUM(CASE WHEN c.estado = 'pagada' THEN 1 ELSE 0 END) as comisiones_pagadas,
                     SUM(c.valor_comision) as total_comisiones,
                     SUM(CASE WHEN c.estado = 'pendiente' THEN c.valor_comision ELSE 0 END) as total_pendiente,
                     SUM(CASE WHEN c.estado = 'pagada' THEN c.valor_comision ELSE 0 END) as total_pagado
-                FROM users u
-                LEFT JOIN comisiones c ON u.id = c.vendedor_id
-                WHERE u.rol IN ('administrador', 'vendedor')
+                FROM vendedores v
+                INNER JOIN users u ON v.user_id = u.id
+                LEFT JOIN comisiones c ON v.id = c.vendedor_id
+                WHERE v.estado = 'activo'
                 AND u.activo = 1";
         
         $params = [];
         
         if ($vendedorId) {
-            $sql .= " AND u.id = ?";
+            $sql .= " AND v.id = ?";
             $params[] = $vendedorId;
         }
         
-        $sql .= " GROUP BY u.id, u.nombre
+        $sql .= " GROUP BY v.id, v.nombres, v.apellidos
                   ORDER BY total_comisiones DESC";
         
         return $this->db->fetchAll($sql, $params);
@@ -152,8 +164,9 @@ class ComisionModel
      */
     public function getConfiguracionVendedor($vendedorId)
     {
-        $sql = "SELECT * FROM configuracion_comisiones 
-                WHERE vendedor_id = ? AND activo = 1 
+        $sql = "SELECT porcentaje_comision_default as porcentaje_comision, observaciones
+                FROM vendedores 
+                WHERE id = ? 
                 LIMIT 1";
         
         return $this->db->fetch($sql, [$vendedorId]);
@@ -164,24 +177,14 @@ class ComisionModel
      */
     public function actualizarConfiguracion($vendedorId, $porcentaje, $observaciones = null)
     {
-        // Verificar si existe configuración
-        $config = $this->getConfiguracionVendedor($vendedorId);
+        // Actualizar directamente en tabla vendedores
+        $sql = "UPDATE vendedores 
+                SET porcentaje_comision_default = ?,
+                    observaciones = ?,
+                    updated_at = NOW()
+                WHERE id = ?";
         
-        if ($config) {
-            $sql = "UPDATE configuracion_comisiones 
-                    SET porcentaje_comision = ?,
-                        observaciones = ?,
-                        updated_at = NOW()
-                    WHERE vendedor_id = ?";
-            
-            return $this->db->execute($sql, [$porcentaje, $observaciones, $vendedorId]);
-        } else {
-            $sql = "INSERT INTO configuracion_comisiones 
-                    (vendedor_id, porcentaje_comision, observaciones, activo)
-                    VALUES (?, ?, ?, 1)";
-            
-            return $this->db->execute($sql, [$vendedorId, $porcentaje, $observaciones]);
-        }
+        return $this->db->execute($sql, [$porcentaje, $observaciones, $vendedorId]);
     }
 
     /**

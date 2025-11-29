@@ -267,14 +267,21 @@ class LoteController extends Controller
         $proyectos = $this->proyectoModel->getAll();
         $clientes = $this->clienteModel->getAll();
         
-        // Obtener usuarios que pueden ser vendedores (administrador y vendedor)
+        // Obtener vendedores activos con su información de users
         $db = \Database::getInstance();
         $vendedores = $db->fetchAll(
-            "SELECT id, nombre, email, rol 
-             FROM users 
-             WHERE rol IN ('administrador', 'vendedor') 
-             AND activo = 1 
-             ORDER BY nombre"
+            "SELECT 
+                u.id,
+                u.nombre,
+                u.email,
+                u.rol,
+                v.codigo_vendedor,
+                CONCAT(v.nombres, ' ', v.apellidos) as nombre_completo
+             FROM users u
+             LEFT JOIN vendedores v ON u.id = v.user_id
+             WHERE u.rol IN ('administrador', 'vendedor') 
+             AND u.activo = 1 
+             ORDER BY u.nombre"
         );
 
         $this->view('lotes/edit', [
