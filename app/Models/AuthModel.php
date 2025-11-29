@@ -20,7 +20,7 @@ class AuthModel
      */
     public function findByEmail($email)
     {
-        $sql = "SELECT * FROM users WHERE email = ? AND is_active = 1 LIMIT 1";
+        $sql = "SELECT * FROM users WHERE email = ? AND activo = 1 LIMIT 1";
         return $this->db->fetch($sql, [$email]);
     }
 
@@ -29,7 +29,7 @@ class AuthModel
      */
     public function findById($id)
     {
-        $sql = "SELECT * FROM users WHERE id = ? AND is_active = 1 LIMIT 1";
+        $sql = "SELECT * FROM users WHERE id = ? AND activo = 1 LIMIT 1";
         return $this->db->fetch($sql, [$id]);
     }
 
@@ -38,14 +38,14 @@ class AuthModel
      */
     public function create($data)
     {
-        $sql = "INSERT INTO users (email, password_hash, nombre, rol_id) 
+        $sql = "INSERT INTO users (email, password, nombre, rol) 
                 VALUES (?, ?, ?, ?)";
         
         $params = [
             $data['email'],
-            $data['password_hash'],
+            $data['password'],
             $data['nombre'],
-            $data['rol_id'] ?? 1 // Por defecto rol Usuario
+            $data['rol'] ?? 'usuario' // Por defecto rol Usuario
         ];
 
         $this->db->execute($sql, $params);
@@ -57,7 +57,7 @@ class AuthModel
      */
     public function updatePassword($userId, $newPasswordHash)
     {
-        $sql = "UPDATE users SET password_hash = ?, updated_at = NOW() WHERE id = ?";
+        $sql = "UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?";
         return $this->db->execute($sql, [$newPasswordHash, $userId]);
     }
 
@@ -83,7 +83,7 @@ class AuthModel
         $sql = "SELECT * FROM users 
                 WHERE reset_token = ? 
                 AND reset_token_expires > NOW() 
-                AND is_active = 1 
+                AND activo = 1 
                 LIMIT 1";
         
         return $this->db->fetch($sql, [$token]);
@@ -103,7 +103,7 @@ class AuthModel
 
         // Actualizar contraseña y limpiar token
         $sql = "UPDATE users 
-                SET password_hash = ?, 
+                SET password = ?, 
                     reset_token = NULL, 
                     reset_token_expires = NULL,
                     updated_at = NOW()

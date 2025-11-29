@@ -64,9 +64,9 @@ function user()
 /**
  * Verifica si el usuario tiene un rol específico
  */
-function hasRole($rolId)
+function hasRole($rol)
 {
-    return isset($_SESSION['user']['rol_id']) && $_SESSION['user']['rol_id'] == $rolId;
+    return isset($_SESSION['user']['rol']) && $_SESSION['user']['rol'] == $rol;
 }
 
 /**

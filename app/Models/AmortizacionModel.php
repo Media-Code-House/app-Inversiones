@@ -266,4 +266,14 @@ class AmortizacionModel
         
         return $this->db->fetch($sql, [$loteId]);
     }
+
+    /**
+     * Verifica si un lote tiene amortización activa
+     */
+    public function hasActiveAmortization($loteId)
+    {
+        $sql = "SELECT COUNT(*) as count FROM amortizaciones WHERE lote_id = ? AND estado IN ('pendiente', 'pagada')";
+        $result = $this->db->fetch($sql, [$loteId]);
+        return $result['count'] > 0;
+    }
 }

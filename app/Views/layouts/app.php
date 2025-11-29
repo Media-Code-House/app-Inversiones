@@ -9,6 +9,9 @@
     <!-- Bootstrap 5 CSS (Local) -->
     <link rel="stylesheet" href="<?= asset('css/bootstrap/bootstrap.min.css') ?>">
     
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     

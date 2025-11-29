@@ -16,6 +16,49 @@ class LoteModel
     }
 
     /**
+     * Obtiene todos los lotes con filtros opcionales
+     */
+    public function getAll($filters = [])
+    {
+        $sql = "SELECT l.*, 
+                       p.nombre as proyecto_nombre, 
+                       p.codigo as proyecto_codigo,
+                       c.nombre as cliente_nombre,
+                       (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id AND estado = 'pendiente') as tiene_amortizacion
+                FROM lotes l 
+                INNER JOIN proyectos p ON l.proyecto_id = p.id 
+                LEFT JOIN clientes c ON l.cliente_id = c.id 
+                WHERE 1=1 ";
+        
+        $params = [];
+        
+        // Filtro por proyecto
+        if (!empty($filters['proyecto_id'])) {
+            $sql .= " AND l.proyecto_id = ? ";
+            $params[] = $filters['proyecto_id'];
+        }
+        
+        // Filtro por estado
+        if (!empty($filters['estado'])) {
+            $sql .= " AND l.estado = ? ";
+            $params[] = $filters['estado'];
+        }
+        
+        // Búsqueda por texto
+        if (!empty($filters['busqueda'])) {
+            $sql .= " AND (l.codigo_lote LIKE ? OR l.manzana LIKE ? OR c.nombre LIKE ?) ";
+            $busqueda = "%{$filters['busqueda']}%";
+            $params[] = $busqueda;
+            $params[] = $busqueda;
+            $params[] = $busqueda;
+        }
+        
+        $sql .= " ORDER BY p.nombre, l.codigo_lote ASC";
+        
+        return $this->db->fetchAll($sql, $params);
+    }
+
+    /**
      * Obtiene todos los lotes de un proyecto
      */
     public function getByProyecto($proyectoId)
@@ -118,11 +161,20 @@ class LoteModel
     }
 
     /**
-     * Obtiene un lote por ID
+     * Obtiene un lote por ID con información completa
      */
     public function findById($id)
     {
-        $sql = "SELECT l.*, p.nombre as proyecto_nombre, c.nombre as cliente_nombre 
+        $sql = "SELECT l.*, 
+                       p.nombre as proyecto_nombre, 
+                       p.codigo as proyecto_codigo,
+                       p.ubicacion as proyecto_ubicacion,
+                       c.nombre as cliente_nombre,
+                       c.documento as cliente_documento,
+                       c.telefono as cliente_telefono,
+                       c.email as cliente_email,
+                       (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id) as tiene_amortizacion,
+                       (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id AND estado = 'activa') as amortizacion_activa
                 FROM lotes l 
                 INNER JOIN proyectos p ON l.proyecto_id = p.id 
                 LEFT JOIN clientes c ON l.cliente_id = c.id 
@@ -305,5 +357,53 @@ class LoteModel
         }
 
         return $result['count'] > 0;
+    }
+
+    /**
+     * Valida que los valores numéricos sean positivos
+     */
+    public function validatePositiveValues($data)
+    {
+        $errors = [];
+
+        if (isset($data['area']) && $data['area'] <= 0) {
+            $errors[] = "El área debe ser un valor positivo";
+        }
+
+        if (isset($data['precio_lista']) && $data['precio_lista'] <= 0) {
+            $errors[] = "El precio de lista debe ser un valor positivo";
+        }
+
+        if (isset($data['precio_venta']) && !empty($data['precio_venta']) && $data['precio_venta'] <= 0) {
+            $errors[] = "El precio de venta debe ser un valor positivo";
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Valida cambios de estado basados en reglas de negocio
+     */
+    public function canChangeEstado($loteId, $nuevoEstado)
+    {
+        $lote = $this->findById($loteId);
+        
+        if (!$lote) {
+            return ['valid' => false, 'message' => 'Lote no encontrado'];
+        }
+
+        // Si el lote está vendido y tiene amortización activa, no se puede cambiar estado
+        if ($lote['estado'] === 'vendido' && $lote['amortizacion_activa'] > 0) {
+            if ($nuevoEstado !== 'vendido') {
+                return ['valid' => false, 'message' => 'No se puede cambiar el estado de un lote vendido con amortización activa'];
+            }
+        }
+
+        // Si el nuevo estado es vendido, debe tener cliente asignado
+        if ($nuevoEstado === 'vendido' && empty($lote['cliente_id'])) {
+            return ['valid' => false, 'message' => 'Para marcar un lote como vendido debe asignar un cliente'];
+        }
+
+        return ['valid' => true];
     }
 }

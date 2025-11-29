@@ -200,4 +200,35 @@ class ClienteModel
         $result = $this->db->fetch($sql);
         return $result['total'] ?? 0;
     }
+
+    /**
+     * Crea un cliente rápido con datos mínimos para venta de lote
+     */
+    public function createQuick($data)
+    {
+        // Validar campos mínimos requeridos
+        if (empty($data['tipo_documento']) || empty($data['numero_documento']) || empty($data['nombre'])) {
+            throw new \Exception("Tipo de documento, número de documento y nombre son obligatorios");
+        }
+
+        // Verificar si el documento ya existe
+        if ($this->documentoExists($data['tipo_documento'], $data['numero_documento'])) {
+            throw new \Exception("Ya existe un cliente con ese tipo y número de documento");
+        }
+
+        // Insertar solo con campos mínimos
+        $sql = "INSERT INTO clientes 
+                (tipo_documento, numero_documento, nombre, telefono) 
+                VALUES (?, ?, ?, ?)";
+        
+        $params = [
+            $data['tipo_documento'],
+            $data['numero_documento'],
+            $data['nombre'],
+            $data['telefono'] ?? null
+        ];
+
+        $this->db->execute($sql, $params);
+        return $this->db->lastInsertId();
+    }
 }

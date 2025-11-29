@@ -60,7 +60,7 @@ class AuthController
         // Buscar usuario
         $user = $this->model->findByEmail($email);
 
-        if (!$user || !verifyPassword($password, $user['password_hash'])) {
+        if (!$user || !verifyPassword($password, $user['password'])) {
             setFlash('danger', 'Credenciales incorrectas');
             redirect('/auth/login');
         }
@@ -71,7 +71,7 @@ class AuthController
             'id' => $user['id'],
             'email' => $user['email'],
             'nombre' => $user['nombre'],
-            'rol_id' => $user['rol_id']
+            'rol' => $user['rol']
         ];
 
         // Actualizar último login
@@ -144,8 +144,8 @@ class AuthController
             $userId = $this->model->create([
                 'nombre' => $nombre,
                 'email' => $email,
-                'password_hash' => hashPassword($password),
-                'rol_id' => 1 // Usuario normal
+                'password' => hashPassword($password),
+                'rol' => 'usuario' // Usuario normal
             ]);
 
             setFlash('success', 'Registro exitoso. Por favor inicia sesión.');
@@ -303,7 +303,7 @@ class AuthController
         // Verificar contraseña actual
         $user = $this->model->findById(userId());
 
-        if (!$user || !verifyPassword($currentPassword, $user['password_hash'])) {
+        if (!$user || !verifyPassword($currentPassword, $user['password'])) {
             setFlash('danger', 'La contraseña actual es incorrecta');
             redirect('/dashboard');
         }

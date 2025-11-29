@@ -77,6 +77,28 @@ $router->get('/auth/logout', 'AuthController@logout');
 $router->get('/dashboard', 'HomeController@dashboard');
 
 // ==========================================
+// RUTAS DE LOTES
+// ==========================================
+
+// Listar lotes (con filtros)
+$router->get('/lotes', 'LoteController@index');
+
+// Formulario crear lote
+$router->get('/lotes/create', 'LoteController@create');
+
+// Guardar nuevo lote
+$router->post('/lotes/store', 'LoteController@store');
+
+// Ver detalle de lote
+$router->get('/lotes/show/{id}', 'LoteController@show');
+
+// Formulario editar lote
+$router->get('/lotes/edit/{id}', 'LoteController@edit');
+
+// Actualizar lote
+$router->post('/lotes/update/{id}', 'LoteController@update');
+
+// ==========================================
 // DESPACHAR RUTA
 // ==========================================
 
