@@ -15,8 +15,22 @@ class VendedorController extends Controller
 
     public function __construct()
     {
-        $this->vendedorModel = new VendedorModel();
-        $this->comisionModel = new ComisionModel();
+        \Logger::info('VendedorController::__construct - Iniciando constructor');
+        try {
+            \Logger::info('VendedorController::__construct - Creando VendedorModel...');
+            $this->vendedorModel = new VendedorModel();
+            \Logger::info('VendedorController::__construct - VendedorModel creado OK');
+            
+            \Logger::info('VendedorController::__construct - Creando ComisionModel...');
+            $this->comisionModel = new ComisionModel();
+            \Logger::info('VendedorController::__construct - ComisionModel creado OK');
+            
+            \Logger::info('VendedorController::__construct - Constructor completado exitosamente');
+        } catch (\Exception $e) {
+            \Logger::error('VendedorController::__construct - ERROR en constructor: ' . $e->getMessage());
+            \Logger::error('VendedorController::__construct - Archivo: ' . $e->getFile() . ' línea ' . $e->getLine());
+            throw $e;
+        }
     }
 
     /**
@@ -28,10 +42,15 @@ class VendedorController extends Controller
         try {
             \Logger::info('VendedorController::index - Iniciando');
             
+            \Logger::info('VendedorController::index - Verificando autenticación...');
             $this->requireAuth();
-            $this->requireRole(['administrador']);
+            \Logger::info('VendedorController::index - requireAuth() OK');
             
-            \Logger::info('VendedorController::index - Auth verificada');
+            \Logger::info('VendedorController::index - Verificando rol administrador...');
+            $this->requireRole(['administrador']);
+            \Logger::info('VendedorController::index - requireRole() OK');
+            
+            \Logger::info('VendedorController::index - Auth verificada - Iniciando modelo');
 
             $filtros = [
                 'search' => $_GET['search'] ?? '',
@@ -40,20 +59,29 @@ class VendedorController extends Controller
             
             \Logger::info('VendedorController::index - Filtros: ' . json_encode($filtros));
 
+            \Logger::info('VendedorController::index - Llamando a vendedorModel->getAll()...');
             $vendedores = $this->vendedorModel->getAll($filtros);
+            \Logger::info('VendedorController::index - vendedorModel->getAll() completado');
             
             \Logger::info('VendedorController::index - Vendedores obtenidos: ' . count($vendedores));
 
-            $this->view('vendedores/index', [
+            \Logger::info('VendedorController::index - Preparando datos para vista...');
+            $viewData = [
                 'title' => 'Gestión de Vendedores',
                 'vendedores' => $vendedores,
                 'filtros' => $filtros
-            ]);
+            ];
+            \Logger::info('VendedorController::index - Datos preparados, renderizando vista vendedores/index...');
+            
+            $this->view('vendedores/index', $viewData);
             
             \Logger::info('VendedorController::index - Vista renderizada correctamente');
             
         } catch (\Exception $e) {
-            \Logger::error('VendedorController::index - ERROR: ' . $e->getMessage());
+            \Logger::error('VendedorController::index - ERROR CAPTURADO');
+            \Logger::error('VendedorController::index - Mensaje: ' . $e->getMessage());
+            \Logger::error('VendedorController::index - Archivo: ' . $e->getFile() . ' línea ' . $e->getLine());
+            \Logger::error('VendedorController::index - Código: ' . $e->getCode());
             \Logger::error('VendedorController::index - Stack trace: ' . $e->getTraceAsString());
             throw $e;
         }

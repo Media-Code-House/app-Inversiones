@@ -12,7 +12,16 @@ class VendedorModel
 
     public function __construct()
     {
-        $this->db = \Database::getInstance();
+        \Logger::info('VendedorModel::__construct - Iniciando constructor del modelo');
+        try {
+            \Logger::info('VendedorModel::__construct - Obteniendo instancia de Database...');
+            $this->db = \Database::getInstance();
+            \Logger::info('VendedorModel::__construct - Database obtenida OK');
+        } catch (\Exception $e) {
+            \Logger::error('VendedorModel::__construct - ERROR: ' . $e->getMessage());
+            \Logger::error('VendedorModel::__construct - Archivo: ' . $e->getFile() . ' línea ' . $e->getLine());
+            throw $e;
+        }
     }
 
     /**
@@ -73,17 +82,24 @@ class VendedorModel
                       v.created_at, v.updated_at, u.email, u.rol, u.activo
                       ORDER BY v.nombres, v.apellidos";
             
-            \Logger::info('VendedorModel::getAll - Query final: ' . $sql);
+            \Logger::info('VendedorModel::getAll - Query final construida');
+            \Logger::info('VendedorModel::getAll - SQL: ' . substr($sql, 0, 200) . '...');
             \Logger::info('VendedorModel::getAll - Params: ' . json_encode($params));
             
+            \Logger::info('VendedorModel::getAll - Ejecutando fetchAll...');
             $resultado = $this->db->fetchAll($sql, $params);
+            \Logger::info('VendedorModel::getAll - fetchAll ejecutado exitosamente');
             
             \Logger::info('VendedorModel::getAll - Resultados: ' . count($resultado));
             
             return $resultado;
             
         } catch (\Exception $e) {
-            \Logger::error('VendedorModel::getAll - ERROR: ' . $e->getMessage());
+            \Logger::error('VendedorModel::getAll - ERROR CAPTURADO EN MODELO');
+            \Logger::error('VendedorModel::getAll - Mensaje: ' . $e->getMessage());
+            \Logger::error('VendedorModel::getAll - Archivo: ' . $e->getFile() . ' línea ' . $e->getLine());
+            \Logger::error('VendedorModel::getAll - Código error: ' . $e->getCode());
+            \Logger::error('VendedorModel::getAll - Tipo excepción: ' . get_class($e));
             \Logger::error('VendedorModel::getAll - Stack trace: ' . $e->getTraceAsString());
             throw $e;
         }
