@@ -254,7 +254,7 @@ class PagoController extends Controller
 
         } catch (\Exception $e) {
             if (isset($db)) {
-                $db->rollBack();
+                $db->rollback();
             }
             
             $_SESSION['error'] = 'Error al registrar el pago: ' . $e->getMessage();

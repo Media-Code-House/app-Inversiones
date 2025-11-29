@@ -200,7 +200,7 @@ class AmortizacionController extends Controller
 
         } catch (\Exception $e) {
             if (isset($db)) {
-                $db->rollBack();
+                $db->rollback();
             }
             
             $_SESSION['error'] = 'Error al crear el plan: ' . $e->getMessage();
@@ -467,7 +467,7 @@ class AmortizacionController extends Controller
 
         } catch (\Exception $e) {
             if (isset($db)) {
-                $db->rollBack();
+                $db->rollback();
             }
             
             $_SESSION['error'] = 'Error al recalcular: ' . $e->getMessage();
