@@ -1,0 +1,29 @@
+# Archivos de configuración local
+config/config.php
+
+# Vendor y dependencias
+vendor/
+node_modules/
+
+# Logs
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+
+# Temporales
+*.tmp
+*.bak
+*.swp
+*~
+
+# Uploads (futuros)
+uploads/*
+!uploads/.gitkeep
