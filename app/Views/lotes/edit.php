@@ -76,6 +76,9 @@
                                            step="1" min="1" 
                                            <?= !$puedeEditar ? 'readonly' : '' ?> required>
                                 </div>
+                                <?php if ($puedeEditar): ?>
+                                <small class="text-muted">Formato: <span id="precio_formateado"></span></small>
+                                <?php endif; ?>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -92,6 +95,14 @@
                                 <?php endif; ?>
                             </div>
                         </div>
+
+                        <!-- Cálculo automático Precio por m² -->
+                        <?php if ($puedeEditar): ?>
+                        <div class="alert alert-info" id="alertPrecioM2">
+                            <strong><i class="bi bi-calculator"></i> Precio por m²:</strong> 
+                            <span id="precio_m2" class="fs-5"></span>
+                        </div>
+                        <?php endif; ?>
 
                         <div class="mb-3">
                             <label for="ubicacion" class="form-label">Ubicación / Referencias</label>
@@ -151,9 +162,15 @@
                             <a href="/lotes/show/<?= $lote['id'] ?>" class="btn btn-secondary">
                                 <i class="bi bi-x-circle"></i> Cancelar
                             </a>
+                            <?php if ($puedeEditar): ?>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Actualizar Lote
+                                <i class="bi bi-save"></i> Guardar Cambios
                             </button>
+                            <?php else: ?>
+                            <button type="button" class="btn btn-secondary" disabled>
+                                <i class="bi bi-lock"></i> No editable
+                            </button>
+                            <?php endif; ?>
                         </div>
 
                     </form>
@@ -164,15 +181,80 @@
 </div>
 
 <script>
+// ==========================================
+// CÁLCULOS AUTOMÁTICOS Y FORMATEO
+// ==========================================
+
+/**
+ * Formatea un número como moneda colombiana
+ */
+function formatMoney(amount) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+}
+
+/**
+ * Calcula el precio por metro cuadrado
+ */
+function calcularPrecioM2() {
+    const area = parseFloat(document.getElementById('area').value) || 0;
+    const precioLista = parseFloat(document.getElementById('precio_lista').value) || 0;
+    
+    if (area > 0 && precioLista > 0) {
+        const precioM2 = Math.round(precioLista / area);
+        const precioM2Element = document.getElementById('precio_m2');
+        if (precioM2Element) {
+            precioM2Element.textContent = formatMoney(precioM2) + '/m²';
+        }
+    }
+}
+
+/**
+ * Formatea el precio de lista mientras se escribe
+ */
+function formatearPrecioLista() {
+    const precioLista = parseFloat(document.getElementById('precio_lista').value) || 0;
+    const precioFormatElement = document.getElementById('precio_formateado');
+    
+    if (precioFormatElement && precioLista > 0) {
+        precioFormatElement.textContent = formatMoney(precioLista);
+    }
+    
+    // Recalcular precio/m²
+    calcularPrecioM2();
+}
+
+// Event listeners para cálculos en tiempo real (si puede editar)
+<?php if ($puedeEditar): ?>
+document.getElementById('area').addEventListener('input', calcularPrecioM2);
+document.getElementById('area').addEventListener('change', calcularPrecioM2);
+document.getElementById('precio_lista').addEventListener('input', formatearPrecioLista);
+document.getElementById('precio_lista').addEventListener('change', formatearPrecioLista);
+
+// Calcular al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    formatearPrecioLista();
+    calcularPrecioM2();
+});
+<?php endif; ?>
+
+// ==========================================
+// LÓGICA DE ESTADOS Y VALIDACIONES
+// ==========================================
+
 // Mostrar/ocultar campos de venta según estado
 document.getElementById('estado').addEventListener('change', function() {
     const datosVenta = document.getElementById('datosVenta');
     const clienteSelect = document.getElementById('cliente_id');
     
-    if (this.value === 'vendido') {
+    if (this.value === 'vendido' || this.value === 'reservado') {
         datosVenta.style.display = 'block';
         if (!clienteSelect.disabled) {
-            clienteSelect.required = true;
+            clienteSelect.required = (this.value === 'vendido');
         }
     } else {
         datosVenta.style.display = 'none';
@@ -188,6 +270,12 @@ document.getElementById('formLote').addEventListener('submit', function(e) {
     if (estado === 'vendido' && !clienteId) {
         e.preventDefault();
         alert('Debe seleccionar un cliente para marcar el lote como vendido');
+        return false;
+    }
+    
+    // Confirmación antes de guardar
+    if (!confirm('¿Está seguro de guardar los cambios al lote?')) {
+        e.preventDefault();
         return false;
     }
 });

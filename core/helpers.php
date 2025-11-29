@@ -203,3 +203,114 @@ function getRoleName($rolId)
     ];
     return $roles[$rolId] ?? 'Desconocido';
 }
+
+/**
+ * Verifica si el usuario tiene un permiso específico
+ * (Placeholder para sistema de permisos - Módulo 6)
+ */
+function can($permission)
+{
+    // Por ahora todos los usuarios autenticados pueden todo
+    // En Módulo 6 se implementará sistema granular de permisos
+    if (!isAuthenticated()) {
+        return false;
+    }
+    
+    // Administradores tienen todos los permisos
+    if (hasRole('admin')) {
+        return true;
+    }
+    
+    // Mapeo básico de permisos por rol
+    $rolePermissions = [
+        'vendedor' => ['ver_lotes', 'crear_lotes', 'editar_lotes', 'ver_clientes', 'crear_clientes'],
+        'usuario' => ['ver_lotes', 'ver_clientes']
+    ];
+    
+    $userRole = $_SESSION['user']['rol'] ?? 'usuario';
+    $permissions = $rolePermissions[$userRole] ?? [];
+    
+    return in_array($permission, $permissions);
+}
+
+/**
+ * Genera campo CSRF oculto para formularios
+ */
+function csrfField()
+{
+    $token = generateCsrfToken();
+    return '<input type="hidden" name="csrf_token" value="' . e($token) . '">';
+}
+
+/**
+ * Obtiene la clase CSS para badges de estado de lote
+ */
+function statusClass($estado)
+{
+    $classes = [
+        'disponible' => 'bg-success',
+        'reservado' => 'bg-warning text-dark',
+        'vendido' => 'bg-primary',
+        'bloqueado' => 'bg-secondary'
+    ];
+    
+    return $classes[$estado] ?? 'bg-secondary';
+}
+
+/**
+ * Obtiene el valor anterior de un campo (para re-población de formularios)
+ * Útil después de errores de validación
+ */
+function old($key, $default = '')
+{
+    return $_SESSION['old'][$key] ?? $default;
+}
+
+/**
+ * Guarda datos del POST en la sesión para re-población
+ */
+function saveOldInput($data)
+{
+    $_SESSION['old'] = $data;
+}
+
+/**
+ * Limpia los datos antiguos del formulario
+ */
+function clearOldInput()
+{
+    unset($_SESSION['old']);
+}
+
+/**
+ * Obtiene un valor del POST de forma segura
+ */
+function post($key, $default = '')
+{
+    return $_POST[$key] ?? $default;
+}
+
+/**
+ * Genera opciones para un select HTML
+ * 
+ * @param array $options Array de opciones [value => label]
+ * @param mixed $selected Valor seleccionado
+ * @param bool $includeEmpty Si incluir opción vacía
+ * @param string $emptyText Texto de la opción vacía
+ * @return string HTML de las opciones
+ */
+function selectOptions($options, $selected = null, $includeEmpty = true, $emptyText = 'Seleccione...')
+{
+    $html = '';
+    
+    if ($includeEmpty) {
+        $html .= '<option value="">' . e($emptyText) . '</option>';
+    }
+    
+    foreach ($options as $value => $label) {
+        $isSelected = ($selected !== null && $selected == $value) ? 'selected' : '';
+        $html .= '<option value="' . e($value) . '" ' . $isSelected . '>' . e($label) . '</option>';
+    }
+    
+    return $html;
+}

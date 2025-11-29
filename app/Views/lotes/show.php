@@ -1,14 +1,37 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">
-            <i class="bi bi-info-circle"></i> Detalle del Lote
+            <i class="bi bi-info-circle"></i> Detalle del Lote: <?= htmlspecialchars($lote['codigo_lote']) ?>
         </h1>
-        <div>
-            <a href="/lotes/edit/<?= $lote['id'] ?>" class="btn btn-outline-primary me-2">
-                <i class="bi bi-pencil"></i> Editar
+        <div class="btn-group" role="group">
+            <!-- Botón Editar (con permiso) -->
+            <?php if (can('editar_lotes')): ?>
+            <a href="/lotes/edit/<?= $lote['id'] ?>" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Editar Lote
             </a>
-            <a href="/lotes" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Volver a Lista
+            <?php endif; ?>
+            
+            <!-- Botones Financieros (Módulo 5) -->
+            <?php if ($lote['estado'] === 'vendido'): ?>
+                <?php if (empty($amortizacion) || $amortizacion['total_cuotas'] == 0): ?>
+                    <!-- Si NO tiene plan de amortización: Botón para crear plan -->
+                    <a href="/lotes/amortizacion/create/<?= $lote['id'] ?>" class="btn btn-success">
+                        <i class="bi bi-calendar-plus"></i> Generar Plan de Amortización
+                    </a>
+                <?php else: ?>
+                    <!-- Si SÍ tiene plan de amortización: Botón para ver y registrar pago -->
+                    <a href="/lotes/amortizacion/<?= $lote['id'] ?>" class="btn btn-info">
+                        <i class="bi bi-calendar-check"></i> Ver Amortización
+                    </a>
+                    <a href="/lotes/registrar-pago/<?= $lote['id'] ?>" class="btn btn-warning">
+                        <i class="bi bi-cash-coin"></i> Registrar Pago
+                    </a>
+                <?php endif; ?>
+            <?php endif; ?>
+            
+            <!-- Botón Volver -->
+            <a href="/lotes" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
             </a>
         </div>
     </div>

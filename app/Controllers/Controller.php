@@ -111,4 +111,13 @@ abstract class Controller
     {
         return $_SERVER['REQUEST_METHOD'] === 'GET';
     }
+
+    /**
+     * Valida el token CSRF del formulario
+     */
+    protected function validateCsrf()
+    {
+        $token = $_POST['csrf_token'] ?? '';
+        return validateCsrfToken($token);
+    }
 }

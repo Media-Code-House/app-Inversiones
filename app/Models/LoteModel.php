@@ -16,7 +16,7 @@ class LoteModel
     }
 
     /**
-     * Obtiene todos los lotes con filtros opcionales
+     * Obtiene todos los lotes con filtros opcionales (sin paginación)
      */
     public function getAll($filters = [])
     {
@@ -56,6 +56,85 @@ class LoteModel
         $sql .= " ORDER BY p.nombre, l.codigo_lote ASC";
         
         return $this->db->fetchAll($sql, $params);
+    }
+    
+    /**
+     * Obtiene lotes con paginación y filtros
+     * Retorna estructura: {data, total, per_page, current_page, last_page}
+     */
+    public function getAllPaginated($filters = [])
+    {
+        $page = $filters['page'] ?? 1;
+        $perPage = $filters['per_page'] ?? 15;
+        $offset = ($page - 1) * $perPage;
+        
+        // Query base con JOINs completos
+        $baseSQL = "FROM lotes l 
+                    INNER JOIN proyectos p ON l.proyecto_id = p.id 
+                    LEFT JOIN clientes c ON l.cliente_id = c.id 
+                    LEFT JOIN users u ON l.vendedor_id = u.id
+                    WHERE 1=1 ";
+        
+        $params = [];
+        $whereConditions = "";
+        
+        // Filtro por búsqueda (código, manzana, cliente, proyecto)
+        if (!empty($filters['search'])) {
+            $whereConditions .= " AND (l.codigo_lote LIKE ? 
+                                      OR l.manzana LIKE ? 
+                                      OR c.nombre LIKE ? 
+                                      OR p.nombre LIKE ?) ";
+            $busqueda = "%{$filters['search']}%";
+            $params[] = $busqueda;
+            $params[] = $busqueda;
+            $params[] = $busqueda;
+            $params[] = $busqueda;
+        }
+        
+        // Filtro por proyecto
+        if (!empty($filters['proyecto_id'])) {
+            $whereConditions .= " AND l.proyecto_id = ? ";
+            $params[] = $filters['proyecto_id'];
+        }
+        
+        // Filtro por estado
+        if (!empty($filters['estado'])) {
+            $whereConditions .= " AND l.estado = ? ";
+            $params[] = $filters['estado'];
+        }
+        
+        // Contar total de registros
+        $countSQL = "SELECT COUNT(*) as total " . $baseSQL . $whereConditions;
+        $totalResult = $this->db->fetch($countSQL, $params);
+        $total = $totalResult['total'] ?? 0;
+        
+        // Query con datos completos
+        $dataSQL = "SELECT l.*,
+                           p.nombre as proyecto_nombre,
+                           p.codigo as proyecto_codigo,
+                           c.nombre as cliente_nombre,
+                           c.numero_documento as cliente_documento,
+                           u.nombre as vendedor_nombre,
+                           (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id) as tiene_amortizacion
+                    " . $baseSQL . $whereConditions . "
+                    ORDER BY l.updated_at DESC, l.created_at DESC
+                    LIMIT ? OFFSET ?";
+        
+        $params[] = $perPage;
+        $params[] = $offset;
+        
+        $data = $this->db->fetchAll($dataSQL, $params);
+        
+        // Calcular páginas
+        $lastPage = $total > 0 ? ceil($total / $perPage) : 1;
+        
+        return [
+            'data' => $data,
+            'total' => $total,
+            'per_page' => $perPage,
+            'current_page' => $page,
+            'last_page' => $lastPage
+        ];
     }
 
     /**
@@ -170,7 +249,7 @@ class LoteModel
                        p.codigo as proyecto_codigo,
                        p.ubicacion as proyecto_ubicacion,
                        c.nombre as cliente_nombre,
-                       c.documento as cliente_documento,
+                       c.numero_documento as cliente_documento,
                        c.telefono as cliente_telefono,
                        c.email as cliente_email,
                        (SELECT COUNT(*) FROM amortizaciones WHERE lote_id = l.id) as tiene_amortizacion,

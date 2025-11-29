@@ -27,44 +27,73 @@ class LoteController extends Controller
     }
 
     /**
-     * Lista todos los lotes con filtros
+     * Lista todos los lotes con filtros y paginación
      * GET /lotes/
      */
     public function index()
     {
         $this->requireAuth();
         
+        // Parámetros de paginación
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $perPage = 15;
+        
         // Construir filtros desde parámetros GET
-        $filters = [];
+        $filters = [
+            'search' => $_GET['search'] ?? '',
+            'proyecto_id' => !empty($_GET['proyecto_id']) ? (int)$_GET['proyecto_id'] : null,
+            'estado' => $_GET['estado'] ?? '',
+            'page' => $page,
+            'per_page' => $perPage
+        ];
+
+        // Obtener lotes paginados con JOINs completos
+        $result = $this->loteModel->getAllPaginated($filters);
         
-        if (!empty($_GET['proyecto_id'])) {
-            $filters['proyecto_id'] = (int)$_GET['proyecto_id'];
-        }
-        
-        if (!empty($_GET['estado'])) {
-            $filters['estado'] = $_GET['estado'];
-        }
-        
-        if (!empty($_GET['busqueda'])) {
-            $filters['busqueda'] = $_GET['busqueda'];
+        // Calcular variables adicionales para cada lote
+        foreach ($result['data'] as &$lote) {
+            // Calcular precio por metro cuadrado
+            $lote['precio_m2'] = $lote['area_m2'] > 0 
+                ? round($lote['precio_lista'] / $lote['area_m2'], 0) 
+                : 0;
+            
+            // Badge class según estado
+            $lote['badgeClass'] = $this->getBadgeClass($lote['estado']);
         }
 
-        // Obtener lotes con filtros
-        $lotes = $this->loteModel->getAll($filters);
-
-        // Obtener lista de proyectos para el filtro
+        // Obtener lista de proyectos activos para filtros
         $proyectos = $this->proyectoModel->getAll();
 
-        // Lista de estados para el filtro
-        $estados = ['disponible', 'reservado', 'vendido', 'bloqueado'];
+        // Array asociativo de estados
+        $estados = [
+            'disponible' => 'Disponible',
+            'reservado' => 'Reservado',
+            'vendido' => 'Vendido',
+            'bloqueado' => 'Bloqueado'
+        ];
 
         $this->view('lotes/index', [
-            'title' => 'Gestión de Lotes',
-            'lotes' => $lotes,
+            'title' => 'Gestión de Lotes - ' . APP_NAME,
+            'lotes' => $result, // Estructura: data, total, per_page, current_page, last_page
             'proyectos' => $proyectos,
             'estados' => $estados,
             'filtros' => $filters
         ]);
+    }
+    
+    /**
+     * Determina la clase CSS del badge según el estado
+     */
+    private function getBadgeClass($estado)
+    {
+        $classes = [
+            'disponible' => 'bg-success',
+            'reservado' => 'bg-warning text-dark',
+            'vendido' => 'bg-primary',
+            'bloqueado' => 'bg-secondary'
+        ];
+        
+        return $classes[$estado] ?? 'bg-secondary';
     }
 
     /**
@@ -326,7 +355,7 @@ class LoteController extends Controller
     }
 
     /**
-     * Muestra detalle completo de un lote
+     * Muestra detalle completo de un lote con información financiera
      * GET /lotes/show/{id}
      */
     public function show($id)
@@ -341,16 +370,146 @@ class LoteController extends Controller
             return;
         }
 
-        // Obtener resumen de amortización si existe
-        $resumenAmortizacion = null;
+        // Calcular variables de resumen
+        $lote['precio_m2'] = $lote['area_m2'] > 0 
+            ? round($lote['precio_lista'] / $lote['area_m2'], 0) 
+            : 0;
+
+        // Obtener información financiera si el lote está vendido
+        $amortizacion = null;
+        $cuotas = [];
+        $pagos = [];
+        $resumenPlan = null;
+        
         if ($lote['tiene_amortizacion'] > 0) {
+            // Resumen del plan de amortización
             $resumenAmortizacion = $this->amortizacionModel->getResumenByLote($id);
+            
+            // Cuotas del plan
+            $cuotas = $this->amortizacionModel->getByLote($id);
+            
+            // Calcular variables financieras
+            $total_pagado = $resumenAmortizacion['total_pagado'] ?? 0;
+            $valor_total = $resumenAmortizacion['valor_total_financiado'] ?? 0;
+            $saldo_pendiente = $resumenAmortizacion['saldo_total'] ?? 0;
+            $porcentaje_pagado = $valor_total > 0 ? round(($total_pagado / $valor_total) * 100, 2) : 0;
+            $cuotas_mora = $resumenAmortizacion['cuotas_vencidas'] ?? 0;
+            $cuotas_pagadas = $resumenAmortizacion['cuotas_pagadas'] ?? 0;
+            
+            $resumenPlan = [
+                'total_cuotas' => $resumenAmortizacion['total_cuotas'] ?? 0,
+                'valor_total' => $valor_total,
+                'total_pagado' => $total_pagado,
+                'saldo_pendiente' => $saldo_pendiente,
+                'porcentaje_pagado' => $porcentaje_pagado,
+                'cuotas_pagadas' => $cuotas_pagadas,
+                'cuotas_pendientes' => $resumenAmortizacion['cuotas_pendientes'] ?? 0,
+                'cuotas_mora' => $cuotas_mora,
+                'max_dias_mora' => $resumenAmortizacion['max_dias_mora'] ?? 0
+            ];
         }
 
+        // Historial de auditoría (simulado - preparado para Módulo 5)
+        $historial = $this->getHistorialSimulado($lote);
+
         $this->view('lotes/show', [
-            'title' => 'Detalle del Lote',
+            'title' => 'Detalle del Lote: ' . $lote['codigo_lote'],
             'lote' => $lote,
-            'resumenAmortizacion' => $resumenAmortizacion
+            'amortizacion' => $resumenPlan,
+            'cuotas' => $cuotas,
+            'pagos' => $pagos,
+            'historial' => $historial,
+            'total_pagado' => $total_pagado ?? 0,
+            'saldo_pendiente' => $saldo_pendiente ?? 0,
+            'porcentaje_pagado' => $porcentaje_pagado ?? 0,
+            'cuotas_mora' => $cuotas_mora ?? 0,
+            'cuotas_pagadas' => $cuotas_pagadas ?? 0,
+            'precio_m2' => $lote['precio_m2']
+        ]);
+    }
+    
+    /**
+     * Genera historial simulado para auditoría
+     * (Será reemplazado en Módulo 5 con tabla de auditoría real)
+     */
+    private function getHistorialSimulado($lote)
+    {
+        $historial = [];
+        
+        // Evento de creación
+        $historial[] = [
+            'fecha' => $lote['created_at'],
+            'evento' => 'Creación de lote',
+            'usuario' => 'Sistema',
+            'descripcion' => 'Lote creado en el sistema'
+        ];
+        
+        // Evento de venta si aplica
+        if ($lote['estado'] === 'vendido' && !empty($lote['fecha_venta'])) {
+            $historial[] = [
+                'fecha' => $lote['fecha_venta'],
+                'evento' => 'Venta realizada',
+                'usuario' => $lote['vendedor_nombre'] ?? 'No registrado',
+                'descripcion' => 'Lote vendido a ' . ($lote['cliente_nombre'] ?? 'Cliente no especificado')
+            ];
+        }
+        
+        return $historial;
+    }
+    
+    /**
+     * Muestra el plan de amortización del lote
+     * GET /lotes/amortizacion/{id}
+     * PREPARADO PARA MÓDULO 5
+     */
+    public function verAmortizacion($id)
+    {
+        $this->requireAuth();
+        
+        $lote = $this->loteModel->findById($id);
+        
+        if (!$lote) {
+            $this->flash('error', 'Lote no encontrado');
+            $this->redirect('/lotes');
+            return;
+        }
+        
+        // Obtener cuotas y resumen
+        $cuotas = $this->amortizacionModel->getByLote($id);
+        $resumenPlan = $this->amortizacionModel->getResumenByLote($id);
+        
+        $this->view('lotes/amortizacion', [
+            'title' => 'Plan de Amortización - ' . $lote['codigo_lote'],
+            'lote' => $lote,
+            'cuotas' => $cuotas,
+            'resumen_plan' => $resumenPlan
+        ]);
+    }
+    
+    /**
+     * Muestra formulario para registrar pago
+     * GET /lotes/registrar-pago/{id}
+     * PREPARADO PARA MÓDULO 5
+     */
+    public function registrarPago($id)
+    {
+        $this->requireAuth();
+        
+        $lote = $this->loteModel->findById($id);
+        
+        if (!$lote) {
+            $this->flash('error', 'Lote no encontrado');
+            $this->redirect('/lotes');
+            return;
+        }
+        
+        // Obtener cuotas pendientes
+        $cuotasPendientes = $this->amortizacionModel->getPendientesByLote($id);
+        
+        $this->view('lotes/registrar_pago', [
+            'title' => 'Registrar Pago - ' . $lote['codigo_lote'],
+            'lote' => $lote,
+            'cuotas_pendientes' => $cuotasPendientes
         ]);
     }
 }

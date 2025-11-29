@@ -51,3 +51,39 @@ if (DEBUG_MODE) {
     error_reporting(0);
     ini_set('display_errors', 0);
 }
+
+// ==========================================
+// CONSTANTES DE NEGOCIO
+// ==========================================
+
+// Estados de proyectos
+define('PROYECTO_ESTADOS', [
+    'planificacion' => 'Planificación',
+    'activo' => 'Activo',
+    'vendido' => 'Vendido',
+    'suspendido' => 'Suspendido'
+]);
+
+// Estados de lotes
+define('LOTE_ESTADOS', [
+    'disponible' => 'Disponible',
+    'reservado' => 'Reservado',
+    'vendido' => 'Vendido',
+    'bloqueado' => 'Bloqueado'
+]);
+
+// Tipos de documento
+define('TIPOS_DOCUMENTO', [
+    'CC' => 'Cédula de Ciudadanía',
+    'NIT' => 'NIT',
+    'CE' => 'Cédula de Extranjería',
+    'pasaporte' => 'Pasaporte'
+]);
+
+// Métodos de pago
+define('METODOS_PAGO', [
+    'efectivo' => 'Efectivo',
+    'transferencia' => 'Transferencia',
+    'cheque' => 'Cheque',
+    'tarjeta' => 'Tarjeta'
+]);

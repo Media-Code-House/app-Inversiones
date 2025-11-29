@@ -77,6 +77,28 @@ $router->get('/auth/logout', 'AuthController@logout');
 $router->get('/dashboard', 'HomeController@dashboard');
 
 // ==========================================
+// RUTAS DE PROYECTOS
+// ==========================================
+
+// Listar proyectos
+$router->get('/proyectos', 'ProyectoController@index');
+
+// Formulario crear proyecto
+$router->get('/proyectos/create', 'ProyectoController@create');
+
+// Guardar nuevo proyecto
+$router->post('/proyectos/store', 'ProyectoController@store');
+
+// Ver detalle de proyecto
+$router->get('/proyectos/show/{id}', 'ProyectoController@show');
+
+// Formulario editar proyecto
+$router->get('/proyectos/edit/{id}', 'ProyectoController@edit');
+
+// Actualizar proyecto
+$router->post('/proyectos/update/{id}', 'ProyectoController@update');
+
+// ==========================================
 // RUTAS DE LOTES
 // ==========================================
 
@@ -97,6 +119,21 @@ $router->get('/lotes/edit/{id}', 'LoteController@edit');
 
 // Actualizar lote
 $router->post('/lotes/update/{id}', 'LoteController@update');
+
+// Ver plan de amortización (Módulo 5)
+$router->get('/lotes/amortizacion/{id}', 'LoteController@verAmortizacion');
+
+// Formulario crear plan de amortización (Módulo 5)
+$router->get('/lotes/amortizacion/create/{id}', 'LoteController@crearAmortizacion');
+
+// Guardar plan de amortización (Módulo 5)
+$router->post('/lotes/amortizacion/store/{id}', 'LoteController@guardarAmortizacion');
+
+// Formulario registrar pago (Módulo 5)
+$router->get('/lotes/registrar-pago/{id}', 'LoteController@registrarPago');
+
+// Guardar pago (Módulo 5)
+$router->post('/lotes/pagos/store/{id}', 'LoteController@guardarPago');
 
 // ==========================================
 // DESPACHAR RUTA
