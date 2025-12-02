@@ -368,10 +368,15 @@ class LoteController extends Controller
 
             // LÓGICA DE VENTA: Si el estado es vendido, manejar cliente
             if ($data['estado'] === 'vendido') {
-                $clienteId = $this->handleClienteForVenta($_POST);
+                // Si el lote ya estaba vendido y tiene cliente, preservarlo
+                if ($lote['estado'] === 'vendido' && !empty($lote['cliente_id']) && empty($_POST['cliente_id'])) {
+                    $clienteId = $lote['cliente_id'];
+                } else {
+                    $clienteId = $this->handleClienteForVenta($_POST);
+                }
                 
                 $data['cliente_id'] = $clienteId;
-                $data['vendedor_id'] = !empty($_POST['vendedor_id']) ? (int)$_POST['vendedor_id'] : null;
+                $data['vendedor_id'] = !empty($_POST['vendedor_id']) ? (int)$_POST['vendedor_id'] : $lote['vendedor_id'];
                 $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : $data['precio_lista'];
                 $data['fecha_venta'] = !empty($_POST['fecha_venta']) ? $_POST['fecha_venta'] : ($lote['fecha_venta'] ?? date('Y-m-d'));
                 
