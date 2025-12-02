@@ -249,13 +249,14 @@ $router->get('/vendedores/ranking', 'VendedorController@ranking');
 $router->get('/vendedores/mi-perfil', 'VendedorController@miPerfil');
 
 // ==========================================
-// PERFIL DE USUARIO - MÓDULO 8
+// PERFIL DE USUARIO - MÓDULO 8 (ROBUSTECIDO)
 // ==========================================
 
 // Ver y actualizar perfil personal
 $router->get('/perfil', 'PerfilController@index');
 $router->post('/perfil/update', 'PerfilController@updateData');
 $router->post('/perfil/update-password', 'PerfilController@updatePassword');
+$router->post('/perfil/update-vendedor', 'PerfilController@updateVendedor');
 
 // ==========================================
 // LOGS DEL SISTEMA (Admin)

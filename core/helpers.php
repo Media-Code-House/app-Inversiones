@@ -286,15 +286,22 @@ function csrfField()
 }
 
 /**
- * Obtiene la clase CSS para badges de estado de lote
+ * Obtiene la clase CSS para badges de estado (lotes, vendedores, etc.)
+ * Soporta estados de lotes y estados de vendedores
  */
 function statusClass($estado)
 {
     $classes = [
+        // Estados de lotes
         'disponible' => 'bg-success',
         'reservado' => 'bg-warning text-dark',
         'vendido' => 'bg-primary',
-        'bloqueado' => 'bg-secondary'
+        'bloqueado' => 'bg-secondary',
+        
+        // Estados de vendedores
+        'activo' => 'bg-success',
+        'inactivo' => 'bg-secondary',
+        'suspendido' => 'bg-danger'
     ];
     
     return $classes[$estado] ?? 'bg-secondary';
