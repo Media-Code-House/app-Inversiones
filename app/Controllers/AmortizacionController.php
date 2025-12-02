@@ -463,8 +463,12 @@ class AmortizacionController extends Controller
     }
 
     /**
-     * Recalcula el plan de amortización (usado cuando hay abono a capital)
+     * Recalcula el plan de amortización después de un abono extraordinario a capital
      * POST /lotes/amortizacion/recalcular/{lote_id}
+     * 
+     * MÉTODO CORREGIDO - Sistema Francés (Cuota Fija):
+     * Usa el Saldo de Capital Real (suma de 'capital' de cuotas pendientes),
+     * NO el saldo contractual total (que incluye intereses futuros no devengados).
      */
     public function recalcular($loteId)
     {
@@ -482,6 +486,8 @@ class AmortizacionController extends Controller
         }
 
         try {
+            \Logger::info("=== INICIO recalcular() ===", ['lote_id' => $loteId]);
+            
             $lote = $this->loteModel->findById($loteId);
             
             if (!$lote) {
@@ -495,20 +501,34 @@ class AmortizacionController extends Controller
                 throw new \Exception('No hay cuotas pendientes para recalcular');
             }
 
-            // Calcular saldo actual pendiente
-            $saldo_actual = array_sum(array_column($cuotas_pendientes, 'saldo_pendiente'));
+            // CORRECCIÓN CRÍTICA: Usar Saldo de Capital Real, no saldo contractual total
+            // 'capital' = amortización de principal en cada cuota
+            // 'saldo_pendiente' = cuota completa (capital + intereses) menos lo pagado
+            $saldo_capital_real = array_sum(array_column($cuotas_pendientes, 'capital'));
+            
+            \Logger::info("Saldo de Capital Real para recálculo", [
+                'saldo_capital_real' => $saldo_capital_real,
+                'numero_cuotas_restantes' => count($cuotas_pendientes)
+            ]);
+            
             $numero_cuotas_restantes = count($cuotas_pendientes);
             $tasa_anual = $lote['tasa_interes'] ?? 0;
             $primera_cuota_pendiente = $cuotas_pendientes[0];
             $fecha_inicio = $primera_cuota_pendiente['fecha_vencimiento'];
 
-            // Recalcular plan con saldo actual
+            // Recalcular plan con saldo de capital real
             $nuevo_plan = $this->calcularPlanAmortizacionFrances(
-                $saldo_actual,
+                $saldo_capital_real,
                 $tasa_anual,
                 $numero_cuotas_restantes,
                 $fecha_inicio
             );
+            
+            \Logger::info("Plan recalculado", [
+                'nueva_cuota_fija' => $nuevo_plan[0]['cuota_fija'],
+                'cuota_original' => $primera_cuota_pendiente['valor_cuota'],
+                'reduccion' => round($primera_cuota_pendiente['valor_cuota'] - $nuevo_plan[0]['cuota_fija'], 2)
+            ]);
 
             // Actualizar cuotas en base de datos
             $db = \Database::getInstance();
@@ -533,11 +553,18 @@ class AmortizacionController extends Controller
             }
 
             $db->commit();
+            
+            \Logger::info("=== FIN recalcular() - Exitoso ===");
 
-            $_SESSION['success'] = 'Plan de amortización recalculado exitosamente';
+            $_SESSION['success'] = 'Plan de amortización recalculado exitosamente. La nueva cuota refleja el beneficio del abono a capital.';
             redirect('/lotes/amortizacion/show/' . $loteId);
 
         } catch (\Exception $e) {
+            \Logger::error("Error en recalcular()", [
+                'mensaje' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             if (isset($db)) {
                 $db->rollback();
             }

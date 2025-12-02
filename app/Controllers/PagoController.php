@@ -446,29 +446,62 @@ class PagoController extends Controller
     }
 
     /**
-     * Aplica un abono a capital y recalcula el plan de amortización
+     * Aplica un abono extraordinario a capital y recalcula el plan de amortización
+     * 
+     * SISTEMA FRANCÉS (CUOTA FIJA):
+     * El abono extraordinario se aplica EXCLUSIVAMENTE al Saldo de Capital Real,
+     * NO al "saldo contractual total" (capital + intereses futuros).
+     * 
+     * Lógica correcta:
+     * 1. Calcular Saldo de Capital Real = Suma de columna 'capital' de cuotas pendientes
+     * 2. Aplicar abono: Nuevo Capital = Saldo Capital Real - Monto Abono
+     * 3. Recalcular cuota fija usando fórmula de anualidad:
+     *    PMT = P * [r(1+r)^n] / [(1+r)^n - 1]
+     *    donde P = Nuevo Capital, r = tasa mensual, n = cuotas restantes
+     * 4. La nueva cuota debe ser MENOR a la cuota original (beneficio al cliente)
      * 
      * @param int $lote_id ID del lote
-     * @param float $monto_abono Monto del abono a capital
+     * @param float $monto_abono Monto del abono extraordinario a capital
      * @param object $db Instancia de base de datos (para transacción)
      */
     private function aplicarAbonoCapital($lote_id, $monto_abono, $db)
     {
+        \Logger::info("=== INICIO aplicarAbonoCapital() ===", [
+            'lote_id' => $lote_id,
+            'monto_abono' => $monto_abono
+        ]);
+        
         // Obtener cuotas pendientes
         $cuotas_pendientes = $this->amortizacionModel->getPendientesByLote($lote_id);
         
         if (empty($cuotas_pendientes)) {
+            \Logger::warning("No hay cuotas pendientes para aplicar abono");
             return;
         }
 
-        // Calcular saldo total actual
-        $saldo_total_actual = array_sum(array_column($cuotas_pendientes, 'saldo_pendiente'));
+        // CORRECCIÓN CRÍTICA: Calcular Saldo de Capital Real (suma de 'capital', NO 'saldo_pendiente')
+        // saldo_pendiente = valor_cuota - valor_pagado (incluye capital + intereses de la cuota)
+        // capital = amortización real del principal en cada cuota
+        $saldo_capital_real = array_sum(array_column($cuotas_pendientes, 'capital'));
         
-        // Nuevo saldo después del abono
-        $nuevo_saldo = $saldo_total_actual - $monto_abono;
+        \Logger::info("Saldo de Capital Real calculado", [
+            'saldo_capital_real' => $saldo_capital_real,
+            'numero_cuotas_pendientes' => count($cuotas_pendientes)
+        ]);
         
-        if ($nuevo_saldo <= 0) {
-            // El abono cubre todo el saldo restante
+        // Nuevo saldo de capital después del abono
+        $nuevo_capital = $saldo_capital_real - $monto_abono;
+        
+        \Logger::info("Nuevo Capital después del abono", [
+            'capital_antes' => $saldo_capital_real,
+            'abono_aplicado' => $monto_abono,
+            'capital_nuevo' => $nuevo_capital
+        ]);
+        
+        if ($nuevo_capital <= 0) {
+            \Logger::info("El abono cubre todo el capital restante - Pagando todas las cuotas");
+            
+            // El abono cubre todo el saldo de capital restante
             foreach ($cuotas_pendientes as $cuota) {
                 $sql = "UPDATE amortizaciones 
                         SET valor_pagado = valor_cuota, 
@@ -478,40 +511,69 @@ class PagoController extends Controller
                         WHERE id = ?";
                 $db->execute($sql, [$cuota['id']]);
             }
+            
+            \Logger::info("Todas las cuotas marcadas como pagadas");
             return;
         }
 
-        // Recalcular cuotas con método francés
+        // Recalcular cuotas con método francés usando el nuevo capital
         $lote = $this->loteModel->findById($lote_id);
         $tasa_anual = $lote['tasa_interes'] ?? 0;
         $numero_cuotas_restantes = count($cuotas_pendientes);
         $fecha_inicio = $cuotas_pendientes[0]['fecha_vencimiento'];
 
-        // Calcular nuevo plan
+        \Logger::info("Parámetros para recálculo", [
+            'tasa_anual' => $tasa_anual,
+            'numero_cuotas_restantes' => $numero_cuotas_restantes,
+            'fecha_inicio' => $fecha_inicio
+        ]);
+
+        // Calcular nueva cuota fija con Sistema Francés
         $tasa_mensual = ($tasa_anual / 100) / 12;
 
         if ($tasa_mensual > 0) {
+            // Fórmula de anualidad (cuota fija)
+            // PMT = P * [r(1+r)^n] / [(1+r)^n - 1]
             $factor = pow(1 + $tasa_mensual, $numero_cuotas_restantes);
-            $nueva_cuota_fija = $nuevo_saldo * ($tasa_mensual * $factor) / ($factor - 1);
+            $nueva_cuota_fija = $nuevo_capital * ($tasa_mensual * $factor) / ($factor - 1);
         } else {
-            $nueva_cuota_fija = $nuevo_saldo / $numero_cuotas_restantes;
+            // Sin interés, cuota es capital dividido en n pagos
+            $nueva_cuota_fija = $nuevo_capital / $numero_cuotas_restantes;
         }
+        
+        \Logger::info("Nueva cuota fija calculada", [
+            'cuota_original' => $cuotas_pendientes[0]['valor_cuota'],
+            'nueva_cuota_fija' => round($nueva_cuota_fija, 2),
+            'reduccion' => round($cuotas_pendientes[0]['valor_cuota'] - $nueva_cuota_fija, 2),
+            'porcentaje_reduccion' => round((($cuotas_pendientes[0]['valor_cuota'] - $nueva_cuota_fija) / $cuotas_pendientes[0]['valor_cuota']) * 100, 2) . '%'
+        ]);
 
-        // Generar nueva tabla
-        $saldo = $nuevo_saldo;
+        // Generar nueva tabla de amortización
+        $saldo_capital = $nuevo_capital;
         
         for ($i = 0; $i < $numero_cuotas_restantes; $i++) {
             $cuota_id = $cuotas_pendientes[$i]['id'];
+            $numero_cuota = $cuotas_pendientes[$i]['numero_cuota'];
             
-            $interes = $saldo * $tasa_mensual;
+            // Calcular interés sobre saldo de capital
+            $interes = $saldo_capital * $tasa_mensual;
+            
+            // Capital amortizado en esta cuota
             $capital = $nueva_cuota_fija - $interes;
-            $saldo = $saldo - $capital;
+            
+            // Saldo de capital después de esta cuota
+            $saldo_capital = $saldo_capital - $capital;
 
-            // Ajuste para última cuota
-            if ($i == $numero_cuotas_restantes - 1 && $saldo != 0) {
-                $capital += $saldo;
-                $nueva_cuota_fija = $capital + $interes;
-                $saldo = 0;
+            // Ajuste para última cuota (compensar redondeos)
+            if ($i == $numero_cuotas_restantes - 1 && abs($saldo_capital) > 0.01) {
+                \Logger::debug("Ajustando última cuota por residuo de redondeo", [
+                    'residuo' => $saldo_capital
+                ]);
+                $capital += $saldo_capital;
+                $nueva_cuota_fija_ultima = $capital + $interes;
+                $saldo_capital = 0;
+            } else {
+                $nueva_cuota_fija_ultima = $nueva_cuota_fija;
             }
 
             $sql = "UPDATE amortizaciones 
@@ -519,20 +581,29 @@ class PagoController extends Controller
                         capital = ?, 
                         interes = ?, 
                         saldo = ?,
-                        saldo_pendiente = valor_cuota - valor_pagado,
                         updated_at = NOW()
                     WHERE id = ?";
             
             $params = [
-                round($nueva_cuota_fija, 2),
+                round($nueva_cuota_fija_ultima, 2),
                 round($capital, 2),
                 round($interes, 2),
-                round(max(0, $saldo), 2),
+                round(max(0, $saldo_capital), 2),
                 $cuota_id
             ];
 
             $db->execute($sql, $params);
+            
+            \Logger::debug("Cuota recalculada", [
+                'numero_cuota' => $numero_cuota,
+                'nueva_cuota' => round($nueva_cuota_fija_ultima, 2),
+                'capital' => round($capital, 2),
+                'interes' => round($interes, 2),
+                'saldo_capital_restante' => round($saldo_capital, 2)
+            ]);
         }
+        
+        \Logger::info("=== FIN aplicarAbonoCapital() - Plan recalculado exitosamente ===");
     }
 
     /**
