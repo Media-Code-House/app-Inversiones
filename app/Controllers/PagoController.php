@@ -29,6 +29,14 @@ class PagoController extends Controller
      */
     public function create($loteId)
     {
+        // RBAC: Solo administrador y consulta pueden registrar pagos
+        $user = user();
+        if ($user['rol'] === 'vendedor') {
+            $_SESSION['error'] = 'El rol vendedor no tiene permisos para registrar pagos';
+            redirect('/lotes');
+            return;
+        }
+        
         if (!can('registrar_pagos')) {
             $_SESSION['error'] = 'No tienes permisos para registrar pagos';
             redirect('/lotes');
@@ -91,6 +99,15 @@ class PagoController extends Controller
     {
         \Logger::info('=== INICIO store() PagoController ===');
         \Logger::debug('POST data', $_POST);
+        
+        // RBAC: Solo administrador y consulta pueden registrar pagos
+        $user = user();
+        if ($user['rol'] === 'vendedor') {
+            \Logger::error('Rol vendedor no tiene permisos para registrar pagos');
+            $_SESSION['error'] = 'El rol vendedor no tiene permisos para registrar pagos';
+            redirect('/lotes');
+            return;
+        }
         
         if (!can('registrar_pagos')) {
             \Logger::error('Permiso denegado: registrar_pagos');

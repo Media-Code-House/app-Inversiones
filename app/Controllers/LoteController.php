@@ -34,6 +34,9 @@ class LoteController extends Controller
     {
         $this->requireAuth();
         
+        // RBAC: Obtener usuario autenticado
+        $user = user();
+        
         // Parámetros de paginación
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $perPage = 15;
@@ -46,6 +49,11 @@ class LoteController extends Controller
             'page' => $page,
             'per_page' => $perPage
         ];
+        
+        // RBAC: Filtrar por vendedor si el usuario es vendedor
+        if ($user['rol'] === 'vendedor') {
+            $filters['vendedor_id'] = $user['id'];
+        }
 
         // Obtener lotes paginados con JOINs completos
         $result = $this->loteModel->getAllPaginated($filters);
@@ -104,6 +112,9 @@ class LoteController extends Controller
     {
         $this->requireAuth();
         
+        // RBAC: Solo administrador y consulta pueden crear lotes
+        $this->requireRole(['administrador', 'consulta']);
+        
         $proyectos = $this->proyectoModel->getAll();
         $clientes = $this->clienteModel->getAll();
         
@@ -128,6 +139,9 @@ class LoteController extends Controller
     public function store()
     {
         $this->requireAuth();
+        
+        // RBAC: Solo administrador y consulta pueden crear lotes
+        $this->requireRole(['administrador', 'consulta']);
         
         try {
             // Validar datos requeridos
@@ -247,6 +261,9 @@ class LoteController extends Controller
     {
         $this->requireAuth();
         
+        // RBAC: Solo administrador y consulta pueden editar lotes
+        $this->requireRole(['administrador', 'consulta']);
+        
         $lote = $this->loteModel->findById($id);
 
         if (!$lote) {
@@ -302,6 +319,9 @@ class LoteController extends Controller
     public function update($id)
     {
         $this->requireAuth();
+        
+        // RBAC: Solo administrador y consulta pueden actualizar lotes
+        $this->requireRole(['administrador', 'consulta']);
         
         try {
             $lote = $this->loteModel->findById($id);
@@ -391,6 +411,14 @@ class LoteController extends Controller
 
         if (!$lote) {
             $this->flash('error', 'Lote no encontrado');
+            $this->redirect('/lotes');
+            return;
+        }
+        
+        // RBAC: Vendedor solo puede ver sus propios lotes
+        $user = user();
+        if ($user['rol'] === 'vendedor' && $lote['vendedor_id'] != $user['id']) {
+            $this->flash('error', 'No tienes permiso para ver este lote');
             $this->redirect('/lotes');
             return;
         }
@@ -546,11 +574,26 @@ class LoteController extends Controller
     public function delete($id)
     {
         $this->requireAuth();
+        
+        // RBAC: Solo administrador puede eliminar lotes
+        $user = user();
+        if ($user['rol'] === 'consulta') {
+            setFlash('error', 'El rol consulta no tiene permisos para eliminar lotes');
+            redirect('/lotes');
+            return;
+        }
+        
+        if ($user['rol'] === 'vendedor') {
+            setFlash('error', 'El rol vendedor no tiene permisos para eliminar lotes');
+            redirect('/lotes');
+            return;
+        }
 
-        // Verificar permisos
+        // Verificar permisos adicionales
         if (!can('eliminar_lotes')) {
             setFlash('error', 'No tienes permisos para eliminar lotes');
             redirect('/lotes');
+            return;
         }
 
         // Validar CSRF
