@@ -77,7 +77,7 @@ abstract class Controller
      */
     protected function requireAuth()
     {
-        requireAuth();
+        \requireAuth();
     }
 
     /**
@@ -87,21 +87,21 @@ abstract class Controller
     {
         // Si es un array, verificar si tiene alguno de los roles
         if (is_array($roles)) {
-            requireAuth();
+            \requireAuth();
             $hasRole = false;
             foreach ($roles as $rol) {
-                if (hasRole($rol)) {
+                if (\hasRole($rol)) {
                     $hasRole = true;
                     break;
                 }
             }
             if (!$hasRole) {
-                setFlash('danger', 'No tienes permisos para acceder a esta página');
-                redirect('/dashboard');
+                \setFlash('danger', 'No tienes permisos para acceder a esta página');
+                \redirect('/dashboard');
             }
         } else {
             // Si es un string, usar la función helper directamente
-            requireRole($roles);
+            \requireRole($roles);
         }
     }
 
@@ -143,6 +143,6 @@ abstract class Controller
     protected function validateCsrf()
     {
         $token = $_POST['csrf_token'] ?? '';
-        return validateCsrfToken($token);
+        return \validateCsrfToken($token);
     }
 }
