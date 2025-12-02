@@ -11,8 +11,16 @@
             </a>
             <?php endif; ?>
             
-            <!-- Botones Financieros (Módulo 5) -->
-            <?php if ($lote['estado'] === 'vendido'): ?>
+            <!-- Botones Financieros (Módulo 5 + Pago Inicial Diferido) -->
+            <?php if ($lote['estado'] === 'reservado' && !empty($lote['plan_inicial_id'])): ?>
+                <!-- LOTE RESERVADO con Plan Inicial Activo -->
+                <a href="/lotes/inicial/pago/<?= $lote['id'] ?>" class="btn btn-warning">
+                    <i class="bi bi-cash-coin"></i> Registrar Pago Inicial
+                </a>
+                <a href="/lotes/inicial/show/<?= $lote['id'] ?>" class="btn btn-info">
+                    <i class="bi bi-eye"></i> Ver Plan Inicial
+                </a>
+            <?php elseif ($lote['estado'] === 'vendido'): ?>
                 <?php if ($lote['tiene_amortizacion'] > 0): ?>
                     <!-- Si SÍ tiene plan de amortización: Botón para ver y registrar pago -->
                     <a href="/lotes/amortizacion/show/<?= $lote['id'] ?>" class="btn btn-info">
@@ -24,10 +32,13 @@
                     </a>
                     <?php endif; ?>
                 <?php else: ?>
-                    <!-- Si NO tiene plan de amortización: Botón para crear plan -->
+                    <!-- Si NO tiene plan de amortización: Botones para crear plan inicial O plan normal -->
                     <?php if (can('crear_amortizacion')): ?>
+                    <a href="/lotes/inicial/create/<?= $lote['id'] ?>" class="btn btn-warning">
+                        <i class="bi bi-credit-card-2-front"></i> Plan Inicial Diferido
+                    </a>
                     <a href="/lotes/amortizacion/create/<?= $lote['id'] ?>" class="btn btn-success">
-                        <i class="bi bi-calendar-plus"></i> Generar Plan de Amortización
+                        <i class="bi bi-calendar-plus"></i> Plan de Amortización Normal
                     </a>
                     <?php endif; ?>
                 <?php endif; ?>
@@ -145,8 +156,127 @@
         </div>
     </div>
 
-    <!-- Información del Cliente (si está vendido) -->
-    <?php if ($lote['estado'] === 'vendido' && !empty($lote['cliente_id'])): ?>
+    <!-- SECCIÓN: Plan de Pago Inicial Diferido (si está activo) -->
+    <?php if (!empty($lote['plan_inicial_id'])): ?>
+        <?php
+        // Obtener información del plan inicial
+        $db = \Database::getInstance();
+        $planInicial = $db->fetchOne(
+            "SELECT * FROM vista_planes_iniciales_resumen WHERE plan_id = ?",
+            [$lote['plan_inicial_id']]
+        );
+        ?>
+        <?php if ($planInicial): ?>
+        <div class="alert alert-warning" role="alert">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="alert-heading mb-2">
+                        <i class="bi bi-credit-card-2-front"></i> Plan de Pago Inicial en Curso
+                    </h5>
+                    <p class="mb-0">
+                        Este lote está en estado <strong>RESERVADO</strong> con un plan de pago inicial diferido activo. 
+                        El cliente debe completar el pago de la inicial antes de generar el plan de amortización principal.
+                    </p>
+                </div>
+                <div>
+                    <a href="/lotes/inicial/show/<?= $lote['id'] ?>" class="btn btn-warning">
+                        <i class="bi bi-eye"></i> Ver Detalle
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-piggy-bank"></i> Resumen del Plan de Pago Inicial</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <small class="text-muted d-block">Inicial Total Requerida</small>
+                                    <h4 class="mb-0 text-primary">
+                                        $<?= number_format($planInicial['monto_inicial_total_requerido'], 0, ',', '.') ?>
+                                    </h4>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <small class="text-muted d-block">Total Pagado</small>
+                                    <h4 class="mb-0 text-success">
+                                        $<?= number_format($planInicial['total_pagado_plan'], 0, ',', '.') ?>
+                                    </h4>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <small class="text-muted d-block">Saldo Pendiente</small>
+                                    <h4 class="mb-0 text-danger">
+                                        $<?= number_format($planInicial['saldo_real_pendiente'], 0, ',', '.') ?>
+                                    </h4>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="text-center p-3 bg-light rounded">
+                                    <small class="text-muted d-block">Cuotas Pagadas / Total</small>
+                                    <h4 class="mb-0">
+                                        <?= $planInicial['cuotas_pagadas'] ?> / <?= $planInicial['plazo_meses'] ?>
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Barra de Progreso -->
+                        <?php 
+                            $porcentajePagado = $planInicial['monto_inicial_total_requerido'] > 0 
+                                ? round(($planInicial['total_pagado_plan'] / $planInicial['monto_inicial_total_requerido']) * 100, 1) 
+                                : 0;
+                        ?>
+                        <div class="mt-3">
+                            <label class="form-label">Progreso del Pago Inicial</label>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar bg-warning progress-bar-striped <?= $porcentajePagado >= 100 ? '' : 'progress-bar-animated' ?>" 
+                                     role="progressbar" 
+                                     style="width: <?= $porcentajePagado ?>%;" 
+                                     aria-valuenow="<?= $porcentajePagado ?>" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    <?= $porcentajePagado ?>%
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <small class="text-muted">Cuota Mensual:</small><br>
+                                <strong>$<?= number_format($planInicial['cuota_mensual'], 0, ',', '.') ?></strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Fecha Inicio:</small><br>
+                                <strong><?= date('d/m/Y', strtotime($planInicial['fecha_inicio'])) ?></strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted">Último Pago:</small><br>
+                                <strong><?= $planInicial['fecha_ultimo_pago'] ? date('d/m/Y', strtotime($planInicial['fecha_ultimo_pago'])) : 'Sin pagos aún' ?></strong>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-center">
+                            <a href="/lotes/inicial/pago/<?= $lote['id'] ?>" class="btn btn-warning">
+                                <i class="bi bi-cash-coin"></i> Registrar Pago Inicial
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <!-- Información del Cliente (si está vendido o reservado) -->
+    <?php if (($lote['estado'] === 'vendido' || $lote['estado'] === 'reservado') && !empty($lote['cliente_id'])): ?>
         <div class="row">
             <div class="col-lg-6 mb-4">
                 <div class="card">

@@ -163,6 +163,25 @@ $router->post('/clientes/delete/{id}', 'ClienteController@delete');
 $router->post('/clientes/buscar', 'ClienteController@buscar');
 
 // ==========================================
+// PAGO INICIAL DIFERIDO (Plan de Enganche)
+// ==========================================
+
+// Formulario crear plan de pago inicial diferido
+$router->get('/lotes/inicial/create/{id}', 'InicialController@create');
+
+// Guardar plan de pago inicial diferido
+$router->post('/lotes/inicial/store/{id}', 'InicialController@store');
+
+// Formulario registrar pago contra el plan inicial
+$router->get('/lotes/inicial/pago/{id}', 'InicialController@pago');
+
+// Registrar pago contra el plan inicial
+$router->post('/lotes/inicial/registrar-pago/{id}', 'InicialController@registrarPago');
+
+// Ver detalle y resumen del plan de pago inicial
+$router->get('/lotes/inicial/show/{id}', 'InicialController@show');
+
+// ==========================================
 // AMORTIZACIÓN (Módulo 5)
 // ==========================================
 
