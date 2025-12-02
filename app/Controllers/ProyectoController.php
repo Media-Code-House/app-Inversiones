@@ -54,6 +54,9 @@ class ProyectoController extends Controller
     public function create()
     {
         $this->requireAuth();
+        
+        // RBAC: Solo administrador y consulta pueden crear proyectos
+        $this->requireRole(['administrador', 'consulta']);
 
         $this->view('proyectos/create', [
             'title' => 'Crear Proyecto',
@@ -68,6 +71,9 @@ class ProyectoController extends Controller
     public function store()
     {
         $this->requireAuth();
+        
+        // RBAC: Solo administrador y consulta pueden crear proyectos
+        $this->requireRole(['administrador', 'consulta']);
 
         // Validar CSRF
         if (!$this->validateCsrf()) {
@@ -196,6 +202,9 @@ class ProyectoController extends Controller
     public function edit($id)
     {
         $this->requireAuth();
+        
+        // RBAC: Solo administrador y consulta pueden editar proyectos
+        $this->requireRole(['administrador', 'consulta']);
 
         $proyecto = $this->proyectoModel->findById($id);
 
@@ -222,6 +231,9 @@ class ProyectoController extends Controller
     public function update($id)
     {
         $this->requireAuth();
+        
+        // RBAC: Solo administrador y consulta pueden actualizar proyectos
+        $this->requireRole(['administrador', 'consulta']);
 
         // Validar CSRF
         if (!$this->validateCsrf()) {
@@ -384,11 +396,26 @@ class ProyectoController extends Controller
     public function delete($id)
     {
         $this->requireAuth();
+        
+        // RBAC: Solo administrador puede eliminar proyectos
+        $user = user();
+        if ($user['rol'] === 'consulta') {
+            setFlash('error', 'El rol consulta no tiene permisos para eliminar proyectos');
+            redirect('/proyectos');
+            return;
+        }
+        
+        if ($user['rol'] === 'vendedor') {
+            setFlash('error', 'El rol vendedor no tiene permisos para eliminar proyectos');
+            redirect('/proyectos');
+            return;
+        }
 
-        // Verificar permisos
+        // Verificar permisos adicionales
         if (!can('eliminar_proyectos')) {
             setFlash('error', 'No tienes permisos para eliminar proyectos');
             redirect('/proyectos');
+            return;
         }
 
         // Validar CSRF

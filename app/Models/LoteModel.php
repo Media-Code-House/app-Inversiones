@@ -103,6 +103,12 @@ class LoteModel
             $params[] = $filters['estado'];
         }
         
+        // RBAC: Filtro por vendedor (para rol vendedor)
+        if (!empty($filters['vendedor_id'])) {
+            $whereConditions .= " AND l.vendedor_id = ? ";
+            $params[] = $filters['vendedor_id'];
+        }
+        
         // Contar total de registros
         $countSQL = "SELECT COUNT(*) as total " . $baseSQL . $whereConditions;
         $totalResult = $this->db->fetch($countSQL, $params);

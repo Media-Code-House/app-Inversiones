@@ -61,12 +61,20 @@ class ReporteController extends Controller
             redirect('/dashboard');
             return;
         }
+        
+        // RBAC: Obtener usuario autenticado
+        $user = user();
 
         // Filtros
         $proyectoId = $_GET['proyecto_id'] ?? null;
         $vendedorId = $_GET['vendedor_id'] ?? null;
         $fechaDesde = $_GET['fecha_desde'] ?? null;
         $fechaHasta = $_GET['fecha_hasta'] ?? null;
+        
+        // RBAC: Si es vendedor, forzar filtro por su ID
+        if ($user['rol'] === 'vendedor') {
+            $vendedorId = $user['id'];
+        }
 
         // Query con filtros dinámicos
         $sql = "SELECT 
@@ -170,6 +178,9 @@ class ReporteController extends Controller
             redirect('/dashboard');
             return;
         }
+        
+        // RBAC: Obtener usuario autenticado
+        $user = user();
 
         // Usar la vista de resumen de proyectos
         $sql = "SELECT 
@@ -183,9 +194,15 @@ class ReporteController extends Controller
                     SUM(CASE WHEN l.estado = 'vendido' THEN COALESCE(l.precio_venta, l.precio_lista) ELSE 0 END) as valor_ventas,
                     ROUND(SUM(CASE WHEN l.estado = 'vendido' THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(l.id), 0), 1) as porcentaje_vendido
                 FROM proyectos p
-                LEFT JOIN lotes l ON p.id = l.proyecto_id
-                GROUP BY p.id
-                ORDER BY valor_ventas DESC";
+                LEFT JOIN lotes l ON p.id = l.proyecto_id";
+        
+        // RBAC: Si es vendedor, filtrar solo lotes asignados a él
+        if ($user['rol'] === 'vendedor') {
+            $sql .= " AND (l.vendedor_id = {$user['id']} OR l.vendedor_id IS NULL)";
+        }
+        
+        $sql .= " GROUP BY p.id
+                  ORDER BY valor_ventas DESC";
 
         $proyectos = $this->db->fetchAll($sql);
 
@@ -219,6 +236,9 @@ class ReporteController extends Controller
             redirect('/dashboard');
             return;
         }
+        
+        // RBAC: Obtener usuario autenticado
+        $user = user();
 
         $fechaDesde = $_GET['fecha_desde'] ?? null;
         $fechaHasta = $_GET['fecha_hasta'] ?? null;
@@ -237,6 +257,12 @@ class ReporteController extends Controller
 
         $params = [];
         $whereConditions = [];
+        
+        // RBAC: Si es vendedor, filtrar solo su ID
+        if ($user['rol'] === 'vendedor') {
+            $whereConditions[] = "u.id = ?";
+            $params[] = $user['id'];
+        }
 
         if ($fechaDesde) {
             $whereConditions[] = "l.fecha_venta >= ?";
@@ -283,6 +309,9 @@ class ReporteController extends Controller
             redirect('/dashboard');
             return;
         }
+        
+        // RBAC: Obtener usuario autenticado
+        $user = user();
 
         $proyectoId = $_GET['proyecto_id'] ?? null;
         $estadoMora = $_GET['estado_mora'] ?? null; // 'todos', 'vigentes', 'vencidas'
@@ -314,6 +343,12 @@ class ReporteController extends Controller
                 WHERE a.estado = 'pendiente' AND a.saldo > 0";
 
         $params = [];
+        
+        // RBAC: Si es vendedor, filtrar solo sus lotes
+        if ($user['rol'] === 'vendedor') {
+            $sql .= " AND l.vendedor_id = ?";
+            $params[] = $user['id'];
+        }
 
         if ($proyectoId) {
             $sql .= " AND l.proyecto_id = ?";

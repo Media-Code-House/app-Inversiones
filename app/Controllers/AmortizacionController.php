@@ -30,6 +30,14 @@ class AmortizacionController extends Controller
     public function create($loteId)
     {
         try {
+            // RBAC: Solo administrador y consulta pueden crear amortizaciones
+            $user = user();
+            if ($user['rol'] === 'vendedor') {
+                $_SESSION['error'] = 'El rol vendedor no tiene permisos para crear planes de amortización';
+                redirect('/lotes');
+                return;
+            }
+            
             if (!can('crear_amortizacion')) {
                 $_SESSION['error'] = 'No tienes permisos para crear planes de amortización';
                 redirect('/lotes');
@@ -94,6 +102,15 @@ class AmortizacionController extends Controller
         // Log de inicio
         \Logger::info("=== INICIO store() de AmortizacionController ===");
         \Logger::debug("POST data", $_POST);
+        
+        // RBAC: Solo administrador y consulta pueden crear amortizaciones
+        $user = user();
+        if ($user['rol'] === 'vendedor') {
+            \Logger::error("Rol vendedor no tiene permisos para crear amortizaciones");
+            $_SESSION['error'] = 'El rol vendedor no tiene permisos para crear planes de amortización';
+            redirect('/lotes');
+            return;
+        }
         
         if (!can('crear_amortizacion')) {
             \Logger::error("Usuario no tiene permisos para crear_amortizacion");
@@ -272,6 +289,14 @@ class AmortizacionController extends Controller
 
             if (!$lote) {
                 $_SESSION['error'] = 'Lote no encontrado';
+                redirect('/lotes');
+                return;
+            }
+            
+            // RBAC: Vendedor solo puede ver amortizaciones de sus propios lotes
+            $user = user();
+            if ($user['rol'] === 'vendedor' && $lote['vendedor_id'] != $user['id']) {
+                $_SESSION['error'] = 'No tienes permiso para ver la amortización de este lote';
                 redirect('/lotes');
                 return;
             }
