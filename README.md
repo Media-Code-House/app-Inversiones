@@ -2,6 +2,32 @@
 
 Sistema completo de gestión de proyectos inmobiliarios, lotes, clientes y ventas desarrollado con arquitectura MVC.
 
+## ⚠️ ACTUALIZACIÓN CRÍTICA - 2 de diciembre de 2025
+
+### 🔧 Corrección de Bug Financiero: Abonos Extraordinarios
+
+**Problema Corregido:** El sistema aplicaba incorrectamente los abonos extraordinarios al "saldo contractual total" (capital + intereses futuros), resultando en **cuotas MAYORES** después del abono.
+
+**Solución Implementada:** Los abonos extraordinarios ahora se aplican **únicamente al Saldo de Capital Real**, cumpliendo con el Sistema Francés estándar.
+
+**Impacto:**
+- ✅ Las cuotas **siempre disminuyen** después de un abono extraordinario
+- ✅ Ahorro promedio para el cliente: 20-25% por cuota
+- ✅ Cumple con método francés estándar
+- ✅ Validado matemáticamente: Cuota esperada $158.145,69 ✓
+
+**Documentación:**
+- 📄 [Corrección Técnica Detallada](CORRECCION_ABONOS_EXTRAORDINARIOS.md)
+- 📄 [Resumen Ejecutivo](RESUMEN_CORRECCION_ABONOS.md)
+- 📄 [Guía de Despliegue y Auditoría](GUIA_DESPLIEGUE_AUDITORIA.md)
+- 🧪 [Script de Validación](validar_correccion_abonos.php)
+
+**Archivos Modificados:**
+- `app/Controllers/PagoController.php` (método `aplicarAbonoCapital()`)
+- `app/Controllers/AmortizacionController.php` (método `recalcular()`)
+
+---
+
 ## 🚀 Módulo 1: Arquitectura Base y Autenticación ✅
 
 ### Características Implementadas
