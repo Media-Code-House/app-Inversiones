@@ -254,9 +254,19 @@ document.getElementById('precio_lista').addEventListener('change', formatearPrec
 // Mostrar/ocultar campos de venta según estado
 document.getElementById('estado').addEventListener('change', function() {
     const datosVenta = document.getElementById('datosVenta');
+    const clienteSelect = document.getElementById('cliente_id');
     
     if (this.value === 'vendido' || this.value === 'reservado') {
         datosVenta.style.display = 'block';
+        
+        // Hacer scroll suave a la sección de datos de venta
+        setTimeout(function() {
+            datosVenta.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Enfocar el campo de cliente si es vendido
+            if (document.getElementById('estado').value === 'vendido') {
+                setTimeout(() => clienteSelect.focus(), 500);
+            }
+        }, 100);
     } else {
         datosVenta.style.display = 'none';
     }

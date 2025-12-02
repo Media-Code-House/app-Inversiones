@@ -122,8 +122,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="cliente_id" class="form-label">Cliente <span class="text-danger">*</span></label>
-                                    <select name="cliente_id" id="cliente_id" class="form-select" 
-                                            <?= !$puedeEditar ? 'disabled' : '' ?>>
+                                    <select name="cliente_id" id="cliente_id" class="form-select">
                                         <option value="">Seleccione un cliente</option>
                                         <?php foreach ($clientes as $cliente): ?>
                                             <option value="<?= $cliente['id'] ?>" 
@@ -132,9 +131,9 @@
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <?php if (!$puedeEditar): ?>
-                                        <input type="hidden" name="cliente_id" value="<?= $lote['cliente_id'] ?>">
-                                    <?php endif; ?>
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle"></i> Puede cambiar el cliente asignado al lote
+                                    </small>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
@@ -279,7 +278,7 @@ function formatMoney(amount) {
  * Calcula el precio por metro cuadrado
  */
 function calcularPrecioM2() {
-    const area = parseFloat(document.getElementById('area').value) || 0;
+    const area = parseFloat(document.getElementById('area_m2').value) || 0;
     const precioLista = parseFloat(document.getElementById('precio_lista').value) || 0;
     
     if (area > 0 && precioLista > 0) {
@@ -308,8 +307,8 @@ function formatearPrecioLista() {
 
 // Event listeners para cálculos en tiempo real (si puede editar)
 <?php if ($puedeEditar): ?>
-document.getElementById('area').addEventListener('input', calcularPrecioM2);
-document.getElementById('area').addEventListener('change', calcularPrecioM2);
+document.getElementById('area_m2').addEventListener('input', calcularPrecioM2);
+document.getElementById('area_m2').addEventListener('change', calcularPrecioM2);
 document.getElementById('precio_lista').addEventListener('input', formatearPrecioLista);
 document.getElementById('precio_lista').addEventListener('change', formatearPrecioLista);
 
@@ -331,9 +330,16 @@ document.getElementById('estado').addEventListener('change', function() {
     
     if (this.value === 'vendido' || this.value === 'reservado') {
         datosVenta.style.display = 'block';
-        if (!clienteSelect.disabled) {
-            clienteSelect.required = (this.value === 'vendido');
-        }
+        clienteSelect.required = (this.value === 'vendido');
+        
+        // Hacer scroll suave a la sección de datos de venta
+        setTimeout(function() {
+            datosVenta.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Enfocar el campo de cliente si es vendido
+            if (document.getElementById('estado').value === 'vendido') {
+                setTimeout(() => clienteSelect.focus(), 500);
+            }
+        }, 100);
     } else {
         datosVenta.style.display = 'none';
         clienteSelect.required = false;
