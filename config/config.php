@@ -5,7 +5,7 @@
  */
 
 // Configuración de la aplicación
-define('APP_NAME', 'Sistema de Gestión de Lotes');
+define('APP_NAME', 'Inversiones SAG ');
 
 // Detectar APP_URL automáticamente
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';

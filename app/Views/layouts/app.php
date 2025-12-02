@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sistema de Gestión de Lotes e Inversiones">
+    <meta name="description" content="Inversiones SAG">
     <title><?= $title ?? APP_NAME ?></title>
     
     <!-- Bootstrap 5 CSS (Local) -->

@@ -86,7 +86,7 @@ class InicialController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            $this->flash('error', $e->getMessage());
+            $_SESSION['error'] = $e->getMessage();
             $this->redirect('/lotes/show/' . $loteId);
         }
     }
@@ -99,6 +99,13 @@ class InicialController extends Controller
     {
         $this->requireAuth();
         $this->requireRole(['administrador', 'consulta']);
+
+        // Validar CSRF
+        if (!$this->validateCsrf()) {
+            $_SESSION['error'] = 'Token de seguridad inválido';
+            $this->redirect('/lotes/show/' . $loteId);
+            return;
+        }
 
         try {
             $this->db->beginTransaction();
@@ -200,16 +207,16 @@ class InicialController extends Controller
                 'usuario' => user()['email']
             ]);
 
-            $this->flash('success', 'Plan de pago inicial creado exitosamente. ' . 
+            $_SESSION['success'] = 'Plan de pago inicial creado exitosamente. ' . 
                 ($montoPendiente > 0 
                     ? "El lote está en estado RESERVADO hasta completar el pago inicial." 
-                    : "El pago inicial fue completado. El lote está VENDIDO."));
+                    : "El pago inicial fue completado. El lote está VENDIDO.");
             
             $this->redirect('/lotes/show/' . $loteId);
 
         } catch (\Exception $e) {
             $this->db->rollBack();
-            $this->flash('error', 'Error al crear plan de pago inicial: ' . $e->getMessage());
+            $_SESSION['error'] = 'Error al crear plan de pago inicial: ' . $e->getMessage();
             $this->redirect('/lotes/inicial/create/' . $loteId);
         }
     }
@@ -286,7 +293,7 @@ class InicialController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            $this->flash('error', $e->getMessage());
+            $_SESSION['error'] = $e->getMessage();
             $this->redirect('/lotes/show/' . $loteId);
         }
     }
@@ -388,12 +395,12 @@ class InicialController extends Controller
                 'usuario' => user()['email']
             ]);
 
-            $this->flash('success', $mensaje);
+            $_SESSION['success'] = $mensaje;
             $this->redirect('/lotes/show/' . $loteId);
 
         } catch (\Exception $e) {
             $this->db->rollBack();
-            $this->flash('error', 'Error al registrar pago: ' . $e->getMessage());
+            $_SESSION['error'] = 'Error al registrar pago: ' . $e->getMessage();
             $this->redirect('/lotes/inicial/pago/' . $loteId);
         }
     }
@@ -443,7 +450,7 @@ class InicialController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            $this->flash('error', $e->getMessage());
+            $_SESSION['error'] = $e->getMessage();
             $this->redirect('/lotes/show/' . $loteId);
         }
     }

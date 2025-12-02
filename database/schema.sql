@@ -1,3 +1,27 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1:3306
+-- Generation Time: Dec 02, 2025 at 03:51 PM
+-- Server version: 11.8.3-MariaDB-log
+-- PHP Version: 7.2.34
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `u418271893_inversiones`
+--
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `amortizaciones`
@@ -111,7 +135,103 @@ INSERT INTO `amortizaciones` (`id`, `lote_id`, `numero_cuota`, `fecha_vencimient
 (82, 10, 1, '2025-11-17', NULL, 'pendiente', 2000000.00, 1600000.00, 400000.00, 2000000.00, 0.00, 0, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
 (83, 10, 2, '2025-12-17', NULL, 'pendiente', 2000000.00, 1640000.00, 360000.00, 2000000.00, 0.00, 0, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
 (84, 10, 3, '2026-01-16', NULL, 'pendiente', 2000000.00, 1680000.00, 320000.00, 2000000.00, 0.00, 0, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
-(85, 10, 4, '2026-02-15', NULL, 'pendiente', 2000000.00, 1720000.00, 280000.00, 2000000.00, 0.00, 0, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52');
+(85, 10, 4, '2026-02-15', NULL, 'pendiente', 2000000.00, 1720000.00, 280000.00, 2000000.00, 0.00, 0, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
+(86, 11, 1, '2026-01-02', '2025-12-02', 'pagada', 6590286.11, 5190286.11, 1400000.00, 134809713.89, 6590286.11, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(87, 11, 2, '2026-02-02', NULL, 'pendiente', 7292147.58, 5800478.92, 1491668.67, 143366387.72, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(88, 11, 3, '2026-03-02', NULL, 'pendiente', 7292147.58, 5858483.71, 1433663.88, 137507904.01, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(89, 11, 4, '2026-04-02', NULL, 'pendiente', 7292147.58, 5917068.54, 1375079.04, 131590835.47, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(90, 11, 5, '2026-05-02', NULL, 'pendiente', 7292147.58, 5976239.23, 1315908.35, 125614596.24, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(91, 11, 6, '2026-06-02', NULL, 'pendiente', 7292147.58, 6036001.62, 1256145.96, 119578594.62, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(92, 11, 7, '2026-07-02', NULL, 'pendiente', 7292147.58, 6096361.64, 1195785.95, 113482232.98, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(93, 11, 8, '2026-08-02', NULL, 'pendiente', 7292147.58, 6157325.25, 1134822.33, 107324907.73, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(94, 11, 9, '2026-09-02', NULL, 'pendiente', 7292147.58, 6218898.51, 1073249.08, 101106009.22, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(95, 11, 10, '2026-10-02', NULL, 'pendiente', 7292147.58, 6281087.49, 1011060.09, 94824921.73, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(96, 11, 11, '2026-11-02', NULL, 'pendiente', 7292147.58, 6343898.37, 948249.22, 88481023.36, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(97, 11, 12, '2026-12-02', NULL, 'pendiente', 7292147.58, 6407337.35, 884810.23, 82073686.01, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(98, 11, 13, '2027-01-02', NULL, 'pendiente', 7292147.58, 6471410.72, 820736.86, 75602275.29, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(99, 11, 14, '2027-02-02', NULL, 'pendiente', 7292147.58, 6536124.83, 756022.75, 69066150.45, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(100, 11, 15, '2027-03-02', NULL, 'pendiente', 7292147.58, 6601486.08, 690661.50, 62464664.37, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(101, 11, 16, '2027-04-02', NULL, 'pendiente', 7292147.58, 6667500.94, 624646.64, 55797163.43, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(102, 11, 17, '2027-05-02', NULL, 'pendiente', 7292147.58, 6734175.95, 557971.63, 49062987.48, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(103, 11, 18, '2027-06-02', NULL, 'pendiente', 7292147.58, 6801517.71, 490629.87, 42261469.77, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(104, 11, 19, '2027-07-02', NULL, 'pendiente', 7292147.58, 6869532.89, 422614.70, 35391936.89, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(105, 11, 20, '2027-08-02', NULL, 'pendiente', 7292147.58, 6938228.22, 353919.37, 28453708.67, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(106, 11, 21, '2027-09-02', NULL, 'pendiente', 7292147.58, 7007610.50, 284537.09, 21446098.17, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(107, 11, 22, '2027-10-02', NULL, 'pendiente', 7292147.58, 7077686.60, 214460.98, 14368411.57, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(108, 11, 23, '2027-11-02', NULL, 'pendiente', 7292147.58, 7148463.47, 143684.12, 7219948.10, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(109, 11, 24, '2027-12-02', NULL, 'pendiente', 7292147.58, 7219948.10, 72199.48, 0.00, 0.00, 0, '', '2025-12-02 15:05:16', '2025-12-02 15:08:34'),
+(110, 1, 1, '2026-01-02', '2025-12-02', 'pagada', 164757.15, 129757.15, 35000.00, 3370242.85, 164757.15, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(111, 1, 2, '2026-02-02', NULL, 'pendiente', 178637.25, 142095.53, 36541.72, 3512076.07, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(112, 1, 3, '2026-03-02', NULL, 'pendiente', 178637.25, 143516.49, 35120.76, 3368559.58, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(113, 1, 4, '2026-04-02', NULL, 'pendiente', 178637.25, 144951.65, 33685.60, 3223607.93, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(114, 1, 5, '2026-05-02', NULL, 'pendiente', 178637.25, 146401.17, 32236.08, 3077206.76, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(115, 1, 6, '2026-06-02', NULL, 'pendiente', 178637.25, 147865.18, 30772.07, 2929341.58, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(116, 1, 7, '2026-07-02', NULL, 'pendiente', 178637.25, 149343.83, 29293.42, 2779997.74, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(117, 1, 8, '2026-08-02', NULL, 'pendiente', 178637.25, 150837.27, 27799.98, 2629160.47, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(118, 1, 9, '2026-09-02', NULL, 'pendiente', 178637.25, 152345.64, 26291.60, 2476814.83, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(119, 1, 10, '2026-10-02', NULL, 'pendiente', 178637.25, 153869.10, 24768.15, 2322945.73, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(120, 1, 11, '2026-11-02', NULL, 'pendiente', 178637.25, 155407.79, 23229.46, 2167537.94, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(121, 1, 12, '2026-12-02', NULL, 'pendiente', 178637.25, 156961.87, 21675.38, 2010576.07, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(122, 1, 13, '2027-01-02', NULL, 'pendiente', 178637.25, 158531.49, 20105.76, 1852044.58, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(123, 1, 14, '2027-02-02', NULL, 'pendiente', 178637.25, 160116.80, 18520.45, 1691927.78, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(124, 1, 15, '2027-03-02', NULL, 'pendiente', 178637.25, 161717.97, 16919.28, 1530209.81, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(125, 1, 16, '2027-04-02', NULL, 'pendiente', 178637.25, 163335.15, 15302.10, 1366874.66, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(126, 1, 17, '2027-05-02', NULL, 'pendiente', 178637.25, 164968.50, 13668.75, 1201906.16, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(127, 1, 18, '2027-06-02', NULL, 'pendiente', 178637.25, 166618.19, 12019.06, 1035287.97, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(128, 1, 19, '2027-07-02', NULL, 'pendiente', 178637.25, 168284.37, 10352.88, 867003.60, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(129, 1, 20, '2027-08-02', NULL, 'pendiente', 178637.25, 169967.21, 8670.04, 697036.39, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(130, 1, 21, '2027-09-02', NULL, 'pendiente', 178637.25, 171666.88, 6970.36, 525369.50, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(131, 1, 22, '2027-10-02', NULL, 'pendiente', 178637.25, 173383.55, 5253.70, 351985.95, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(132, 1, 23, '2027-11-02', NULL, 'pendiente', 178637.25, 175117.39, 3519.86, 176868.56, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(133, 1, 24, '2027-12-02', NULL, 'pendiente', 178637.25, 176868.56, 1768.69, 0.00, 0.00, 0, '', '2025-12-02 15:11:33', '2025-12-02 15:14:09'),
+(134, 12, 1, '2026-01-02', '2025-12-02', 'pagada', 164757.15, 129757.15, 35000.00, 3370242.85, 164757.15, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(135, 12, 2, '2026-02-02', NULL, 'pendiente', 158145.69, 125795.69, 32350.00, 3109204.30, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(136, 12, 3, '2026-03-02', NULL, 'pendiente', 158145.69, 127053.65, 31092.04, 2982150.65, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(137, 12, 4, '2026-04-02', NULL, 'pendiente', 158145.69, 128324.19, 29821.51, 2853826.46, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(138, 12, 5, '2026-05-02', NULL, 'pendiente', 158145.69, 129607.43, 28538.26, 2724219.04, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(139, 12, 6, '2026-06-02', NULL, 'pendiente', 158145.69, 130903.50, 27242.19, 2593315.53, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(140, 12, 7, '2026-07-02', NULL, 'pendiente', 158145.69, 132212.54, 25933.16, 2461103.00, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(141, 12, 8, '2026-08-02', NULL, 'pendiente', 158145.69, 133534.66, 24611.03, 2327568.33, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(142, 12, 9, '2026-09-02', NULL, 'pendiente', 158145.69, 134870.01, 23275.68, 2192698.33, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(143, 12, 10, '2026-10-02', NULL, 'pendiente', 158145.69, 136218.71, 21926.98, 2056479.62, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(144, 12, 11, '2026-11-02', NULL, 'pendiente', 158145.69, 137580.90, 20564.80, 1918898.72, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(145, 12, 12, '2026-12-02', NULL, 'pendiente', 158145.69, 138956.70, 19188.99, 1779942.02, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(146, 12, 13, '2027-01-02', NULL, 'pendiente', 158145.69, 140346.27, 17799.42, 1639595.74, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(147, 12, 14, '2027-02-02', NULL, 'pendiente', 158145.69, 141749.73, 16395.96, 1497846.01, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(148, 12, 15, '2027-03-02', NULL, 'pendiente', 158145.69, 143167.23, 14978.46, 1354678.78, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(149, 12, 16, '2027-04-02', NULL, 'pendiente', 158145.69, 144598.90, 13546.79, 1210079.87, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(150, 12, 17, '2027-05-02', NULL, 'pendiente', 158145.69, 146044.89, 12100.80, 1064034.98, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(151, 12, 18, '2027-06-02', NULL, 'pendiente', 158145.69, 147505.34, 10640.35, 916529.64, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(152, 12, 19, '2027-07-02', NULL, 'pendiente', 158145.69, 148980.40, 9165.30, 767549.24, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(153, 12, 20, '2027-08-02', NULL, 'pendiente', 158145.69, 150470.20, 7675.49, 617079.04, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(154, 12, 21, '2027-09-02', NULL, 'pendiente', 158145.69, 151974.90, 6170.79, 465104.14, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(155, 12, 22, '2027-10-02', NULL, 'pendiente', 158145.69, 153494.65, 4651.04, 311609.49, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(156, 12, 23, '2027-11-02', NULL, 'pendiente', 158145.69, 155029.60, 3116.09, 156579.89, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(157, 12, 24, '2027-12-02', NULL, 'pendiente', 158145.69, 156579.89, 1565.80, 0.00, 0.00, 0, '', '2025-12-02 15:37:22', '2025-12-02 15:37:33'),
+(158, 3, 1, '2026-01-02', NULL, 'pendiente', 1482814.38, 1167814.38, 315000.00, 30332185.62, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(159, 3, 2, '2026-02-02', NULL, 'pendiente', 1482814.38, 1179492.52, 303321.86, 29152693.11, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(160, 3, 3, '2026-03-02', NULL, 'pendiente', 1482814.38, 1191287.44, 291526.93, 27961405.66, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(161, 3, 4, '2026-04-02', NULL, 'pendiente', 1482814.38, 1203200.32, 279614.06, 26758205.34, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(162, 3, 5, '2026-05-02', NULL, 'pendiente', 1482814.38, 1215232.32, 267582.05, 25542973.02, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(163, 3, 6, '2026-06-02', NULL, 'pendiente', 1482814.38, 1227384.64, 255429.73, 24315588.38, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(164, 3, 7, '2026-07-02', NULL, 'pendiente', 1482814.38, 1239658.49, 243155.88, 23075929.89, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(165, 3, 8, '2026-08-02', NULL, 'pendiente', 1482814.38, 1252055.08, 230759.30, 21823874.81, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(166, 3, 9, '2026-09-02', NULL, 'pendiente', 1482814.38, 1264575.63, 218238.75, 20559299.18, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(167, 3, 10, '2026-10-02', NULL, 'pendiente', 1482814.38, 1277221.38, 205592.99, 19282077.80, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(168, 3, 11, '2026-11-02', NULL, 'pendiente', 1482814.38, 1289993.60, 192820.78, 17992084.20, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(169, 3, 12, '2026-12-02', NULL, 'pendiente', 1482814.38, 1302893.53, 179920.84, 16689190.67, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(170, 3, 13, '2027-01-02', NULL, 'pendiente', 1482814.38, 1315922.47, 166891.91, 15373268.20, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(171, 3, 14, '2027-02-02', NULL, 'pendiente', 1482814.38, 1329081.69, 153732.68, 14044186.51, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(172, 3, 15, '2027-03-02', NULL, 'pendiente', 1482814.38, 1342372.51, 140441.87, 12701814.00, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(173, 3, 16, '2027-04-02', NULL, 'pendiente', 1482814.38, 1355796.24, 127018.14, 11346017.76, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(174, 3, 17, '2027-05-02', NULL, 'pendiente', 1482814.38, 1369354.20, 113460.18, 9976663.57, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(175, 3, 18, '2027-06-02', NULL, 'pendiente', 1482814.38, 1383047.74, 99766.64, 8593615.83, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(176, 3, 19, '2027-07-02', NULL, 'pendiente', 1482814.38, 1396878.22, 85936.16, 7196737.61, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(177, 3, 20, '2027-08-02', NULL, 'pendiente', 1482814.38, 1410847.00, 71967.38, 5785890.61, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(178, 3, 21, '2027-09-02', NULL, 'pendiente', 1482814.38, 1424955.47, 57858.91, 4360935.14, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(179, 3, 22, '2027-10-02', NULL, 'pendiente', 1482814.38, 1439205.02, 43609.35, 2921730.12, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(180, 3, 23, '2027-11-02', NULL, 'pendiente', 1482814.38, 1453597.07, 29217.30, 1468133.04, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03'),
+(181, 3, 24, '2027-12-02', NULL, 'pendiente', 1482814.38, 1468133.04, 14681.33, 0.00, 0.00, 0, '', '2025-12-02 15:39:03', '2025-12-02 15:39:03');
 
 --
 -- Triggers `amortizaciones`
@@ -218,6 +338,7 @@ CREATE TABLE `lotes` (
   `tasa_interes` decimal(5,2) DEFAULT NULL,
   `numero_cuotas` int(11) DEFAULT NULL,
   `saldo_a_favor` decimal(15,2) DEFAULT 0.00 COMMENT 'Saldo acumulado de pagos excedentes disponible para reajustar mora y compensar cuotas futuras',
+  `plan_inicial_id` int(10) UNSIGNED DEFAULT NULL COMMENT 'FK al plan de pago inicial activo (si existe)',
   `fecha_inicio_amortizacion` date DEFAULT NULL,
   `estado` enum('disponible','reservado','vendido','bloqueado') NOT NULL DEFAULT 'disponible',
   `cliente_id` int(10) UNSIGNED DEFAULT NULL COMMENT 'Cliente dueño (si está vendido)',
@@ -233,17 +354,20 @@ CREATE TABLE `lotes` (
 -- Dumping data for table `lotes`
 --
 
-INSERT INTO `lotes` (`id`, `proyecto_id`, `codigo_lote`, `manzana`, `ubicacion`, `area_m2`, `precio_lista`, `precio_venta`, `cuota_inicial`, `monto_financiado`, `tasa_interes`, `numero_cuotas`, `saldo_a_favor`, `fecha_inicio_amortizacion`, `estado`, `cliente_id`, `vendedor_id`, `fecha_venta`, `observaciones`, `descripcion`, `created_at`, `updated_at`) VALUES
-(1, 1, '666', NULL, NULL, 666.00, 5000000.00, NULL, NULL, NULL, NULL, NULL, 0.00, NULL, 'disponible', NULL, NULL, NULL, NULL, NULL, '2025-11-29 07:25:02', '2025-11-29 07:25:02'),
-(2, 3, '444', NULL, NULL, 300.00, 60000000.00, NULL, 18000000.00, 42000000.00, 12.00, 24, 0.00, '2025-11-29', 'vendido', NULL, NULL, NULL, NULL, NULL, '2025-11-29 07:26:16', '2025-11-29 10:15:03'),
-(3, 2, '42424', NULL, NULL, 0.00, 45000000.00, NULL, NULL, NULL, NULL, NULL, 0.00, NULL, 'vendido', NULL, NULL, NULL, NULL, NULL, '2025-11-29 07:27:27', '2025-11-29 09:13:17'),
-(4, 13, 'LOTE-TEST-001', 'M-01', NULL, 150.00, 20000000.00, NULL, NULL, 20000000.00, 12.00, 24, 0.00, '2025-02-15', 'vendido', 3, NULL, NULL, NULL, NULL, '2025-11-29 16:32:37', '2025-11-29 16:41:34'),
-(5, 14, 'LOTE-SIMPLE', 'M-01', NULL, 100.00, 12000000.00, NULL, NULL, 12000000.00, 12.00, 12, 0.00, '2025-10-15', 'vendido', 4, NULL, NULL, NULL, NULL, '2025-11-29 16:47:49', '2025-11-29 16:47:49'),
-(6, 1, 'MORA-001', NULL, NULL, 100.00, 50000000.00, 50000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, 'vendido', 1, NULL, '2025-02-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
-(7, 1, 'MORA-002', NULL, NULL, 120.00, 60000000.00, 60000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, 'vendido', 2, NULL, '2025-04-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
-(8, 1, 'MORA-003', NULL, NULL, 150.00, 75000000.00, 75000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, 'vendido', 3, NULL, '2025-06-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
-(9, 2, 'MORA-004', NULL, NULL, 200.00, 100000000.00, 100000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, 'vendido', 4, NULL, '2024-12-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
-(10, 2, 'MORA-005', NULL, NULL, 80.00, 40000000.00, 40000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, 'vendido', 5, NULL, '2025-08-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52');
+INSERT INTO `lotes` (`id`, `proyecto_id`, `codigo_lote`, `manzana`, `ubicacion`, `area_m2`, `precio_lista`, `precio_venta`, `cuota_inicial`, `monto_financiado`, `tasa_interes`, `numero_cuotas`, `saldo_a_favor`, `plan_inicial_id`, `fecha_inicio_amortizacion`, `estado`, `cliente_id`, `vendedor_id`, `fecha_venta`, `observaciones`, `descripcion`, `created_at`, `updated_at`) VALUES
+(1, 1, '666', NULL, NULL, 666.00, 5000000.00, NULL, 1500000.00, 3500000.00, 12.00, 24, 0.00, NULL, '2025-12-02', 'vendido', NULL, NULL, NULL, NULL, NULL, '2025-11-29 07:25:02', '2025-12-02 15:11:33'),
+(2, 3, '444', NULL, NULL, 300.00, 60000000.00, NULL, 18000000.00, 42000000.00, 12.00, 24, 0.00, NULL, '2025-11-29', 'vendido', NULL, NULL, NULL, NULL, NULL, '2025-11-29 07:26:16', '2025-11-29 10:15:03'),
+(3, 2, '42424', NULL, NULL, 0.00, 45000000.00, NULL, 13500000.00, 31500000.00, 12.00, 24, 0.00, NULL, '2025-12-02', 'vendido', NULL, NULL, NULL, NULL, NULL, '2025-11-29 07:27:27', '2025-12-02 15:39:03'),
+(4, 13, 'LOTE-TEST-001', 'M-01', NULL, 150.00, 20000000.00, NULL, NULL, 20000000.00, 12.00, 24, 0.00, NULL, '2025-02-15', 'vendido', 3, NULL, NULL, NULL, NULL, '2025-11-29 16:32:37', '2025-11-29 16:41:34'),
+(5, 14, 'LOTE-SIMPLE', 'M-01', NULL, 100.00, 12000000.00, NULL, NULL, 12000000.00, 12.00, 12, 0.00, NULL, '2025-10-15', 'vendido', 4, NULL, NULL, NULL, NULL, '2025-11-29 16:47:49', '2025-11-29 16:47:49'),
+(6, 1, 'MORA-001', NULL, NULL, 100.00, 50000000.00, 50000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, 'vendido', 1, NULL, '2025-02-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
+(7, 1, 'MORA-002', NULL, NULL, 120.00, 60000000.00, 60000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, 'vendido', 2, NULL, '2025-04-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
+(8, 1, 'MORA-003', NULL, NULL, 150.00, 75000000.00, 75000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, 'vendido', 3, NULL, '2025-06-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
+(9, 2, 'MORA-004', NULL, NULL, 200.00, 100000000.00, 100000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, 'vendido', 4, NULL, '2024-12-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
+(10, 2, 'MORA-005', NULL, NULL, 80.00, 40000000.00, 40000000.00, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, 'vendido', 5, NULL, '2025-08-02', NULL, NULL, '2025-12-02 14:03:52', '2025-12-02 14:03:52'),
+(11, 2, '022', NULL, NULL, 150.00, 180000000.00, NULL, 40000000.00, 140000000.00, 12.00, 24, 0.00, NULL, '2025-12-02', 'vendido', NULL, NULL, NULL, NULL, NULL, '2025-12-02 14:41:13', '2025-12-02 15:05:16'),
+(12, 2, '5000000', NULL, NULL, 3123.00, 5000000.00, NULL, 1500000.00, 3500000.00, 12.00, 24, 0.00, NULL, '2025-12-02', 'vendido', NULL, NULL, NULL, NULL, NULL, '2025-12-02 15:36:37', '2025-12-02 15:37:22'),
+(13, 2, '23123', NULL, NULL, 3123.00, 5000000.00, NULL, NULL, NULL, NULL, NULL, 0.00, NULL, NULL, 'vendido', NULL, NULL, NULL, NULL, NULL, '2025-12-02 15:39:45', '2025-12-02 15:39:45');
 
 --
 -- Triggers `lotes`
@@ -383,7 +507,10 @@ INSERT INTO `pagos` (`id`, `amortizacion_id`, `fecha_pago`, `valor_pagado`, `met
 (27, 68, '2025-12-02', 500000.00, 'transferencia', '', '', '2025-12-02 14:24:18', '2025-12-02 14:24:18'),
 (28, 68, '2025-12-02', 2500000.00, 'transferencia', '', '', '2025-12-02 14:25:49', '2025-12-02 14:25:49'),
 (29, 69, '2025-12-02', 2166666.67, 'transferencia', '', '', '2025-12-02 14:26:10', '2025-12-02 14:26:10'),
-(30, 61, '2025-12-02', 2500000.00, 'transferencia', '', '', '2025-12-02 14:28:51', '2025-12-02 14:28:51');
+(30, 61, '2025-12-02', 2500000.00, 'transferencia', '', '', '2025-12-02 14:28:51', '2025-12-02 14:28:51'),
+(31, 86, '2025-12-02', 6590286.11, 'transferencia', '111', '', '2025-12-02 15:08:34', '2025-12-02 15:08:34'),
+(32, 110, '2025-12-02', 164757.15, 'efectivo', '', '', '2025-12-02 15:14:09', '2025-12-02 15:14:09'),
+(33, 134, '2025-12-02', 164757.15, 'transferencia', '', '', '2025-12-02 15:37:33', '2025-12-02 15:37:33');
 
 -- --------------------------------------------------------
 
@@ -442,6 +569,64 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `pagos_iniciales`
+--
+
+CREATE TABLE `pagos_iniciales` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `lote_id` int(10) UNSIGNED NOT NULL,
+  `monto_inicial_total_requerido` decimal(15,2) NOT NULL COMMENT 'Total de inicial que debe pagarse',
+  `monto_pagado_hoy` decimal(15,2) NOT NULL DEFAULT 0.00 COMMENT 'Abono inicial del primer día',
+  `monto_pendiente_diferir` decimal(15,2) NOT NULL COMMENT 'Saldo que se diferirá en cuotas',
+  `plazo_meses` int(3) NOT NULL COMMENT 'Número de meses para pagar el saldo',
+  `cuota_mensual` decimal(15,2) NOT NULL COMMENT 'Valor de cada cuota mensual',
+  `fecha_inicio` date NOT NULL COMMENT 'Fecha de inicio del plan',
+  `estado` enum('pendiente','en_curso','pagado_total','cancelado') NOT NULL DEFAULT 'en_curso',
+  `observaciones` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Plan de pago diferido para la inicial de un lote';
+
+--
+-- Triggers `pagos_iniciales`
+--
+DELIMITER $$
+CREATE TRIGGER `after_plan_inicial_completado` AFTER UPDATE ON `pagos_iniciales` FOR EACH ROW BEGIN
+    -- Si el plan cambió a 'pagado_total'
+    IF NEW.estado = 'pagado_total' AND OLD.estado != 'pagado_total' THEN
+        -- Actualizar el lote asociado: cambiar de 'reservado' a 'vendido'
+        UPDATE lotes 
+        SET estado = 'vendido',
+            plan_inicial_id = NULL  -- Limpiar la referencia ya que el plan está completo
+        WHERE id = NEW.lote_id 
+          AND estado = 'reservado';
+    END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pagos_iniciales_detalle`
+--
+
+CREATE TABLE `pagos_iniciales_detalle` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `plan_inicial_id` int(10) UNSIGNED NOT NULL,
+  `fecha_pago` date NOT NULL,
+  `valor_pagado` decimal(15,2) NOT NULL,
+  `metodo_pago` enum('efectivo','transferencia','cheque','tarjeta') NOT NULL,
+  `numero_recibo` varchar(50) DEFAULT NULL,
+  `saldo_pendiente_despues` decimal(15,2) NOT NULL COMMENT 'Saldo restante después de este pago',
+  `observaciones` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Detalle de pagos realizados contra el plan inicial';
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `proyectos`
 --
 
@@ -466,7 +651,7 @@ CREATE TABLE `proyectos` (
 
 INSERT INTO `proyectos` (`id`, `codigo`, `nombre`, `ubicacion`, `descripcion`, `estado`, `fecha_inicio`, `fecha_finalizacion`, `total_lotes`, `observaciones`, `created_at`, `updated_at`) VALUES
 (1, 'PRY-001', 'Urbanización El Paraíso', 'Carrera 15 #45-32, Montería  gseg', NULL, 'activo', '2024-01-15', NULL, 4, 'gsergseg', '2025-11-29 05:35:02', '2025-12-02 14:03:52'),
-(2, 'PRY-002', 'Parcelación Villa Verde', 'Vía Planeta Rica Km 12', 'Parcelación campestre con lotes desde 500m²', 'activo', '2024-03-01', NULL, 3, NULL, '2025-11-29 05:35:02', '2025-12-02 14:03:52'),
+(2, 'PRY-002', 'Parcelación Villa Verde', 'Vía Planeta Rica Km 12', 'Parcelación campestre con lotes desde 500m²', 'activo', '2024-03-01', NULL, 6, NULL, '2025-11-29 05:35:02', '2025-12-02 15:39:45'),
 (3, 'PRY-003', 'Conjunto Cerrado Los Robles', 'Avenida Circunvalar Norte', NULL, 'activo', '2023-11-20', NULL, 1, '', '2025-11-29 05:35:02', '2025-11-29 07:41:48'),
 (13, 'PRY-TEST', 'Proyecto Prueba Saldo a Favor', 'Medellín', 'Proyecto de prueba para validar sistema de Saldo a Favor Global', 'activo', '2025-01-01', NULL, 1, NULL, '2025-11-29 16:32:37', '2025-11-29 16:32:37'),
 (14, 'PRY-SIMPLE', 'Proyecto Simple Mora', 'Medellín', 'Proyecto simple para prueba de saldo a favor', 'activo', '2025-01-01', NULL, 1, NULL, '2025-11-29 16:47:49', '2025-11-29 16:47:49');
@@ -562,6 +747,35 @@ CREATE TRIGGER `before_vendedor_update_comision` BEFORE UPDATE ON `vendedores` F
 END
 $$
 DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `vista_planes_iniciales_resumen`
+-- (See below for the actual view)
+--
+CREATE TABLE `vista_planes_iniciales_resumen` (
+`plan_id` int(10) unsigned
+,`lote_id` int(10) unsigned
+,`codigo_lote` varchar(20)
+,`proyecto_nombre` varchar(150)
+,`cliente_nombre` varchar(200)
+,`monto_inicial_total_requerido` decimal(15,2)
+,`monto_pagado_hoy` decimal(15,2)
+,`monto_pendiente_diferir` decimal(15,2)
+,`plazo_meses` int(3)
+,`cuota_mensual` decimal(15,2)
+,`fecha_inicio` date
+,`estado_plan` enum('pendiente','en_curso','pagado_total','cancelado')
+,`estado_lote` enum('disponible','reservado','vendido','bloqueado')
+,`total_pagado_plan` decimal(37,2)
+,`saldo_real_pendiente` decimal(38,2)
+,`cuotas_pagadas` bigint(21)
+,`cuotas_pendientes` bigint(22)
+,`fecha_ultimo_pago` date
+,`fecha_creacion_plan` timestamp
+,`fecha_actualizacion_plan` timestamp
+);
 
 -- --------------------------------------------------------
 
@@ -668,7 +882,8 @@ ALTER TABLE `lotes`
   ADD KEY `idx_cliente` (`cliente_id`),
   ADD KEY `idx_fecha_venta` (`fecha_venta`),
   ADD KEY `idx_vendedor` (`vendedor_id`),
-  ADD KEY `idx_lotes_saldo_a_favor` (`saldo_a_favor`,`estado`);
+  ADD KEY `idx_lotes_saldo_a_favor` (`saldo_a_favor`,`estado`),
+  ADD KEY `idx_plan_inicial_id` (`plan_inicial_id`);
 
 --
 -- Indexes for table `metas_vendedores`
@@ -698,6 +913,22 @@ ALTER TABLE `pagos_comisiones`
   ADD KEY `idx_fecha_pago` (`fecha_pago`),
   ADD KEY `idx_usuario_registro` (`usuario_registro_id`),
   ADD KEY `idx_fecha_metodo` (`fecha_pago`,`metodo_pago`);
+
+--
+-- Indexes for table `pagos_iniciales`
+--
+ALTER TABLE `pagos_iniciales`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_lote_id` (`lote_id`),
+  ADD KEY `idx_estado` (`estado`);
+
+--
+-- Indexes for table `pagos_iniciales_detalle`
+--
+ALTER TABLE `pagos_iniciales_detalle`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_plan_inicial_id` (`plan_inicial_id`),
+  ADD KEY `idx_fecha_pago` (`fecha_pago`);
 
 --
 -- Indexes for table `proyectos`
@@ -738,7 +969,7 @@ ALTER TABLE `vendedores`
 -- AUTO_INCREMENT for table `amortizaciones`
 --
 ALTER TABLE `amortizaciones`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
 
 --
 -- AUTO_INCREMENT for table `clientes`
@@ -762,7 +993,7 @@ ALTER TABLE `historial_comisiones`
 -- AUTO_INCREMENT for table `lotes`
 --
 ALTER TABLE `lotes`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `metas_vendedores`
@@ -774,12 +1005,24 @@ ALTER TABLE `metas_vendedores`
 -- AUTO_INCREMENT for table `pagos`
 --
 ALTER TABLE `pagos`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `pagos_comisiones`
 --
 ALTER TABLE `pagos_comisiones`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `pagos_iniciales`
+--
+ALTER TABLE `pagos_iniciales`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `pagos_iniciales_detalle`
+--
+ALTER TABLE `pagos_iniciales_detalle`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -799,6 +1042,15 @@ ALTER TABLE `users`
 --
 ALTER TABLE `vendedores`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `vista_planes_iniciales_resumen`
+--
+DROP TABLE IF EXISTS `vista_planes_iniciales_resumen`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`u418271893_santi`@`127.0.0.1` SQL SECURITY DEFINER VIEW `vista_planes_iniciales_resumen`  AS SELECT `pi`.`id` AS `plan_id`, `pi`.`lote_id` AS `lote_id`, `l`.`codigo_lote` AS `codigo_lote`, `p`.`nombre` AS `proyecto_nombre`, `c`.`nombre` AS `cliente_nombre`, `pi`.`monto_inicial_total_requerido` AS `monto_inicial_total_requerido`, `pi`.`monto_pagado_hoy` AS `monto_pagado_hoy`, `pi`.`monto_pendiente_diferir` AS `monto_pendiente_diferir`, `pi`.`plazo_meses` AS `plazo_meses`, `pi`.`cuota_mensual` AS `cuota_mensual`, `pi`.`fecha_inicio` AS `fecha_inicio`, `pi`.`estado` AS `estado_plan`, `l`.`estado` AS `estado_lote`, coalesce(sum(`pid`.`valor_pagado`),0) AS `total_pagado_plan`, `pi`.`monto_inicial_total_requerido`- coalesce(sum(`pid`.`valor_pagado`),0) AS `saldo_real_pendiente`, count(`pid`.`id`) AS `cuotas_pagadas`, `pi`.`plazo_meses`- count(`pid`.`id`) AS `cuotas_pendientes`, max(`pid`.`fecha_pago`) AS `fecha_ultimo_pago`, `pi`.`created_at` AS `fecha_creacion_plan`, `pi`.`updated_at` AS `fecha_actualizacion_plan` FROM ((((`pagos_iniciales` `pi` join `lotes` `l` on(`pi`.`lote_id` = `l`.`id`)) join `proyectos` `p` on(`l`.`proyecto_id` = `p`.`id`)) left join `clientes` `c` on(`l`.`cliente_id` = `c`.`id`)) left join `pagos_iniciales_detalle` `pid` on(`pi`.`id` = `pid`.`plan_inicial_id`)) GROUP BY `pi`.`id`, `pi`.`lote_id`, `l`.`codigo_lote`, `p`.`nombre`, `c`.`nombre`, `pi`.`monto_inicial_total_requerido`, `pi`.`monto_pagado_hoy`, `pi`.`monto_pendiente_diferir`, `pi`.`plazo_meses`, `pi`.`cuota_mensual`, `pi`.`fecha_inicio`, `pi`.`estado`, `l`.`estado`, `pi`.`created_at`, `pi`.`updated_at` ;
 
 -- --------------------------------------------------------
 
@@ -846,6 +1098,7 @@ ALTER TABLE `historial_comisiones`
 -- Constraints for table `lotes`
 --
 ALTER TABLE `lotes`
+  ADD CONSTRAINT `fk_lotes_plan_inicial` FOREIGN KEY (`plan_inicial_id`) REFERENCES `pagos_iniciales` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_lotes_vendedor` FOREIGN KEY (`vendedor_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `lotes_ibfk_1` FOREIGN KEY (`proyecto_id`) REFERENCES `proyectos` (`id`),
   ADD CONSTRAINT `lotes_ibfk_2` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`);
@@ -869,6 +1122,18 @@ ALTER TABLE `pagos_comisiones`
   ADD CONSTRAINT `pagos_comisiones_ibfk_1` FOREIGN KEY (`comision_id`) REFERENCES `comisiones` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `pagos_comisiones_ibfk_2` FOREIGN KEY (`vendedor_id`) REFERENCES `vendedores` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `pagos_comisiones_ibfk_3` FOREIGN KEY (`usuario_registro_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `pagos_iniciales`
+--
+ALTER TABLE `pagos_iniciales`
+  ADD CONSTRAINT `fk_pagos_iniciales_lote` FOREIGN KEY (`lote_id`) REFERENCES `lotes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `pagos_iniciales_detalle`
+--
+ALTER TABLE `pagos_iniciales_detalle`
+  ADD CONSTRAINT `fk_pagos_iniciales_detalle_plan` FOREIGN KEY (`plan_inicial_id`) REFERENCES `pagos_iniciales` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `vendedores`
