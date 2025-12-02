@@ -42,8 +42,8 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="area" class="form-label">Área (m²) <span class="text-danger">*</span></label>
-                                <input type="number" name="area" id="area" class="form-control" 
+                                <label for="area_m2" class="form-label">Área (m²) <span class="text-danger">*</span></label>
+                                <input type="number" name="area_m2" id="area_m2" class="form-control" 
                                        step="0.01" min="0.01" placeholder="Ej: 120.50" required>
                             </div>
                         </div>
@@ -213,7 +213,7 @@ function formatMoney(amount) {
  * Calcula el precio por metro cuadrado
  */
 function calcularPrecioM2() {
-    const area = parseFloat(document.getElementById('area').value) || 0;
+    const area = parseFloat(document.getElementById('area_m2').value) || 0;
     const precioLista = parseFloat(document.getElementById('precio_lista').value) || 0;
     
     if (area > 0 && precioLista > 0) {
@@ -242,8 +242,8 @@ function formatearPrecioLista() {
 }
 
 // Event listeners para cálculos en tiempo real
-document.getElementById('area').addEventListener('input', calcularPrecioM2);
-document.getElementById('area').addEventListener('change', calcularPrecioM2);
+document.getElementById('area_m2').addEventListener('input', calcularPrecioM2);
+document.getElementById('area_m2').addEventListener('change', calcularPrecioM2);
 document.getElementById('precio_lista').addEventListener('input', formatearPrecioLista);
 document.getElementById('precio_lista').addEventListener('change', formatearPrecioLista);
 
