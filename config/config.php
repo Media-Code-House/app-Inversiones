@@ -19,18 +19,18 @@ define('DEBUG_MODE', !$isProduction);
 // Configuración de base de datos
 if ($isProduction) {
     // Configuración de producción (Hosting)
-    define('DB_HOST', 'localhost');
+    define('DB_HOST', '82.197.82.197');
     define('DB_NAME', 'u418271893_developIvercio');
-    define('DB_USER', 'accesomchdevelop');
+    define('DB_USER', 'u418271893_accesomchdevelop');
     define('DB_PASS', 'Invermch.238#*Dev');
     define('DB_CHARSET', 'utf8mb4');
 } else {
     
     // Configuración de desarrollo (Local)
-     define('DB_HOST', 'localhost');
-    define('DB_NAME', 'db');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
+     define('DB_HOST', '82.197.82.197');
+   define('DB_NAME', 'u418271893_developIvercio');
+    define('DB_USER', 'u418271893_accesomchdevelop');
+    define('DB_PASS', 'Invermch.238#*Dev');
     define('DB_CHARSET', 'utf8mb4');
 
 }
