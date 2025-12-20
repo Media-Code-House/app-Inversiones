@@ -27,10 +27,10 @@ if ($isProduction) {
 } else {
     
     // Configuración de desarrollo (Local)
-     define('DB_HOST', 'localhost');
-   define('DB_NAME', 'u418271893_developIvercio');
-    define('DB_USER', 'u418271893_accesomchdevelop');
-    define('DB_PASS', 'Invermch.238#*Dev');
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'sistema_lotes');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
     define('DB_CHARSET', 'utf8mb4');
 
 }
