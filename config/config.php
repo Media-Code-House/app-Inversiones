@@ -25,6 +25,7 @@ if ($isProduction) {
     define('DB_PASS', '3pX/yi>u3212321123123');
     define('DB_CHARSET', 'utf8mb4');
 } else {
+    
     // Configuración de desarrollo (Local)
     define('DB_HOST', 'localhost');
     define('DB_NAME', 'sistema_lotes');
