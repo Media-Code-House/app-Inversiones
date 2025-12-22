@@ -138,11 +138,19 @@ abstract class Controller
     }
 
     /**
-     * Valida el token CSRF del formulario
+     * Valida el token CSRF del formulario o headers AJAX
      */
     protected function validateCsrf()
     {
+        // Intentar obtener el token desde POST
         $token = $_POST['csrf_token'] ?? '';
+        
+        // Si no está en POST, intentar desde headers (para peticiones AJAX)
+        if (empty($token)) {
+            $headers = getallheaders();
+            $token = $headers['X-CSRF-Token'] ?? $headers['X-Csrf-Token'] ?? '';
+        }
+        
         return \validateCsrfToken($token);
     }
 }

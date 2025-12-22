@@ -613,4 +613,42 @@ class LoteModel
         
         return $this->db->fetchAll($sql, [$minimoSaldo]);
     }
+
+    /**
+     * Actualiza las coordenadas de un lote en el plano
+     * 
+     * @param int $id ID del lote
+     * @param float $x Coordenada X (porcentaje 0-100)
+     * @param float $y Coordenada Y (porcentaje 0-100)
+     * @return bool
+     */
+    public function updateCoordenadas($id, $x, $y)
+    {
+        $sql = "UPDATE lotes SET 
+                plano_x = ?, 
+                plano_y = ?,
+                updated_at = NOW()
+                WHERE id = ?";
+        
+        return $this->db->execute($sql, [$x, $y, $id]) > 0;
+    }
+
+    /**
+     * Obtiene lotes de un proyecto con sus coordenadas en el plano
+     * 
+     * @param int $proyectoId ID del proyecto
+     * @return array Lotes con coordenadas
+     */
+    public function getLotesConCoordenadas($proyectoId)
+    {
+        $sql = "SELECT l.id, l.codigo_lote, l.estado, l.plano_x, l.plano_y,
+                       l.manzana, l.precio_lista, l.area_m2,
+                       c.nombre as cliente_nombre
+                FROM lotes l 
+                LEFT JOIN clientes c ON l.cliente_id = c.id 
+                WHERE l.proyecto_id = ?
+                ORDER BY l.codigo_lote ASC";
+        
+        return $this->db->fetchAll($sql, [$proyectoId]);
+    }
 }
