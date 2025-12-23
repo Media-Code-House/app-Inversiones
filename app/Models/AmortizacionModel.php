@@ -264,11 +264,12 @@ class AmortizacionModel
                     COUNT(CASE WHEN estado = 'pagada' THEN 1 END) as cuotas_pagadas,
                     COUNT(CASE WHEN estado = 'pendiente' THEN 1 END) as cuotas_pendientes,
                     COUNT(CASE WHEN dias_mora > 0 THEN 1 END) as cuotas_vencidas,
-                    MAX(dias_mora) as max_dias_mora
+                    MAX(dias_mora) as max_dias_mora,
+                    (SELECT valor_cuota FROM amortizaciones WHERE lote_id = ? ORDER BY numero_cuota ASC LIMIT 1) as valor_cuota_mensual
                 FROM amortizaciones 
                 WHERE lote_id = ?";
         
-        return $this->db->fetch($sql, [$loteId]);
+        return $this->db->fetch($sql, [$loteId, $loteId]);
     }
 
     /**

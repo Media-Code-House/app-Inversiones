@@ -374,6 +374,17 @@
                                 </div>
                             </div>
 
+                            <?php if (isset($resumenAmortizacion['valor_cuota_mensual']) && $resumenAmortizacion['valor_cuota_mensual'] > 0): ?>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="alert alert-warning mb-0 text-center py-2">
+                                        <label class="text-dark small mb-1 fw-bold d-block">💰 VALOR CUOTA MENSUAL</label>
+                                        <h5 class="mb-0 fw-bold text-danger">$<?= number_format($resumenAmortizacion['valor_cuota_mensual'], 0) ?></h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
                             <?php if ($resumenAmortizacion['cuotas_vencidas'] > 0): ?>
                                 <div class="alert alert-danger py-2 mb-3">
                                     <small>
