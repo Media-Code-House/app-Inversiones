@@ -424,6 +424,16 @@ document.addEventListener('DOMContentLoaded', function() {
         'bloqueado': '#6c757d'
     };
     
+    function getNombreEstado(estado) {
+        const nombres = {
+            'disponible': 'Disponible',
+            'reservado': 'Reservado',
+            'vendido': 'Vendido',
+            'bloqueado': 'Bloqueado'
+        };
+        return nombres[estado] || estado;
+    }
+    
     // Cargar lotes desde el servidor
     fetch('/proyectos/lotes-coordenadas/<?= $proyecto['id'] ?>')
         .then(response => response.json())
@@ -460,8 +470,8 @@ document.addEventListener('DOMContentLoaded', function() {
             position: absolute;
             left: ${lote.plano_x}%;
             top: ${lote.plano_y}%;
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             background-color: ${coloresEstado[lote.estado] || '#6c757d'};
             border: 3px solid white;
             border-radius: 50%;
@@ -473,17 +483,40 @@ document.addEventListener('DOMContentLoaded', function() {
             transition: all 0.2s ease;
         `;
         
+        // Crear label con el código del lote
+        const label = document.createElement('div');
+        label.textContent = lote.codigo_lote;
+        label.style.cssText = `
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        `;
+        punto.appendChild(label);
+        
+        // Agregar tooltip
+        punto.title = `Lote: ${lote.codigo_lote}\nEstado: ${getNombreEstado(lote.estado)}\nPrecio: $${new Intl.NumberFormat('es-CO').format(lote.precio_lista)}\n(Clic para ver detalles)`;
+        
         // Hover effect
         punto.addEventListener('mouseenter', function() {
-            this.style.width = '32px';
-            this.style.height = '32px';
+            this.style.width = '38px';
+            this.style.height = '38px';
             this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
             this.style.zIndex = '20';
         });
         
         punto.addEventListener('mouseleave', function() {
-            this.style.width = '24px';
-            this.style.height = '24px';
+            this.style.width = '32px';
+            this.style.height = '32px';
             this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
             this.style.zIndex = '10';
         });

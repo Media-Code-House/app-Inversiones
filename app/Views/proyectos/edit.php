@@ -470,8 +470,8 @@ document.addEventListener('DOMContentLoaded', function() {
             position: absolute;
             left: ${punto.x}%;
             top: ${punto.y}%;
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             background-color: ${colorInfo.color};
             border: 3px solid ${puntoSeleccionado === punto.id ? '#000' : '#fff'};
             border-radius: 50%;
