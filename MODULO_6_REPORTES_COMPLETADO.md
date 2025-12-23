@@ -36,7 +36,7 @@ GET  /reportes/estado-clientes      → Estado financiero clientes
 
 ## 📊 Reportes Implementados
 
-### 1. **Lotes Vendidos** 💰
+### 1. **Lotes Vendidos** 
 **Funcionalidad:**
 - Detalle completo de todas las ventas realizadas
 - Filtros por: Proyecto, Vendedor, Rango de fechas

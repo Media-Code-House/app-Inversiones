@@ -159,7 +159,7 @@ echo "   └─ Efecto: Cuota DISMINUYE ✓ (beneficia al cliente)\n\n";
 $ahorro_por_cuota = $cuota_incorrecta - $cuota_fija;
 $ahorro_total = $ahorro_por_cuota * $plazo_meses;
 
-echo "💰 AHORRO PARA EL CLIENTE:\n";
+echo " AHORRO PARA EL CLIENTE:\n";
 echo "   ├─ Ahorro por Cuota: $" . number_format($ahorro_por_cuota, 2, ',', '.') . "\n";
 echo "   ├─ Ahorro Total (23 cuotas): $" . number_format($ahorro_total, 2, ',', '.') . "\n";
 echo "   └─ Porcentaje de Reducción: " . number_format(($ahorro_por_cuota / $cuota_incorrecta) * 100, 2) . "%\n\n";

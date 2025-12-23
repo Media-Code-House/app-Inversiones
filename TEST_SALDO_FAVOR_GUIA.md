@@ -47,7 +47,7 @@ https://inversiones.mch.com.co/lotes/amortizacion/show/{ID}
 
 #### ✅ Botón en la cabecera:
 ```
-[💰 Aplicar Saldo a Favor ($555.073)]  ← Este es el botón que buscabas
+[ Aplicar Saldo a Favor ($555.073)]  ← Este es el botón que buscabas
 ```
 
 #### ⚠️ Tabla de Amortización:
@@ -64,14 +64,14 @@ https://inversiones.mch.com.co/lotes/amortizacion/show/{ID}
 └────┴──────────┴──────────┴──────────┴────────┘
 
 SALDO A FAVOR DISPONIBLE: $555.073
-[💰 Aplicar Saldo a Favor ($555.073)]
+[ Aplicar Saldo a Favor ($555.073)]
 ```
 
 ---
 
 ### Paso 3: Hacer Click en el Botón
 
-1. **Haz click en:** `💰 Aplicar Saldo a Favor ($555.073)`
+1. **Haz click en:** ` Aplicar Saldo a Favor ($555.073)`
 
 2. **Aparecerá diálogo de confirmación:**
    ```

@@ -280,7 +280,7 @@
                         ?>
                         <?php if ($valor_cuota && $valor_cuota > 0): ?>
                         <div class="bg-warning bg-opacity-25 p-3 rounded mb-3 text-center border border-warning">
-                            <small class="text-dark fw-bold d-block mb-1">💰 VALOR CUOTA MENSUAL</small>
+                            <small class="text-dark fw-bold d-block mb-1"> VALOR CUOTA MENSUAL</small>
                             <h3 class="mb-0 fw-bold text-danger"><?= formatMoney($valor_cuota) ?></h3>
                         </div>
                         <?php endif; ?>

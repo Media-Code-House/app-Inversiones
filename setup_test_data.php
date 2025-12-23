@@ -283,7 +283,7 @@ try {
     
     echo "<p style='margin-top: 20px;'><strong>Verás:</strong></p>";
     echo "<ol>";
-    echo "<li>✅ El botón AZUL: <code>💰 Aplicar Saldo a Favor (\$555.073)</code></li>";
+    echo "<li>✅ El botón AZUL: <code> Aplicar Saldo a Favor (\$555.073)</code></li>";
     echo "<li>⚠️ Las cuotas 2 y 3 en MORA (sin pagar)</li>";
     echo "<li>✅ Las cuotas 1, 4 y 5 como PAGADAS</li>";
     echo "</ol>";

@@ -378,7 +378,7 @@
                             <div class="row mb-3">
                                 <div class="col-12">
                                     <div class="alert alert-warning mb-0 text-center py-2">
-                                        <label class="text-dark small mb-1 fw-bold d-block">💰 VALOR CUOTA MENSUAL</label>
+                                        <label class="text-dark small mb-1 fw-bold d-block"> VALOR CUOTA MENSUAL</label>
                                         <h5 class="mb-0 fw-bold text-danger">$<?= number_format($resumenAmortizacion['valor_cuota_mensual'], 0) ?></h5>
                                     </div>
                                 </div>
