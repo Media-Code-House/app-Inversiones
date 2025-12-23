@@ -26,8 +26,8 @@ if ($isProduction) {
     define('DB_CHARSET', 'utf8mb4');
 } else {
     
-    // Configuración de desarrollo (Local)123
-    
+    // Configuración de desarrollo (Local)456
+
    define('DB_HOST', '82.197.82.197');
     define('DB_NAME', 'u418271893_developIvercio');
     define('DB_USER', 'u418271893_accesomchdevel');
