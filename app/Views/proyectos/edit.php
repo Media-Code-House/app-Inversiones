@@ -482,6 +482,26 @@ document.addEventListener('DOMContentLoaded', function() {
             transition: border-color 0.2s, box-shadow 0.2s;
         `;
         
+        // Crear label con el código del lote
+        const label = document.createElement('div');
+        label.textContent = punto.codigo;
+        label.style.cssText = `
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        `;
+        puntoDiv.appendChild(label);
+        
         puntoDiv.title = `${punto.codigo}\n${colorInfo.nombre}\nClic derecho para cambiar color`;
         
         // Click izquierdo: seleccionar
@@ -633,6 +653,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Obtener token CSRF
         const csrfToken = document.getElementById('csrfTokenPlano').value;
         
+        console.log('🔐 Token CSRF:', csrfToken ? 'Presente (' + csrfToken.substring(0, 10) + '...)' : '❌ NO ENCONTRADO');
+        
+        if (!csrfToken) {
+            alert('❌ Error: No se encontró el token de seguridad. Recarga la página.');
+            btnGuardar.innerHTML = '<i class="bi bi-save"></i> Guardar Posiciones';
+            btnGuardar.disabled = false;
+            return;
+        }
+        
         // Preparar datos
         const puntosData = puntos.map(p => ({
             id: p.loteId,
@@ -655,12 +684,20 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken
+                'X-CSRF-Token': csrfToken,
+                'X-Csrf-Token': csrfToken  // Añadir ambas variantes por compatibilidad
             },
-            body: JSON.stringify({ lotes: puntosData })
+            body: JSON.stringify({ 
+                lotes: puntosData,
+                csrf_token: csrfToken  // También en el body como backup
+            })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('📡 Respuesta recibida, status:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('📦 Datos de respuesta:', data);
             if (data.success) {
                 alert('✓ Posiciones guardadas exitosamente');
                 btnGuardar.innerHTML = '<i class="bi bi-check-circle"></i> Guardado';

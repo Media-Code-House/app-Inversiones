@@ -462,15 +462,29 @@ class ProyectoController extends Controller
         $this->requireAuth();
         $this->requireRole(['administrador', 'consulta', 'vendedor']);
 
-        // Validar CSRF
-        if (!$this->validateCsrf()) {
-            echo json_encode(['success' => false, 'message' => 'Token CSRF inválido']);
-            return;
-        }
-
-        // Obtener datos JSON
+        // Obtener datos JSON primero (para poder acceder al token en el body si está ahí)
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
+        
+        // Si el token viene en el body JSON, agregarlo a $_POST temporalmente para validación
+        if (isset($data['csrf_token']) && !empty($data['csrf_token'])) {
+            $_POST['csrf_token'] = $data['csrf_token'];
+        }
+
+        // Validar CSRF
+        if (!$this->validateCsrf()) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Token CSRF inválido',
+                'debug' => [
+                    'post_token' => $_POST['csrf_token'] ?? 'no presente',
+                    'header_token' => $_SERVER['HTTP_X_CSRF_TOKEN'] ?? 'no presente',
+                    'session_exists' => isset($_SESSION['csrf_token']) ? 'sí' : 'no'
+                ]
+            ]);
+            return;
+        }
 
         if (!isset($data['lotes']) || !is_array($data['lotes'])) {
             echo json_encode(['success' => false, 'message' => 'Datos inválidos']);

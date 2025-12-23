@@ -147,8 +147,19 @@ abstract class Controller
         
         // Si no está en POST, intentar desde headers (para peticiones AJAX)
         if (empty($token)) {
-            $headers = getallheaders();
-            $token = $headers['X-CSRF-Token'] ?? $headers['X-Csrf-Token'] ?? '';
+            // Intentar múltiples formas de obtener headers (compatibilidad con diferentes servidores)
+            if (function_exists('getallheaders')) {
+                $headers = getallheaders();
+                $token = $headers['X-CSRF-Token'] ?? $headers['X-Csrf-Token'] ?? '';
+            } elseif (function_exists('apache_request_headers')) {
+                $headers = apache_request_headers();
+                $token = $headers['X-CSRF-Token'] ?? $headers['X-Csrf-Token'] ?? '';
+            }
+            
+            // Si aún no hay token, intentar desde $_SERVER (método alternativo)
+            if (empty($token)) {
+                $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            }
         }
         
         return \validateCsrfToken($token);
