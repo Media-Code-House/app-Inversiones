@@ -261,7 +261,7 @@ function can($permission)
             'ver_reportes'
         ],
         'consulta' => [
-            'ver_lotes', 'ver_clientes', 'ver_proyectos',
+            'ver_lotes', 'ver_clientes', 'crear_clientes', 'ver_proyectos',
             'ver_amortizacion', 'ver_pagos', 'ver_reportes'
         ],
         'usuario' => [

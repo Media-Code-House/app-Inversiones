@@ -1,4 +1,12 @@
 <div class="container-fluid py-4">
+    <!-- DEBUG: Información de permisos -->
+    <div class="alert alert-info mb-3">
+        <strong>DEBUG - Información de sesión:</strong><br>
+        Rol actual: <code><?= $_SESSION['user']['rol'] ?? 'no definido' ?></code><br>
+        can('crear_clientes'): <code><?= can('crear_clientes') ? 'true ✓' : 'false ❌' ?></code><br>
+        Usuario: <?= $_SESSION['user']['nombre'] ?? 'no definido' ?>
+    </div>
+    
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">
             <i class="bi bi-people-fill"></i> Gestión de Clientes
