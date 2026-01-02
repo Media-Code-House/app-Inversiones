@@ -37,10 +37,12 @@ class ComisionController extends Controller
         // Obtener lista de vendedores para filtro
         $db = \Database::getInstance();
         $vendedores = $db->fetchAll(
-            "SELECT v.id, CONCAT(v.nombres, ' ', v.apellidos) as nombre
-             FROM vendedores v
-             WHERE v.estado = 'activo'
-             ORDER BY v.nombres, v.apellidos"
+            "SELECT u.id, u.nombre
+             FROM users u
+             LEFT JOIN vendedores v ON u.id = v.user_id
+             WHERE u.rol IN ('administrador', 'vendedor')
+             AND u.activo = 1
+             ORDER BY u.nombre"
         );
 
         // Calcular totales

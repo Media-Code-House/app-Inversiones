@@ -118,6 +118,20 @@ class LoteController extends Controller
         $proyectos = $this->proyectoModel->getAll();
         $clientes = $this->clienteModel->getAll();
         
+        // Obtener vendedores activos
+        $db = \Database::getInstance();
+        $vendedores = $db->fetchAll(
+            "SELECT 
+                u.id,
+                u.nombre,
+                u.email,
+                u.rol
+             FROM users u
+             WHERE u.rol IN ('administrador', 'vendedor') 
+             AND u.activo = 1 
+             ORDER BY u.nombre"
+        );
+        
         // Validar que existan proyectos
         if (empty($proyectos)) {
             $this->flash('warning', 'Debes crear al menos un proyecto antes de poder agregar lotes');
@@ -128,7 +142,8 @@ class LoteController extends Controller
         $this->view('lotes/create', [
             'title' => 'Crear Nuevo Lote',
             'proyectos' => $proyectos,
-            'clientes' => $clientes
+            'clientes' => $clientes,
+            'vendedores' => $vendedores
         ]);
     }
 
@@ -185,6 +200,7 @@ class LoteController extends Controller
                 $clienteId = $this->handleClienteForVenta($_POST);
                 
                 $data['cliente_id'] = $clienteId;
+                $data['vendedor_id'] = !empty($_POST['vendedor_id']) ? (int)$_POST['vendedor_id'] : null;
                 $data['precio_venta'] = !empty($_POST['precio_venta']) ? (float)$_POST['precio_venta'] : $data['precio_lista'];
                 $data['fecha_venta'] = !empty($_POST['fecha_venta']) ? $_POST['fecha_venta'] : date('Y-m-d');
                 

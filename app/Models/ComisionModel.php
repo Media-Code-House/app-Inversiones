@@ -22,15 +22,16 @@ class ComisionModel
     {
         $sql = "SELECT 
                     c.*,
+                    COALESCE(CONCAT(v.nombres, ' ', v.apellidos), u.nombre) as vendedor_nombre,
+                    u.email as vendedor_email,
                     v.codigo_vendedor,
-                    CONCAT(v.nombres, ' ', v.apellidos) as vendedor_nombre,
-                    v.email as vendedor_email,
                     l.codigo_lote,
                     l.precio_venta as lote_precio_venta,
                     p.nombre as proyecto_nombre,
                     cl.nombre as cliente_nombre
                 FROM comisiones c
-                INNER JOIN vendedores v ON c.vendedor_id = v.id
+                INNER JOIN users u ON c.vendedor_id = u.id
+                LEFT JOIN vendedores v ON u.id = v.user_id
                 INNER JOIN lotes l ON c.lote_id = l.id
                 INNER JOIN proyectos p ON l.proyecto_id = p.id
                 LEFT JOIN clientes cl ON l.cliente_id = cl.id
@@ -73,10 +74,10 @@ class ComisionModel
     {
         $sql = "SELECT 
                     c.*,
-                    v.codigo_vendedor,
-                    CONCAT(v.nombres, ' ', v.apellidos) as vendedor_nombre,
-                    v.email as vendedor_email,
+                    COALESCE(CONCAT(v.nombres, ' ', v.apellidos), u.nombre) as vendedor_nombre,
+                    u.email as vendedor_email,
                     u.rol as vendedor_rol,
+                    v.codigo_vendedor,
                     l.codigo_lote,
                     l.precio_venta as lote_precio_venta,
                     p.nombre as proyecto_nombre,
@@ -84,8 +85,8 @@ class ComisionModel
                     cl.nombre as cliente_nombre,
                     cl.numero_documento as cliente_documento
                 FROM comisiones c
-                INNER JOIN vendedores v ON c.vendedor_id = v.id
-                INNER JOIN users u ON v.user_id = u.id
+                INNER JOIN users u ON c.vendedor_id = u.id
+                LEFT JOIN vendedores v ON u.id = v.user_id
                 INNER JOIN lotes l ON c.lote_id = l.id
                 INNER JOIN proyectos p ON l.proyecto_id = p.id
                 LEFT JOIN clientes cl ON l.cliente_id = cl.id
@@ -132,28 +133,31 @@ class ComisionModel
     public function getResumenPorVendedor($vendedorId = null)
     {
         $sql = "SELECT 
-                    v.id as vendedor_id,
-                    CONCAT(v.nombres, ' ', v.apellidos) as vendedor_nombre,
+                    u.id as vendedor_id,
+                    u.nombre as vendedor_nombre,
+                    CONCAT(v.nombres, ' ', v.apellidos) as vendedor_nombre_completo,
                     COUNT(c.id) as total_ventas,
                     SUM(CASE WHEN c.estado = 'pendiente' THEN 1 ELSE 0 END) as comisiones_pendientes,
                     SUM(CASE WHEN c.estado = 'pagada' THEN 1 ELSE 0 END) as comisiones_pagadas,
                     SUM(c.valor_comision) as total_comisiones,
                     SUM(CASE WHEN c.estado = 'pendiente' THEN c.valor_comision ELSE 0 END) as total_pendiente,
                     SUM(CASE WHEN c.estado = 'pagada' THEN c.valor_comision ELSE 0 END) as total_pagado
-                FROM vendedores v
-                INNER JOIN users u ON v.user_id = u.id
-                LEFT JOIN comisiones c ON v.id = c.vendedor_id
-                WHERE v.estado = 'activo'
-                AND u.activo = 1";
+                FROM users u
+                LEFT JOIN vendedores v ON u.id = v.user_id
+                LEFT JOIN comisiones c ON u.id = c.vendedor_id
+                WHERE u.rol IN ('administrador', 'vendedor')
+                AND u.activo = 1
+                AND (v.estado = 'activo' OR v.estado IS NULL)";
         
         $params = [];
         
         if ($vendedorId) {
-            $sql .= " AND v.id = ?";
+            $sql .= " AND u.id = ?";
             $params[] = $vendedorId;
         }
         
-        $sql .= " GROUP BY v.id, v.nombres, v.apellidos
+        $sql .= " GROUP BY u.id, u.nombre, v.nombres, v.apellidos
+                  HAVING total_ventas > 0
                   ORDER BY total_comisiones DESC";
         
         return $this->db->fetchAll($sql, $params);

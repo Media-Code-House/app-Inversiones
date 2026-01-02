@@ -314,8 +314,9 @@ class LoteModel
     public function create($data)
     {
         $sql = "INSERT INTO lotes 
-                (proyecto_id, codigo_lote, manzana, area_m2, precio_lista, estado, observaciones) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+                (proyecto_id, codigo_lote, manzana, area_m2, precio_lista, precio_venta, 
+                 estado, cliente_id, vendedor_id, fecha_venta, ubicacion, descripcion, observaciones) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
             $data['proyecto_id'],
@@ -323,7 +324,13 @@ class LoteModel
             $data['manzana'] ?? null,
             $data['area_m2'] ?? null,
             $data['precio_lista'],
+            $data['precio_venta'] ?? null,
             $data['estado'] ?? 'disponible',
+            $data['cliente_id'] ?? null,
+            $data['vendedor_id'] ?? null,
+            $data['fecha_venta'] ?? null,
+            $data['ubicacion'] ?? null,
+            $data['descripcion'] ?? null,
             $data['observaciones'] ?? null
         ];
 
@@ -341,7 +348,13 @@ class LoteModel
                 manzana = ?, 
                 area_m2 = ?, 
                 precio_lista = ?,
-                estado = ?, 
+                precio_venta = ?,
+                estado = ?,
+                cliente_id = ?,
+                vendedor_id = ?,
+                fecha_venta = ?,
+                ubicacion = ?,
+                descripcion = ?,
                 observaciones = ?,
                 updated_at = NOW()
                 WHERE id = ?";
@@ -351,7 +364,13 @@ class LoteModel
             $data['manzana'] ?? null,
             $data['area_m2'] ?? null,
             $data['precio_lista'],
+            $data['precio_venta'] ?? null,
             $data['estado'],
+            $data['cliente_id'] ?? null,
+            $data['vendedor_id'] ?? null,
+            $data['fecha_venta'] ?? null,
+            $data['ubicacion'] ?? null,
+            $data['descripcion'] ?? null,
             $data['observaciones'] ?? null,
             $id
         ];
