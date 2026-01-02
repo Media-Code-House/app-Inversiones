@@ -136,9 +136,7 @@ class ProyectoModel
                 plano_imagen = ?,
                 estado = ?, 
                 fecha_inicio = ?,
-                fecha_finalizacion = ?,
-                observaciones = ?,
-                updated_at = NOW()
+                fecha_finalizacion = ?
                 WHERE id = ?";
         
         $params = [
@@ -150,7 +148,6 @@ class ProyectoModel
             $data['estado'],
             $data['fecha_inicio'] ?? null,
             $data['fecha_finalizacion'] ?? null,
-            $data['observaciones'] ?? null,
             $id
         ];
 
