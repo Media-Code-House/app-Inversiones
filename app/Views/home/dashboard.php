@@ -1,4 +1,10 @@
 <div class="container-fluid">
+    <!-- MENSAJE DE PRUEBA -->
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>🎉 ¡HOLA, AQUÍ SUBIÓ!</strong> Los cambios se están aplicando correctamente.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    
     <!-- Header del Dashboard -->
     <div class="row mb-4">
         <div class="col-12">
