@@ -264,7 +264,7 @@ class ProyectoController extends Controller
             $errores[] = 'El código del proyecto es obligatorio';
         } elseif ($postData['codigo'] !== $proyecto['codigo']) {
             if ($this->proyectoModel->codigoExists($postData['codigo'], $id)) {
-                $errores[] = 'El código del proyecto ya existe';
+                $errores[] = "El código '{$postData['codigo']}' ya existe en otro proyecto. El código actual es '{$proyecto['codigo']}'";
             }
         }
 
