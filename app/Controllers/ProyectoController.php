@@ -293,44 +293,68 @@ class ProyectoController extends Controller
         // Manejar subida de nueva imagen del plano
         $planoImagen = $proyecto['plano_imagen']; // Mantener la imagen actual por defecto
 
-        if (isset($_FILES['plano_imagen']) && $_FILES['plano_imagen']['error'] === UPLOAD_ERR_OK) {
-            $nuevaImagen = $this->uploadImage($_FILES['plano_imagen'], 'planos');
-            
-            if ($nuevaImagen === false) {
-                $errores[] = 'Error al subir la imagen del plano';
+        try {
+            if (isset($_FILES['plano_imagen']) && $_FILES['plano_imagen']['error'] === UPLOAD_ERR_OK) {
+                $nuevaImagen = $this->uploadImage($_FILES['plano_imagen'], 'planos');
+                
+                if ($nuevaImagen === false) {
+                    $errores[] = 'Error al subir la imagen del plano. Verifique el formato y tamaño.';
+                    $_SESSION['errores'] = $errores;
+                    $this->redirect('/proyectos/edit/' . $id);
+                    return;
+                }
+
+                // Eliminar imagen anterior si existe
+                if (!empty($proyecto['plano_imagen'])) {
+                    $this->deleteImage($proyecto['plano_imagen']);
+                }
+
+                $planoImagen = $nuevaImagen;
+            } elseif (isset($_FILES['plano_imagen']) && $_FILES['plano_imagen']['error'] !== UPLOAD_ERR_NO_FILE) {
+                // Hubo un error en la subida
+                $uploadErrors = [
+                    UPLOAD_ERR_INI_SIZE => 'El archivo excede upload_max_filesize en php.ini',
+                    UPLOAD_ERR_FORM_SIZE => 'El archivo excede MAX_FILE_SIZE del formulario',
+                    UPLOAD_ERR_PARTIAL => 'El archivo se subió parcialmente',
+                    UPLOAD_ERR_NO_FILE => 'No se subió ningún archivo',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Falta directorio temporal',
+                    UPLOAD_ERR_CANT_WRITE => 'No se puede escribir en el disco',
+                    UPLOAD_ERR_EXTENSION => 'Extensión de PHP detuvo la subida'
+                ];
+                
+                $errorMsg = $uploadErrors[$_FILES['plano_imagen']['error']] ?? 'Error desconocido al subir archivo';
+                $errores[] = $errorMsg;
                 $_SESSION['errores'] = $errores;
                 $this->redirect('/proyectos/edit/' . $id);
                 return;
             }
 
-            // Eliminar imagen anterior si existe
-            if (!empty($proyecto['plano_imagen'])) {
-                $this->deleteImage($proyecto['plano_imagen']);
+            // Preparar datos para actualizar
+            $data = [
+                'codigo' => $postData['codigo'],
+                'nombre' => $postData['nombre'],
+                'ubicacion' => $postData['ubicacion'],
+                'estado' => $postData['estado'],
+                'fecha_inicio' => !empty($postData['fecha_inicio']) ? $postData['fecha_inicio'] : null,
+                'plano_imagen' => $planoImagen,
+                'observaciones' => $postData['observaciones'] ?? null
+            ];
+
+            // Actualizar en base de datos
+            $success = $this->proyectoModel->update($id, $data);
+
+            if ($success) {
+                clearOldInput();
+                $this->flash('success', 'Proyecto actualizado exitosamente');
+                $this->redirect('/proyectos/show/' . $id);
+            } else {
+                $this->flash('error', 'Error al actualizar el proyecto en la base de datos');
+                $this->redirect('/proyectos/edit/' . $id);
             }
-
-            $planoImagen = $nuevaImagen;
-        }
-
-        // Preparar datos para actualizar
-        $data = [
-            'codigo' => $postData['codigo'],
-            'nombre' => $postData['nombre'],
-            'ubicacion' => $postData['ubicacion'],
-            'estado' => $postData['estado'],
-            'fecha_inicio' => !empty($postData['fecha_inicio']) ? $postData['fecha_inicio'] : null,
-            'plano_imagen' => $planoImagen,
-            'observaciones' => $postData['observaciones'] ?? null
-        ];
-
-        // Actualizar en base de datos
-        $success = $this->proyectoModel->update($id, $data);
-
-        if ($success) {
-            clearOldInput();
-            $this->flash('success', 'Proyecto actualizado exitosamente');
-            $this->redirect('/proyectos/show/' . $id);
-        } else {
-            $this->flash('error', 'Error al actualizar el proyecto');
+        } catch (\Exception $e) {
+            // Capturar cualquier excepción y mostrar mensaje detallado
+            \Logger::error('Error en ProyectoController::update - ' . $e->getMessage());
+            $this->flash('error', 'Error al actualizar proyecto: ' . $e->getMessage());
             $this->redirect('/proyectos/edit/' . $id);
         }
     }
@@ -344,34 +368,52 @@ class ProyectoController extends Controller
      */
     private function uploadImage($file, $folder = 'uploads')
     {
-        // Validar que es una imagen
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-        if (!in_array($file['type'], $allowedTypes)) {
+        try {
+            // Validar que es una imagen
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+            if (!in_array($file['type'], $allowedTypes)) {
+                \Logger::error("Tipo de archivo no permitido: {$file['type']}");
+                return false;
+            }
+
+            // Validar tamaño máximo (5MB)
+            if ($file['size'] > 5 * 1024 * 1024) {
+                \Logger::error("Archivo muy grande: {$file['size']} bytes");
+                return false;
+            }
+
+            // Crear directorio si no existe
+            $uploadDir = __DIR__ . '/../../uploads/' . $folder;
+            if (!is_dir($uploadDir)) {
+                if (!mkdir($uploadDir, 0777, true)) {
+                    \Logger::error("No se pudo crear directorio: {$uploadDir}");
+                    return false;
+                }
+            }
+
+            // Validar que el directorio es escribible
+            if (!is_writable($uploadDir)) {
+                \Logger::error("Directorio no escribible: {$uploadDir}");
+                return false;
+            }
+
+            // Generar nombre único
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = uniqid() . '_' . time() . '.' . $extension;
+            $filepath = $uploadDir . '/' . $filename;
+
+            // Mover archivo
+            if (move_uploaded_file($file['tmp_name'], $filepath)) {
+                \Logger::info("Imagen subida exitosamente: uploads/{$folder}/{$filename}");
+                return 'uploads/' . $folder . '/' . $filename;
+            } else {
+                \Logger::error("Error al mover archivo desde {$file['tmp_name']} a {$filepath}");
+                return false;
+            }
+        } catch (\Exception $e) {
+            \Logger::error("Excepción en uploadImage: " . $e->getMessage());
             return false;
         }
-
-        // Validar tamaño máximo (5MB)
-        if ($file['size'] > 5 * 1024 * 1024) {
-            return false;
-        }
-
-        // Crear directorio si no existe
-        $uploadDir = __DIR__ . '/../../uploads/' . $folder;
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        // Generar nombre único
-        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid() . '_' . time() . '.' . $extension;
-        $filepath = $uploadDir . '/' . $filename;
-
-        // Mover archivo
-        if (move_uploaded_file($file['tmp_name'], $filepath)) {
-            return 'uploads/' . $folder . '/' . $filename;
-        }
-
-        return false;
     }
 
     /**
