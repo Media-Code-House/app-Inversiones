@@ -19,19 +19,17 @@ define('DEBUG_MODE', !$isProduction);
 // Configuración de base de datos
 if ($isProduction) {
     // Configuración de producción (Hosting)
-    define('DB_HOST', 'localhost');
-    define('DB_NAME', 'u418271893_inversiones');
-    define('DB_USER', 'u418271893_santi');
-    define('DB_PASS', '3pX/yi>u3212321123123');
+    define('DB_HOST', '82.197.82.197');
+    define('DB_NAME', 'u418271893_developIvercio');
+    define('DB_USER', 'u418271893_accesomchdevel');
+    define('DB_PASS', 'Invermch.238#*Dev');
     define('DB_CHARSET', 'utf8mb4');
 } else {
-    
-    // Configuración de desarrollo (Local)
-    define('DB_HOST', 'localhost');
-    define('DB_NAME', 'sistema_lotes');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
-
+    // Configuración de desarrollo (Local) - Conecta a la misma BD remota
+          define('DB_HOST', '82.197.82.197');
+    define('DB_NAME', 'u418271893_developIvercio');
+    define('DB_USER', 'u418271893_accesomchdevel');
+    define('DB_PASS', 'Invermch.238#*Dev');
     define('DB_CHARSET', 'utf8mb4');
 }
 
