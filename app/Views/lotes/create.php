@@ -167,6 +167,24 @@
                                 </div>
                             </div>
 
+                            <!-- Vendedor -->
+                            <div class="mb-3">
+                                <label for="vendedor_id" class="form-label">
+                                    Vendedor <span class="text-muted">(Opcional)</span>
+                                </label>
+                                <select name="vendedor_id" id="vendedor_id" class="form-select">
+                                    <option value="">Sin vendedor asignado</option>
+                                    <?php foreach ($vendedores as $vendedor): ?>
+                                        <option value="<?= $vendedor['id'] ?>">
+                                            <?= htmlspecialchars($vendedor['nombre'] . ' - ' . ucfirst($vendedor['rol'])) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> El vendedor recibirá comisión por esta venta
+                                </small>
+                            </div>
+
                             <!-- Datos financieros de la venta -->
                             <div class="row">
                                 <div class="col-md-6 mb-3">

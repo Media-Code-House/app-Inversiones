@@ -109,6 +109,12 @@ $router->post('/proyectos/update/{id}', 'ProyectoController@update');
 // Eliminar proyecto
 $router->post('/proyectos/delete/{id}', 'ProyectoController@delete');
 
+// Obtener lotes con coordenadas (AJAX)
+$router->get('/proyectos/lotes-coordenadas/{id}', 'ProyectoController@getLotesCoordenadas');
+
+// Actualizar coordenadas de lotes en el plano (AJAX)
+$router->post('/proyectos/update-coordenadas/{id}', 'ProyectoController@updateCoordenadas');
+
 // ==========================================
 // RUTAS DE LOTES
 // ==========================================

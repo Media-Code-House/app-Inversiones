@@ -124,7 +124,7 @@ INSERT INTO `amortizaciones` (
 -- 5. Después de registrar el pago:
 --    - Cuota 1: PAGADA ✅
 --    - Saldo a Favor: $300.000 ✓
---    - Botón [💰 Aplicar] aparecerá (visible si hay mora en otras cuotas)
+--    - Botón [ Aplicar] aparecerá (visible si hay mora en otras cuotas)
 --
 -- 6. Luego puedes hacer click en el botón para compensar la mora
 --

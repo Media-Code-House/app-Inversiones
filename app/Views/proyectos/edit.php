@@ -196,6 +196,57 @@
             </form>
         </div>
     </div>
+
+    <!-- Editor de Plano Interactivo -->
+    <?php if (!empty($proyecto['plano_imagen']) && $proyecto['total_lotes'] > 0): ?>
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-map"></i> Editor de Plano Interactivo</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                Crea puntos en el plano, arrástralos para posicionarlos y cambia su color haciendo clic derecho.
+            </p>
+            
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary" id="btnCrearPunto">
+                    <i class="bi bi-plus-circle"></i> Crear Punto
+                </button>
+                <button type="button" class="btn btn-danger" id="btnEliminarPunto">
+                    <i class="bi bi-trash"></i> Eliminar Punto Seleccionado
+                </button>
+            </div>
+            
+            <div class="mb-3">
+                <strong>Colores disponibles:</strong>
+                <span class="badge bg-success ms-2">Disponible</span>
+                <span class="badge bg-warning ms-2">Reservado</span>
+                <span class="badge bg-info ms-2">Vendido</span>
+                <span class="badge bg-secondary ms-2">Bloqueado</span>
+                <br>
+                <small class="text-muted">Haz clic derecho sobre un punto para cambiar su color</small>
+            </div>
+
+            <div class="position-relative" id="planoContainer" style="max-width: 100%; border: 2px solid #ccc; background: #f8f9fa;">
+                <img src="/<?= htmlspecialchars($proyecto['plano_imagen']) ?>" 
+                     id="planoImagen" 
+                     class="img-fluid" 
+                     style="width: 100%; height: auto; display: block;">
+                <div id="lotesLayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+                <input type="hidden" id="csrfTokenPlano" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+            </div>
+
+            <div class="mt-3 d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Total de puntos: <span id="totalPuntos" class="fw-bold">0</span>
+                </small>
+                <button type="button" class="btn btn-success" id="btnGuardarCoordenadas">
+                    <i class="bi bi-save"></i> Guardar Posiciones
+                </button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
 
 <!-- Formulario oculto para eliminar -->
@@ -287,3 +338,386 @@ function confirmarEliminacion() {
     }
 }
 </script>
+
+<!-- JavaScript para el editor de plano interactivo -->
+<?php if (!empty($proyecto['plano_imagen']) && $proyecto['total_lotes'] > 0): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const proyectoId = <?= $proyecto['id'] ?>;
+    const planoImagen = document.getElementById('planoImagen');
+    const lotesLayer = document.getElementById('lotesLayer');
+    const btnCrearPunto = document.getElementById('btnCrearPunto');
+    const btnEliminarPunto = document.getElementById('btnEliminarPunto');
+    const btnGuardar = document.getElementById('btnGuardarCoordenadas');
+    
+    let puntos = [];
+    let puntoIdCounter = 1;
+    let puntoSeleccionado = null;
+    
+    // Colores disponibles
+    const coloresEstado = {
+        'disponible': { color: '#28a745', nombre: 'Disponible' },
+        'reservado': { color: '#ffc107', nombre: 'Reservado' },
+        'vendido': { color: '#17a2b8', nombre: 'Vendido' },
+        'bloqueado': { color: '#6c757d', nombre: 'Bloqueado' }
+    };
+    
+    const estadosArray = ['disponible', 'reservado', 'vendido', 'bloqueado'];
+    
+    // Cargar puntos existentes desde el servidor
+    fetch('/proyectos/lotes-coordenadas/<?= $proyecto['id'] ?>')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.lotes) {
+                data.lotes.forEach(lote => {
+                    // Cargar solo lotes que ya tienen coordenadas guardadas (válidas)
+                    const x = parseFloat(lote.plano_x);
+                    const y = parseFloat(lote.plano_y);
+                    
+                    if (lote.plano_x !== null && lote.plano_y !== null && 
+                        !isNaN(x) && !isNaN(y)) {
+                        puntos.push({
+                            id: puntoIdCounter++,
+                            loteId: lote.id,
+                            x: x,
+                            y: y,
+                            estado: lote.estado,
+                            codigo: lote.codigo_lote
+                        });
+                    }
+                });
+                renderPuntos();
+                actualizarContador();
+                console.log('✓ Cargados ' + puntos.length + ' puntos guardados del proyecto');
+            }
+        })
+        .catch(error => console.error('Error al cargar puntos:', error));
+    
+    // Crear nuevo punto
+    btnCrearPunto.addEventListener('click', function() {
+        // Buscar un lote sin coordenadas para asignarle
+        const lotesSinCoordenadas = [];
+        fetch('/proyectos/lotes-coordenadas/<?= $proyecto['id'] ?>')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.lotes) {
+                    console.log('📊 Total de lotes en proyecto:', data.lotes.length);
+                    
+                    // Encontrar lotes que no tengan puntos asignados
+                    const lotesConPuntos = puntos.map(p => p.loteId).filter(id => id !== null);
+                    console.log('📍 Lotes ya con puntos asignados:', lotesConPuntos);
+                    
+                    const loteSinAsignar = data.lotes.find(l => !lotesConPuntos.includes(l.id));
+                    
+                    if (!loteSinAsignar) {
+                        alert('Todos los lotes ya tienen puntos asignados. Elimina un punto existente para crear uno nuevo.');
+                        return;
+                    }
+                    
+                    console.log('✅ Asignando punto a lote:', loteSinAsignar.codigo_lote, '(ID: ' + loteSinAsignar.id + ')');
+                    
+                    // Crear punto en el centro
+                    const x = 50;
+                    const y = 50;
+                    
+                    const nuevoPunto = {
+                        id: puntoIdCounter++,
+                        loteId: loteSinAsignar.id,
+                        x: x,
+                        y: y,
+                        estado: loteSinAsignar.estado,
+                        codigo: loteSinAsignar.codigo_lote
+                    };
+                    
+                    puntos.push(nuevoPunto);
+                    console.log('➕ Punto creado:', nuevoPunto);
+                    
+                    renderPuntos();
+                    actualizarContador();
+                }
+            });
+    });
+    
+    // Eliminar punto seleccionado
+    btnEliminarPunto.addEventListener('click', function() {
+        if (puntoSeleccionado !== null) {
+            if (confirm('¿Eliminar este punto?')) {
+                puntos = puntos.filter(p => p.id !== puntoSeleccionado);
+                puntoSeleccionado = null;
+                renderPuntos();
+                actualizarContador();
+            }
+        } else {
+            alert('Selecciona un punto primero haciendo clic en él');
+        }
+    });
+    
+    // Renderizar todos los puntos
+    function renderPuntos() {
+        lotesLayer.innerHTML = '';
+        puntos.forEach(punto => crearPuntoDOM(punto));
+    }
+    
+    // Crear elemento DOM para un punto
+    function crearPuntoDOM(punto) {
+        const puntoDiv = document.createElement('div');
+        puntoDiv.className = 'punto-lote';
+        puntoDiv.dataset.puntoId = punto.id;
+        
+        const colorInfo = coloresEstado[punto.estado] || coloresEstado['disponible'];
+        
+        puntoDiv.style.cssText = `
+            position: absolute;
+            left: ${punto.x}%;
+            top: ${punto.y}%;
+            width: 35px;
+            height: 35px;
+            background-color: ${colorInfo.color};
+            border: 3px solid ${puntoSeleccionado === punto.id ? '#000' : '#fff'};
+            border-radius: 50%;
+            cursor: move;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            z-index: ${puntoSeleccionado === punto.id ? 100 : 10};
+            transition: border-color 0.2s, box-shadow 0.2s;
+        `;
+        
+        // Crear label con el código del lote
+        const label = document.createElement('div');
+        label.textContent = punto.codigo;
+        label.style.cssText = `
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        `;
+        puntoDiv.appendChild(label);
+        
+        puntoDiv.title = `${punto.codigo}\n${colorInfo.nombre}\nClic derecho para cambiar color`;
+        
+        // Click izquierdo: seleccionar
+        puntoDiv.addEventListener('click', function(e) {
+            e.stopPropagation();
+            puntoSeleccionado = punto.id;
+            renderPuntos();
+        });
+        
+        // Click derecho: cambiar color
+        puntoDiv.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            mostrarMenuColor(punto, e);
+        });
+        
+        // Drag & drop
+        puntoDiv.addEventListener('mousedown', function(e) {
+            if (e.button === 0) { // Solo botón izquierdo
+                iniciarArrastre(punto, e);
+            }
+        });
+        
+        lotesLayer.appendChild(puntoDiv);
+    }
+    
+    // Menú contextual para cambiar color
+    function mostrarMenuColor(punto, evento) {
+        // Crear menú si no existe
+        let menu = document.getElementById('menuColor');
+        if (menu) menu.remove();
+        
+        menu = document.createElement('div');
+        menu.id = 'menuColor';
+        menu.style.cssText = `
+            position: fixed;
+            left: ${evento.clientX}px;
+            top: ${evento.clientY}px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10000;
+        `;
+        
+        const titulo = document.createElement('div');
+        titulo.textContent = 'Cambiar estado:';
+        titulo.style.cssText = 'font-weight: bold; margin-bottom: 8px; font-size: 12px;';
+        menu.appendChild(titulo);
+        
+        estadosArray.forEach(estado => {
+            const colorInfo = coloresEstado[estado];
+            const btn = document.createElement('button');
+            btn.textContent = colorInfo.nombre;
+            btn.className = 'btn btn-sm w-100 mb-1';
+            btn.style.cssText = `
+                background-color: ${colorInfo.color};
+                color: white;
+                border: none;
+                text-align: left;
+                padding: 5px 10px;
+            `;
+            
+            btn.addEventListener('click', function() {
+                punto.estado = estado;
+                renderPuntos();
+                menu.remove();
+            });
+            
+            menu.appendChild(btn);
+        });
+        
+        document.body.appendChild(menu);
+        
+        // Cerrar al hacer clic fuera
+        setTimeout(() => {
+            document.addEventListener('click', function cerrarMenu() {
+                menu.remove();
+                document.removeEventListener('click', cerrarMenu);
+            });
+        }, 100);
+    }
+    
+    // Sistema de arrastre
+    let isDragging = false;
+    let currentPunto = null;
+    
+    function iniciarArrastre(punto, e) {
+        e.stopPropagation();
+        isDragging = true;
+        currentPunto = punto;
+        puntoSeleccionado = punto.id;
+        renderPuntos();
+    }
+    
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging || !currentPunto) return;
+        
+        const rect = planoImagen.getBoundingClientRect();
+        let x = ((e.clientX - rect.left) / rect.width) * 100;
+        let y = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        // Limitar a los bordes
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+        
+        currentPunto.x = x;
+        currentPunto.y = y;
+        
+        // Actualizar solo el punto que se está arrastrando
+        const puntoDOM = document.querySelector(`[data-punto-id="${currentPunto.id}"]`);
+        if (puntoDOM) {
+            puntoDOM.style.left = x + '%';
+            puntoDOM.style.top = y + '%';
+        }
+    });
+    
+    document.addEventListener('mouseup', function() {
+        isDragging = false;
+        currentPunto = null;
+    });
+    
+    // Click en el fondo para deseleccionar
+    lotesLayer.addEventListener('click', function() {
+        puntoSeleccionado = null;
+        renderPuntos();
+    });
+    
+    // Actualizar contador
+    function actualizarContador() {
+        document.getElementById('totalPuntos').textContent = puntos.length;
+    }
+    
+    // Guardar posiciones
+    btnGuardar.addEventListener('click', function() {
+        if (puntos.length === 0) {
+            alert('No hay puntos para guardar');
+            return;
+        }
+        
+        if (!confirm('¿Guardar las posiciones de todos los puntos?')) {
+            return;
+        }
+        
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        
+        // Obtener token CSRF
+        const csrfToken = document.getElementById('csrfTokenPlano').value;
+        
+        console.log('🔐 Token CSRF:', csrfToken ? 'Presente (' + csrfToken.substring(0, 10) + '...)' : '❌ NO ENCONTRADO');
+        
+        if (!csrfToken) {
+            alert('❌ Error: No se encontró el token de seguridad. Recarga la página.');
+            btnGuardar.innerHTML = '<i class="bi bi-save"></i> Guardar Posiciones';
+            btnGuardar.disabled = false;
+            return;
+        }
+        
+        // Preparar datos
+        const puntosData = puntos.map(p => ({
+            id: p.loteId,
+            x: p.x.toFixed(2),
+            y: p.y.toFixed(2)
+        })).filter(p => p.id !== null);
+        
+        console.log('📤 Enviando al servidor:', { lotes: puntosData });
+        console.log('Total de puntos a guardar:', puntosData.length);
+        
+        if (puntosData.length === 0) {
+            alert('❌ No hay puntos válidos para guardar. Asegúrate de que los puntos estén vinculados a lotes.');
+            btnGuardar.innerHTML = '<i class="bi bi-save"></i> Guardar Posiciones';
+            btnGuardar.disabled = false;
+            return;
+        }
+        
+        // Enviar al servidor
+        fetch('/proyectos/update-coordenadas/<?= $proyecto['id'] ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': csrfToken,
+                'X-Csrf-Token': csrfToken  // Añadir ambas variantes por compatibilidad
+            },
+            body: JSON.stringify({ 
+                lotes: puntosData,
+                csrf_token: csrfToken  // También en el body como backup
+            })
+        })
+        .then(response => {
+            console.log('📡 Respuesta recibida, status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('📦 Datos de respuesta:', data);
+            if (data.success) {
+                alert('✓ Posiciones guardadas exitosamente');
+                btnGuardar.innerHTML = '<i class="bi bi-check-circle"></i> Guardado';
+                setTimeout(() => {
+                    btnGuardar.innerHTML = '<i class="bi bi-save"></i> Guardar Posiciones';
+                    btnGuardar.disabled = false;
+                }, 2000);
+            } else {
+                alert('Error al guardar: ' + data.message);
+                btnGuardar.innerHTML = '<i class="bi bi-save"></i> Guardar Posiciones';
+                btnGuardar.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error de conexión al guardar');
+            btnGuardar.innerHTML = '<i class="bi bi-save"></i> Guardar Posiciones';
+            btnGuardar.disabled = false;
+        });
+    });
+});
+</script>
+<?php endif; ?>

@@ -203,8 +203,8 @@ class ProyectoController extends Controller
     {
         $this->requireAuth();
         
-        // RBAC: Solo administrador y consulta pueden editar proyectos
-        $this->requireRole(['administrador', 'consulta']);
+        // RBAC: Solo administrador, consulta y vendedor pueden editar proyectos
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
 
         $proyecto = $this->proyectoModel->findById($id);
 
@@ -451,5 +451,77 @@ class ProyectoController extends Controller
         }
 
         redirect('/proyectos');
+    }
+
+    /**
+     * Actualiza las coordenadas de los lotes en el plano
+     * POST /proyectos/update-coordenadas/{id}
+     */
+    public function updateCoordenadas($id)
+    {
+        $this->requireAuth();
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
+
+        // Obtener datos JSON primero (para poder acceder al token en el body si está ahí)
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+        
+        // Si el token viene en el body JSON, agregarlo a $_POST temporalmente para validación
+        if (isset($data['csrf_token']) && !empty($data['csrf_token'])) {
+            $_POST['csrf_token'] = $data['csrf_token'];
+        }
+
+        // Validar CSRF
+        if (!$this->validateCsrf()) {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Token CSRF inválido',
+                'debug' => [
+                    'post_token' => $_POST['csrf_token'] ?? 'no presente',
+                    'header_token' => $_SERVER['HTTP_X_CSRF_TOKEN'] ?? 'no presente',
+                    'session_exists' => isset($_SESSION['csrf_token']) ? 'sí' : 'no'
+                ]
+            ]);
+            return;
+        }
+
+        if (!isset($data['lotes']) || !is_array($data['lotes'])) {
+            echo json_encode(['success' => false, 'message' => 'Datos inválidos']);
+            return;
+        }
+
+        // Actualizar coordenadas de cada lote
+        $loteModel = new \App\Models\LoteModel();
+        $actualizados = 0;
+
+        foreach ($data['lotes'] as $lote) {
+            if (isset($lote['id'], $lote['x'], $lote['y'])) {
+                if ($loteModel->updateCoordenadas($lote['id'], $lote['x'], $lote['y'])) {
+                    $actualizados++;
+                }
+            }
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Se actualizaron {$actualizados} lotes",
+            'actualizados' => $actualizados
+        ]);
+    }
+
+    /**
+     * Obtiene los lotes con coordenadas en formato JSON
+     * GET /proyectos/lotes-coordenadas/{id}
+     */
+    public function getLotesCoordenadas($id)
+    {
+        $this->requireAuth();
+
+        $loteModel = new \App\Models\LoteModel();
+        $lotes = $loteModel->getLotesConCoordenadas($id);
+
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'lotes' => $lotes]);
     }
 }

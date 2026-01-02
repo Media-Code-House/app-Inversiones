@@ -117,17 +117,50 @@
                 </div>
             </div>
 
-            <!-- Plano del Proyecto -->
+            <!-- Plano del Proyecto Interactivo -->
             <?php if (!empty($proyecto['plano_imagen'])): ?>
                 <div class="card mb-4">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0"><i class="bi bi-image"></i> Plano del Proyecto</h5>
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-map"></i> Plano del Proyecto</h5>
+                        <?php if (can('editar_proyectos')): ?>
+                            <a href="/proyectos/edit/<?= $proyecto['id'] ?>#planoContainer" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Editar Posiciones
+                            </a>
+                        <?php endif; ?>
                     </div>
-                    <div class="card-body text-center">
-                        <img src="/<?= htmlspecialchars($proyecto['plano_imagen']) ?>" 
-                             alt="Plano del proyecto" 
-                             class="img-fluid rounded shadow"
-                             style="max-height: 500px;">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Leyenda:</strong>
+                            <span class="badge bg-success ms-2">Disponible</span>
+                            <span class="badge bg-warning ms-2">Reservado</span>
+                            <span class="badge bg-info ms-2">Vendido</span>
+                            <span class="badge bg-secondary ms-2">Bloqueado</span>
+                        </div>
+                        
+                        <div class="position-relative" id="planoContainer">
+                            <img src="/<?= htmlspecialchars($proyecto['plano_imagen']) ?>" 
+                                 id="planoImagen"
+                                 alt="Plano del proyecto" 
+                                 class="img-fluid border rounded shadow"
+                                 style="width: 100%; height: auto; display: block;">
+                            <div id="lotesLayer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+                        </div>
+                        
+                        <div id="loteInfo" class="alert alert-info mt-3" style="display: none;">
+                            <h6 class="mb-2"><strong id="infoCodigoLote"></strong></h6>
+                            <p class="mb-1"><strong>Estado:</strong> <span id="infoEstado"></span></p>
+                            <p class="mb-1"><strong>Manzana:</strong> <span id="infoManzana"></span></p>
+                            <p class="mb-1"><strong>Área:</strong> <span id="infoArea"></span> m²</p>
+                            <p class="mb-1"><strong>Precio:</strong> $<span id="infoPrecio"></span></p>
+                            <p class="mb-0" id="infoClienteContainer" style="display: none;">
+                                <strong>Cliente:</strong> <span id="infoCliente"></span>
+                            </p>
+                            <div class="mt-2">
+                                <a id="infoVerLote" href="#" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> Ver Detalles
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             <?php endif; ?>
@@ -372,3 +405,167 @@ function confirmarEliminacionLote(loteId, codigoLote, estado) {
     }
 }
 </script>
+
+<!-- JavaScript para visualizar lotes en el plano -->
+<?php if (!empty($proyecto['plano_imagen'])): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const planoImagen = document.getElementById('planoImagen');
+    const lotesLayer = document.getElementById('lotesLayer');
+    const loteInfo = document.getElementById('loteInfo');
+    
+    let lotes = [];
+    
+    // Colores según estado
+    const coloresEstado = {
+        'disponible': '#28a745',
+        'reservado': '#ffc107',
+        'vendido': '#17a2b8',
+        'bloqueado': '#6c757d'
+    };
+    
+    function getNombreEstado(estado) {
+        const nombres = {
+            'disponible': 'Disponible',
+            'reservado': 'Reservado',
+            'vendido': 'Vendido',
+            'bloqueado': 'Bloqueado'
+        };
+        return nombres[estado] || estado;
+    }
+    
+    // Cargar lotes desde el servidor
+    fetch('/proyectos/lotes-coordenadas/<?= $proyecto['id'] ?>')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                lotes = data.lotes;
+                renderLotes();
+            }
+        })
+        .catch(error => console.error('Error al cargar lotes:', error));
+    
+    // Renderizar puntos de lotes en el plano
+    function renderLotes() {
+        lotesLayer.innerHTML = '';
+        
+        lotes.forEach(lote => {
+            const x = parseFloat(lote.plano_x);
+            const y = parseFloat(lote.plano_y);
+            
+            // Solo mostrar lotes con coordenadas válidas guardadas
+            if (lote.plano_x !== null && lote.plano_y !== null && 
+                !isNaN(x) && !isNaN(y)) {
+                crearPunto(lote);
+            }
+        });
+    }
+    
+    // Crear punto visual para un lote
+    function crearPunto(lote) {
+        const punto = document.createElement('div');
+        punto.className = 'lote-punto';
+        punto.dataset.loteId = lote.id;
+        punto.style.cssText = `
+            position: absolute;
+            left: ${lote.plano_x}%;
+            top: ${lote.plano_y}%;
+            width: 32px;
+            height: 32px;
+            background-color: ${coloresEstado[lote.estado] || '#6c757d'};
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+            pointer-events: all;
+            transition: all 0.2s ease;
+        `;
+        
+        // Crear label con el código del lote
+        const label = document.createElement('div');
+        label.textContent = lote.codigo_lote;
+        label.style.cssText = `
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        `;
+        punto.appendChild(label);
+        
+        // Agregar tooltip
+        punto.title = `Lote: ${lote.codigo_lote}\nEstado: ${getNombreEstado(lote.estado)}\nPrecio: $${new Intl.NumberFormat('es-CO').format(lote.precio_lista)}\n(Clic para ver detalles)`;
+        
+        // Hover effect
+        punto.addEventListener('mouseenter', function() {
+            this.style.width = '38px';
+            this.style.height = '38px';
+            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+            this.style.zIndex = '20';
+        });
+        
+        punto.addEventListener('mouseleave', function() {
+            this.style.width = '32px';
+            this.style.height = '32px';
+            this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+            this.style.zIndex = '10';
+        });
+        
+        // Click para mostrar información
+        punto.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mostrarInfoLote(lote);
+        });
+        
+        lotesLayer.appendChild(punto);
+    }
+    
+    // Mostrar información del lote
+    function mostrarInfoLote(lote) {
+        document.getElementById('infoCodigoLote').textContent = lote.codigo_lote;
+        
+        const estadoBadge = {
+            'disponible': '<span class="badge bg-success">Disponible</span>',
+            'reservado': '<span class="badge bg-warning">Reservado</span>',
+            'vendido': '<span class="badge bg-info">Vendido</span>',
+            'bloqueado': '<span class="badge bg-secondary">Bloqueado</span>'
+        };
+        document.getElementById('infoEstado').innerHTML = estadoBadge[lote.estado] || lote.estado;
+        
+        document.getElementById('infoManzana').textContent = lote.manzana || 'N/A';
+        document.getElementById('infoArea').textContent = parseFloat(lote.area_m2).toFixed(2);
+        document.getElementById('infoPrecio').textContent = new Intl.NumberFormat('es-CO').format(lote.precio_lista);
+        
+        const clienteContainer = document.getElementById('infoClienteContainer');
+        if (lote.cliente_nombre) {
+            document.getElementById('infoCliente').textContent = lote.cliente_nombre;
+            clienteContainer.style.display = 'block';
+        } else {
+            clienteContainer.style.display = 'none';
+        }
+        
+        document.getElementById('infoVerLote').href = '/lotes/show/' + lote.id;
+        
+        loteInfo.style.display = 'block';
+        loteInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // Click fuera del info para ocultarlo
+    document.addEventListener('click', function(e) {
+        if (!loteInfo.contains(e.target) && !e.target.classList.contains('lote-punto')) {
+            loteInfo.style.display = 'none';
+        }
+    });
+});
+</script>
+<?php endif; ?>

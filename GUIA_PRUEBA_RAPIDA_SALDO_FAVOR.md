@@ -95,7 +95,7 @@ https://inversiones.mch.com.co/lotes/amortizacion/show/999
 
 #### ✅ En la cabecera:
 ```
-[💰 Registrar Pago]  [💰 Aplicar Saldo a Favor ($522.914)]  [👁️ Ver Lote]
+[ Registrar Pago]  [ Aplicar Saldo a Favor ($522.914)]  [👁️ Ver Lote]
                            ↑ ESTE ES EL BOTÓN
 ```
 
@@ -112,14 +112,14 @@ https://inversiones.mch.com.co/lotes/amortizacion/show/999
 └────┴──────────┴──────────┴──────────┴────────┘
 
 SALDO A FAVOR DISPONIBLE: $522.914
-[💰 Aplicar Saldo a Favor ($522.914)]
+[ Aplicar Saldo a Favor ($522.914)]
 ```
 
 ---
 
 ### **PASO 6: Hacer Click en el Botón**
 
-1. **Haz click en:** `💰 Aplicar Saldo a Favor ($522.914)`
+1. **Haz click en:** ` Aplicar Saldo a Favor ($522.914)`
 
 2. **Aparecerá diálogo de confirmación:**
    ```

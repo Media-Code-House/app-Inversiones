@@ -122,9 +122,9 @@
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div>
-                                <p class="text-muted mb-1 small">Valor Cuota</p>
-                                <h5 class="mb-0 text-dark fw-bold"><?= formatMoney($metricas['valor_cuota']) ?></h5>
+                            <div class="bg-warning bg-opacity-10 p-2 rounded">
+                                <p class="text-muted mb-1 small fw-bold"> VALOR CUOTA MENSUAL</p>
+                                <h4 class="mb-0 text-danger fw-bold"><?= formatMoney($metricas['valor_cuota']) ?></h4>
                             </div>
                         </div>
                     </div>

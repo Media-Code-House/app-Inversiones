@@ -271,6 +271,20 @@
                         <h6 class="mb-0"><i class="bi bi-cash-stack"></i> Resumen Financiero</h6>
                     </div>
                     <div class="card-body">
+                        <?php 
+                        // Obtener el valor de la cuota desde el resumen o desde la primera cuota pendiente
+                        $valor_cuota = $resumen['valor_cuota_mensual'] ?? null;
+                        if (!$valor_cuota && !empty($cuotas_pendientes)) {
+                            $valor_cuota = $cuotas_pendientes[0]['valor_cuota'] ?? 0;
+                        }
+                        ?>
+                        <?php if ($valor_cuota && $valor_cuota > 0): ?>
+                        <div class="bg-warning bg-opacity-25 p-3 rounded mb-3 text-center border border-warning">
+                            <small class="text-dark fw-bold d-block mb-1"> VALOR CUOTA MENSUAL</small>
+                            <h3 class="mb-0 fw-bold text-danger"><?= formatMoney($valor_cuota) ?></h3>
+                        </div>
+                        <?php endif; ?>
+                        
                         <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
                             <div>
                                 <small class="text-muted d-block">Total Pagado</small>

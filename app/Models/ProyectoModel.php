@@ -105,14 +105,15 @@ class ProyectoModel
     public function create($data)
     {
         $sql = "INSERT INTO proyectos 
-                (codigo, nombre, ubicacion, descripcion, estado, fecha_inicio, observaciones) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+                (codigo, nombre, ubicacion, descripcion, plano_imagen, estado, fecha_inicio, observaciones) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
             $data['codigo'],
             $data['nombre'],
             $data['ubicacion'] ?? null,
             $data['descripcion'] ?? null,
+            $data['plano_imagen'] ?? null,
             $data['estado'] ?? 'activo',
             $data['fecha_inicio'] ?? null,
             $data['observaciones'] ?? null
@@ -132,6 +133,7 @@ class ProyectoModel
                 nombre = ?, 
                 ubicacion = ?, 
                 descripcion = ?,
+                plano_imagen = ?,
                 estado = ?, 
                 fecha_inicio = ?,
                 fecha_finalizacion = ?,
@@ -144,6 +146,7 @@ class ProyectoModel
             $data['nombre'],
             $data['ubicacion'] ?? null,
             $data['descripcion'] ?? null,
+            $data['plano_imagen'] ?? null,
             $data['estado'],
             $data['fecha_inicio'] ?? null,
             $data['fecha_finalizacion'] ?? null,

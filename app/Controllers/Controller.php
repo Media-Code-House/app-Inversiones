@@ -138,11 +138,30 @@ abstract class Controller
     }
 
     /**
-     * Valida el token CSRF del formulario
+     * Valida el token CSRF del formulario o headers AJAX
      */
     protected function validateCsrf()
     {
+        // Intentar obtener el token desde POST
         $token = $_POST['csrf_token'] ?? '';
+        
+        // Si no está en POST, intentar desde headers (para peticiones AJAX)
+        if (empty($token)) {
+            // Intentar múltiples formas de obtener headers (compatibilidad con diferentes servidores)
+            if (function_exists('getallheaders')) {
+                $headers = getallheaders();
+                $token = $headers['X-CSRF-Token'] ?? $headers['X-Csrf-Token'] ?? '';
+            } elseif (function_exists('apache_request_headers')) {
+                $headers = apache_request_headers();
+                $token = $headers['X-CSRF-Token'] ?? $headers['X-Csrf-Token'] ?? '';
+            }
+            
+            // Si aún no hay token, intentar desde $_SERVER (método alternativo)
+            if (empty($token)) {
+                $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            }
+        }
+        
         return \validateCsrfToken($token);
     }
 }

@@ -52,7 +52,7 @@ class VendedorModel
                     FROM vendedores v
                     INNER JOIN users u ON v.user_id = u.id
                     LEFT JOIN lotes l ON u.id = l.vendedor_id AND l.estado = 'vendido'
-                    LEFT JOIN comisiones c ON v.id = c.vendedor_id
+                    LEFT JOIN comisiones c ON u.id = c.vendedor_id
                     WHERE 1=1";
             
             \Logger::info('VendedorModel::getAll - Query base construida');
@@ -123,10 +123,10 @@ class VendedorModel
                         -- Estadísticas
                         (SELECT COUNT(*) FROM lotes l2 WHERE l2.vendedor_id = v.user_id AND l2.estado = 'vendido') as total_lotes_vendidos,
                         (SELECT COALESCE(SUM(COALESCE(l2.precio_venta, l2.precio_lista)), 0) FROM lotes l2 WHERE l2.vendedor_id = v.user_id AND l2.estado = 'vendido') as valor_total_vendido,
-                        (SELECT COUNT(*) FROM comisiones c2 WHERE c2.vendedor_id = v.id) as total_comisiones,
-                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id) as total_comisiones_generadas,
-                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id AND c2.estado = 'pendiente') as comisiones_pendientes,
-                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.id AND c2.estado = 'pagada') as comisiones_pagadas
+                        (SELECT COUNT(*) FROM comisiones c2 WHERE c2.vendedor_id = v.user_id) as total_comisiones,
+                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.user_id) as total_comisiones_generadas,
+                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.user_id AND c2.estado = 'pendiente') as comisiones_pendientes,
+                        (SELECT COALESCE(SUM(c2.valor_comision), 0) FROM comisiones c2 WHERE c2.vendedor_id = v.user_id AND c2.estado = 'pagada') as comisiones_pagadas
                         
                     FROM vendedores v
                     INNER JOIN users u ON v.user_id = u.id
@@ -325,11 +325,19 @@ class VendedorModel
 
     /**
      * Obtener comisiones de un vendedor
+     * @param int $vendedorId - ID de la tabla vendedores
      */
     public function getComisiones($vendedorId, $estado = null)
     {
         try {
             \Logger::info("VendedorModel::getComisiones - Vendedor ID: $vendedorId, Estado: " . ($estado ?? 'todos'));
+            
+            // Primero obtenemos el user_id del vendedor
+            $vendedor = $this->findById($vendedorId);
+            if (!$vendedor) {
+                \Logger::warning("VendedorModel::getComisiones - Vendedor no encontrado");
+                return [];
+            }
             
             $sql = "SELECT 
                         c.*,
@@ -342,7 +350,7 @@ class VendedorModel
                     LEFT JOIN clientes cl ON l.cliente_id = cl.id
                     WHERE c.vendedor_id = ?";
             
-            $params = [$vendedorId];
+            $params = [$vendedor['user_id']];
             
             if ($estado) {
                 $sql .= " AND c.estado = ?";
@@ -423,7 +431,7 @@ class VendedorModel
                 FROM vendedores v
                 INNER JOIN users u ON v.user_id = u.id
                 LEFT JOIN lotes l ON u.id = l.vendedor_id AND l.estado = 'vendido' {$fechaFiltro}
-                LEFT JOIN comisiones c ON v.id = c.vendedor_id
+                LEFT JOIN comisiones c ON u.id = c.vendedor_id
                 WHERE v.estado = 'activo'
                 GROUP BY v.id, v.codigo_vendedor, v.nombres, v.apellidos
                 ORDER BY total_ventas DESC, valor_total DESC

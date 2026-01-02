@@ -31,7 +31,7 @@ Cliente pagó $2.500.000 cuando la cuota era $1.977.085
    (Reemplaza 999 con tu ID)
 
 5️⃣  HACER CLICK EN EL BOTÓN
-   • Click en: 💰 "Aplicar Saldo a Favor ($522.914)"
+   • Click en:  "Aplicar Saldo a Favor ($522.914)"
    • Confirmar
    • ✅ Listo!
 
@@ -44,7 +44,7 @@ ANTES:
 │ Cuota 3: ⚠️  MORA ($0 sin pagar)        │
 │ Cuota 4: ✅ PAGADA ($1.977.085)         │
 │                                          │
-│ 💰 Saldo a Favor: $522.914              │
+│  Saldo a Favor: $522.914              │
 │ [Aplicar Saldo a Favor] ← BOTÓN AZUL   │
 └──────────────────────────────────────────┘
 
@@ -55,7 +55,7 @@ DESPUÉS (Post-Click):
 │ Cuota 3: ⏳ PENDIENTE (parcial)         │  ← CAMBIÓ
 │ Cuota 4: ✅ PAGADA ($1.977.085)         │
 │                                          │
-│ 💰 Saldo a Favor: $0.00                 │
+│  Saldo a Favor: $0.00                 │
 │ (Botón desapareció) ✅                  │
 └──────────────────────────────────────────┘
 

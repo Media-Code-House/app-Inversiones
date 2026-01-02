@@ -314,8 +314,9 @@ class LoteModel
     public function create($data)
     {
         $sql = "INSERT INTO lotes 
-                (proyecto_id, codigo_lote, manzana, area_m2, precio_lista, estado, observaciones) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+                (proyecto_id, codigo_lote, manzana, area_m2, precio_lista, precio_venta, 
+                 estado, cliente_id, vendedor_id, fecha_venta, ubicacion, descripcion, observaciones) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
             $data['proyecto_id'],
@@ -323,7 +324,13 @@ class LoteModel
             $data['manzana'] ?? null,
             $data['area_m2'] ?? null,
             $data['precio_lista'],
+            $data['precio_venta'] ?? null,
             $data['estado'] ?? 'disponible',
+            $data['cliente_id'] ?? null,
+            $data['vendedor_id'] ?? null,
+            $data['fecha_venta'] ?? null,
+            $data['ubicacion'] ?? null,
+            $data['descripcion'] ?? null,
             $data['observaciones'] ?? null
         ];
 
@@ -341,7 +348,13 @@ class LoteModel
                 manzana = ?, 
                 area_m2 = ?, 
                 precio_lista = ?,
-                estado = ?, 
+                precio_venta = ?,
+                estado = ?,
+                cliente_id = ?,
+                vendedor_id = ?,
+                fecha_venta = ?,
+                ubicacion = ?,
+                descripcion = ?,
                 observaciones = ?,
                 updated_at = NOW()
                 WHERE id = ?";
@@ -351,7 +364,13 @@ class LoteModel
             $data['manzana'] ?? null,
             $data['area_m2'] ?? null,
             $data['precio_lista'],
+            $data['precio_venta'] ?? null,
             $data['estado'],
+            $data['cliente_id'] ?? null,
+            $data['vendedor_id'] ?? null,
+            $data['fecha_venta'] ?? null,
+            $data['ubicacion'] ?? null,
+            $data['descripcion'] ?? null,
             $data['observaciones'] ?? null,
             $id
         ];
@@ -612,5 +631,43 @@ class LoteModel
                 ORDER BY l.saldo_a_favor DESC, l.updated_at DESC";
         
         return $this->db->fetchAll($sql, [$minimoSaldo]);
+    }
+
+    /**
+     * Actualiza las coordenadas de un lote en el plano
+     * 
+     * @param int $id ID del lote
+     * @param float $x Coordenada X (porcentaje 0-100)
+     * @param float $y Coordenada Y (porcentaje 0-100)
+     * @return bool
+     */
+    public function updateCoordenadas($id, $x, $y)
+    {
+        $sql = "UPDATE lotes SET 
+                plano_x = ?, 
+                plano_y = ?,
+                updated_at = NOW()
+                WHERE id = ?";
+        
+        return $this->db->execute($sql, [$x, $y, $id]) > 0;
+    }
+
+    /**
+     * Obtiene lotes de un proyecto con sus coordenadas en el plano
+     * 
+     * @param int $proyectoId ID del proyecto
+     * @return array Lotes con coordenadas
+     */
+    public function getLotesConCoordenadas($proyectoId)
+    {
+        $sql = "SELECT l.id, l.codigo_lote, l.estado, l.plano_x, l.plano_y,
+                       l.manzana, l.precio_lista, l.area_m2,
+                       c.nombre as cliente_nombre
+                FROM lotes l 
+                LEFT JOIN clientes c ON l.cliente_id = c.id 
+                WHERE l.proyecto_id = ?
+                ORDER BY l.codigo_lote ASC";
+        
+        return $this->db->fetchAll($sql, [$proyectoId]);
     }
 }
