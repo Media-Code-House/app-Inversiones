@@ -105,7 +105,7 @@ class ProyectoModel
     public function create($data)
     {
         $sql = "INSERT INTO proyectos 
-                (codigo, nombre, ubicacion, descripcion, plano_imagen, estado, fecha_inicio, observaciones) 
+                (codigo, nombre, ubicacion, descripcion, plano_imagen, estado, fecha_inicio, fecha_finalizacion) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         $params = [
@@ -116,7 +116,7 @@ class ProyectoModel
             $data['plano_imagen'] ?? null,
             $data['estado'] ?? 'activo',
             $data['fecha_inicio'] ?? null,
-            $data['observaciones'] ?? null
+            $data['fecha_finalizacion'] ?? null
         ];
 
         $this->db->execute($sql, $params);
