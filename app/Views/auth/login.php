@@ -13,7 +13,7 @@
                         <!-- Email -->
                         <div class="mb-3">
                             <label for="email" class="form-label">
-                                <i class="fas fa-envelope"></i> Email 22
+                                <i class="fas fa-envelope"></i> Email
                             </label>
                             <input type="email" class="form-control" id="email" name="email" 
                                    placeholder="correo@ejemplo.com" required autofocus>
