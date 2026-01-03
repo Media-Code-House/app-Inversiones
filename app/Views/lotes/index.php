@@ -130,6 +130,15 @@
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <?php endif; ?>
+                                            <?php if (can('eliminar_lotes')): ?>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="Eliminar"
+                                                    onclick="confirmarEliminacionLote(<?= $lote['id'] ?>, '<?= htmlspecialchars($lote['codigo_lote']) ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            <?php endif; ?>
                                             <?php if ($lote['estado'] === 'vendido'): ?>
                                                 <?php if ($lote['tiene_amortizacion'] > 0): ?>
                                                 <a href="/lotes/amortizacion/show/<?= $lote['id'] ?>" 
@@ -222,6 +231,11 @@
     </div>
 </div>
 
+<!-- Formulario oculto para eliminar lote -->
+<form id="formEliminarLote" method="POST" style="display: none;">
+    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+</form>
+
 <script>
 // Inicializar tooltips
 document.addEventListener('DOMContentLoaded', function() {
@@ -230,4 +244,21 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
+
+// Función para confirmar eliminación de lote
+function confirmarEliminacionLote(loteId, codigoLote) {
+    const mensaje = '¿Está seguro que desea eliminar el lote "' + codigoLote + '"?\n\n' +
+                    'ADVERTENCIA: Esta acción eliminará:\n' +
+                    '- El lote\n' +
+                    '- Su plan de amortización (si existe)\n' +
+                    '- Todos los pagos registrados\n' +
+                    '- Las comisiones asociadas\n\n' +
+                    'Esta acción NO SE PUEDE DESHACER.';
+    
+    if (confirm(mensaje)) {
+        const form = document.getElementById('formEliminarLote');
+        form.action = '/lotes/delete/' + loteId;
+        form.submit();
+    }
+}
 </script>

@@ -11,6 +11,13 @@
             </a>
             <?php endif; ?>
             
+            <!-- Botón Eliminar (con permiso) -->
+            <?php if (can('eliminar_lotes')): ?>
+            <button type="button" class="btn btn-danger" onclick="confirmarEliminacionLote(<?= $lote['id'] ?>, '<?= htmlspecialchars($lote['codigo_lote']) ?>')">
+                <i class="bi bi-trash"></i> Eliminar
+            </button>
+            <?php endif; ?>
+            
             <!-- Botones Financieros (Módulo 5 + Pago Inicial Diferido) -->
             <?php if ($lote['estado'] === 'reservado' && !empty($lote['plan_inicial_id'])): ?>
                 <!-- LOTE RESERVADO con Plan Inicial Activo -->
@@ -419,3 +426,27 @@
     <?php endif; ?>
 
 </div>
+
+<!-- Formulario oculto para eliminar lote -->
+<form id="formEliminarLote" method="POST" style="display: none;">
+    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+</form>
+
+<!-- Script para confirmar eliminación -->
+<script>
+function confirmarEliminacionLote(loteId, codigoLote) {
+    const mensaje = '¿Está seguro que desea eliminar el lote "' + codigoLote + '"?\n\n' +
+                    'ADVERTENCIA: Esta acción eliminará:\n' +
+                    '- El lote\n' +
+                    '- Su plan de amortización (si existe)\n' +
+                    '- Todos los pagos registrados\n' +
+                    '- Las comisiones asociadas\n\n' +
+                    'Esta acción NO SE PUEDE DESHACER.';
+    
+    if (confirm(mensaje)) {
+        const form = document.getElementById('formEliminarLote');
+        form.action = '/lotes/delete/' + loteId;
+        form.submit();
+    }
+}
+</script>
