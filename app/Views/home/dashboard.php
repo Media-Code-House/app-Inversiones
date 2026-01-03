@@ -1,7 +1,7 @@
 <div class="container-fluid">
     <!-- MENSAJE DE PRUEBA GIT -->
     <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <strong>🎉 ¡Hola Administrador!</strong> Esta es una prueba de Git - Última actualización: <?= date('Y-m-d H:i:s') ?>
+        <strong> ¡Hola Administrador!</strong> Esta es una prueba de Git - Última actualización: <?= date('Y-m-d H:i:s') ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     
