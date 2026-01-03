@@ -406,35 +406,47 @@ class VendedorModel
      */
     public function getRanking($periodo = 'mes')
     {
-        $fechaFiltro = '';
+        $fechaFiltroLotes = '';
+        $fechaFiltroComisiones = '';
+        
         switch ($periodo) {
             case 'mes':
-                $fechaFiltro = "AND l.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)";
+                $fechaFiltroLotes = "AND l.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)";
+                $fechaFiltroComisiones = "AND c.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)";
                 break;
             case 'trimestre':
-                $fechaFiltro = "AND l.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
+                $fechaFiltroLotes = "AND l.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
+                $fechaFiltroComisiones = "AND c.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
                 break;
-            case 'año':
-                $fechaFiltro = "AND l.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)";
+            case 'semestre':
+                $fechaFiltroLotes = "AND l.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)";
+                $fechaFiltroComisiones = "AND c.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)";
                 break;
+            case 'anio':
+                $fechaFiltroLotes = "AND l.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)";
+                $fechaFiltroComisiones = "AND c.fecha_venta >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)";
+                break;
+            case 'todo':
             default:
-                $fechaFiltro = "";
+                $fechaFiltroLotes = "";
+                $fechaFiltroComisiones = "";
         }
         
         $sql = "SELECT 
                     v.id,
                     v.codigo_vendedor,
+                    v.porcentaje_comision_default,
                     CONCAT(v.nombres, ' ', v.apellidos) as nombre_completo,
-                    COUNT(l.id) as total_ventas,
-                    COALESCE(SUM(l.precio_venta), 0) as valor_total,
-                    COALESCE(SUM(c.valor_comision), 0) as comisiones_generadas
+                    COUNT(DISTINCT l.id) as total_lotes_vendidos,
+                    COALESCE(SUM(l.precio_venta), 0) as valor_total_vendido,
+                    COALESCE(SUM(c.valor_comision), 0) as total_comisiones_generadas
                 FROM vendedores v
                 INNER JOIN users u ON v.user_id = u.id
-                LEFT JOIN lotes l ON u.id = l.vendedor_id AND l.estado = 'vendido' {$fechaFiltro}
-                LEFT JOIN comisiones c ON u.id = c.vendedor_id
+                LEFT JOIN lotes l ON u.id = l.vendedor_id AND l.estado = 'vendido' {$fechaFiltroLotes}
+                LEFT JOIN comisiones c ON u.id = c.vendedor_id {$fechaFiltroComisiones}
                 WHERE v.estado = 'activo'
-                GROUP BY v.id, v.codigo_vendedor, v.nombres, v.apellidos
-                ORDER BY total_ventas DESC, valor_total DESC
+                GROUP BY v.id, v.codigo_vendedor, v.nombres, v.apellidos, v.porcentaje_comision_default
+                ORDER BY total_lotes_vendidos DESC, valor_total_vendido DESC
                 LIMIT 10";
         
         return $this->db->fetchAll($sql);
