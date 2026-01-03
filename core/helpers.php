@@ -253,7 +253,7 @@ function can($permission)
             'ver_reportes', 'exportar_datos'
         ],
         'vendedor' => [
-            'ver_lotes', 'crear_lotes', 'editar_lotes', 'eliminar_lotes',
+            'ver_lotes', 'crear_lotes', 'editar_lotes',
             'ver_clientes', 'crear_clientes',
             'ver_proyectos', 'crear_proyectos', 'editar_proyectos',
             'crear_amortizacion', 'ver_amortizacion', 'editar_amortizacion',
