@@ -85,7 +85,33 @@ class LoteController extends Controller
             'lotes' => $result, // Estructura: data, total, per_page, current_page, last_page
             'proyectos' => $proyectos,
             'estados' => $estados,
-            'filtros' => $filters
+            'filtros' => $filters,
+            'scripts' => '<script>
+// Inicializar tooltips
+document.addEventListener("DOMContentLoaded", function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll("[data-bs-toggle=tooltip]"));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Función para confirmar eliminación de lote
+function confirmarEliminacionLote(loteId, codigoLote) {
+    const mensaje = "¿Está seguro que desea eliminar el lote \"" + codigoLote + "\"?\\n\\n" +
+                    "ADVERTENCIA: Esta acción eliminará:\\n" +
+                    "- El lote\\n" +
+                    "- Su plan de amortización (si existe)\\n" +
+                    "- Todos los pagos registrados\\n" +
+                    "- Las comisiones asociadas\\n\\n" +
+                    "Esta acción NO SE PUEDE DESHACER.";
+    
+    if (confirm(mensaje)) {
+        const form = document.getElementById("formEliminarLote");
+        form.action = "/lotes/delete/" + loteId;
+        form.submit();
+    }
+}
+</script>'
         ]);
     }
     

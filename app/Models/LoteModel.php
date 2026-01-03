@@ -431,20 +431,64 @@ class LoteModel
     }
 
     /**
-     * Elimina un lote
+     * Elimina un lote y todas sus relaciones en cascada
      */
     public function delete($id)
     {
-        // Verificar si tiene amortizaciones asociadas
-        $sqlCheck = "SELECT COUNT(*) as total FROM amortizaciones WHERE lote_id = ?";
-        $result = $this->db->fetch($sqlCheck, [$id]);
-        
-        if ($result['total'] > 0) {
-            throw new \Exception("No se puede eliminar el lote porque tiene amortizaciones asociadas");
+        try {
+            // Iniciar transacción
+            $this->db->beginTransaction();
+            
+            // 1. Eliminar pagos de comisiones asociadas
+            $sqlDeletePagosComisiones = "
+                DELETE pc FROM pagos_comisiones pc
+                INNER JOIN comisiones c ON pc.comision_id = c.id
+                WHERE c.lote_id = ?
+            ";
+            $this->db->execute($sqlDeletePagosComisiones, [$id]);
+            
+            // 2. Eliminar comisiones
+            $sqlDeleteComisiones = "DELETE FROM comisiones WHERE lote_id = ?";
+            $this->db->execute($sqlDeleteComisiones, [$id]);
+            
+            // 3. Eliminar pagos de amortizaciones
+            $sqlDeletePagos = "
+                DELETE p FROM pagos p
+                INNER JOIN amortizaciones a ON p.amortizacion_id = a.id
+                WHERE a.lote_id = ?
+            ";
+            $this->db->execute($sqlDeletePagos, [$id]);
+            
+            // 4. Eliminar amortizaciones
+            $sqlDeleteAmortizaciones = "DELETE FROM amortizaciones WHERE lote_id = ?";
+            $this->db->execute($sqlDeleteAmortizaciones, [$id]);
+            
+            // 5. Eliminar pagos del plan inicial (si existe)
+            $sqlDeletePagosIniciales = "
+                DELETE pid FROM pagos_iniciales_detalle pid
+                INNER JOIN pagos_iniciales pi ON pid.plan_inicial_id = pi.id
+                WHERE pi.lote_id = ?
+            ";
+            $this->db->execute($sqlDeletePagosIniciales, [$id]);
+            
+            // 6. Eliminar plan inicial
+            $sqlDeletePlanInicial = "DELETE FROM pagos_iniciales WHERE lote_id = ?";
+            $this->db->execute($sqlDeletePlanInicial, [$id]);
+            
+            // 7. Finalmente, eliminar el lote
+            $sql = "DELETE FROM lotes WHERE id = ?";
+            $result = $this->db->execute($sql, [$id]);
+            
+            // Confirmar transacción
+            $this->db->commit();
+            
+            return $result;
+            
+        } catch (\Exception $e) {
+            // Revertir en caso de error
+            $this->db->rollback();
+            throw new \Exception("Error al eliminar el lote: " . $e->getMessage());
         }
-
-        $sql = "DELETE FROM lotes WHERE id = ?";
-        return $this->db->execute($sql, [$id]);
     }
 
     /**
