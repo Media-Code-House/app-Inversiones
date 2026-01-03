@@ -130,15 +130,7 @@
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <?php endif; ?>
-                                            <?php if (can('eliminar_lotes')): ?>
-                                            <button type="button" 
-                                                    class="btn btn-outline-danger" 
-                                                    data-bs-toggle="tooltip" 
-                                                    title="Eliminar"
-                                                    onclick="confirmarEliminacionLote(<?= $lote['id'] ?>, '<?= htmlspecialchars($lote['codigo_lote']) ?>')">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            <?php endif; ?>
+                                            
                                             <?php if ($lote['estado'] === 'vendido'): ?>
                                                 <?php if ($lote['tiene_amortizacion'] > 0): ?>
                                                 <a href="/lotes/amortizacion/show/<?= $lote['id'] ?>" 
@@ -155,6 +147,16 @@
                                                     <i class="bi bi-calendar-plus"></i>
                                                 </a>
                                                 <?php endif; ?>
+                                            <?php endif; ?>
+                                            
+                                            <?php if (can('eliminar_lotes')): ?>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="Eliminar lote"
+                                                    onclick="confirmarEliminacionLote(<?= $lote['id'] ?>, '<?= htmlspecialchars($lote['codigo_lote']) ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                             <?php endif; ?>
                                         </div>
                                     </td>
