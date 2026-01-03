@@ -5,7 +5,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     
-    <!-- Header del Dashboard -->
+    <!-- Header del Dashboard-->
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
