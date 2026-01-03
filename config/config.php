@@ -19,10 +19,10 @@ define('DEBUG_MODE', !$isProduction);
 // Configuración de base de datos
 if ($isProduction) {
     // Configuración de producción (Hosting)
-    define('DB_HOST', '82.197.82.197');
+    define('DB_HOST', 'localhost');
     define('DB_NAME', 'u418271893_inversiones');
     define('DB_USER', 'u418271893_santi');
-    define('DB_PASS', '3pX/yi>u3212321123123');
+    define('DB_PASS', 'R!3b01faKu3123123123');
     define('DB_CHARSET', 'utf8mb4');
 } else {
     // Configuración de desarrollo (Local)
