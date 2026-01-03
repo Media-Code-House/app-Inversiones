@@ -149,7 +149,8 @@
                                                 <?php endif; ?>
                                             <?php endif; ?>
                                             
-                                            <?php if (can('eliminar_lotes')): ?>
+                                            <!-- Botón Eliminar (solo administrador) -->
+                                            <?php if (isset($_SESSION['user']) && $_SESSION['user']['rol'] === 'administrador'): ?>
                                             <button type="button" 
                                                     class="btn btn-outline-danger" 
                                                     data-bs-toggle="tooltip" 
