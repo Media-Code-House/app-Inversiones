@@ -1,7 +1,7 @@
 <div class="container-fluid">
-    <!-- MENSAJE DE PRUEBA -->
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <strong> ¡ACTUALIZADO!</strong> Versión: <?= date('Y-m-d H:i:s') ?> - ProyectoModel corregido (sin observaciones)
+    <!-- MENSAJE DE PRUEBA GIT -->
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong>🎉 ¡Hola Administrador!</strong> Esta es una prueba de Git - Última actualización: <?= date('Y-m-d H:i:s') ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     
@@ -13,7 +13,7 @@
                     <h1 class="h2 mb-0">
                         <i class="fas fa-chart-line text-primary"></i> Dashboard
                     </h1>
-                    <p class="text-muted">Bienvenido, nuevo<?= e(user()['nombre']) ?></p>
+                    <p class="text-muted">Bienvenido, <?= e(user()['nombre']) ?></p>
                 </div>
                 <div>
                     <span class="badge bg-secondary">
