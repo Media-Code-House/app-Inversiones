@@ -13,7 +13,7 @@
                     <h1 class="h2 mb-0">
                         <i class="fas fa-chart-line text-primary"></i> Dashboard
                     </h1>
-                    <p class="text-muted">Bienvenido,actual<?= e(user()['nombre']) ?></p>
+                    <p class="text-muted">Bienvenido,<?= e(user()['nombre']) ?></p>
                 </div>
                 <div>
                     <span class="badge bg-secondary">
