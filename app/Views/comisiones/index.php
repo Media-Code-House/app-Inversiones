@@ -135,16 +135,13 @@
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-center">
-                                        <a href="<?= url('/comisiones/show/' . $c['id']) ?>" class="btn btn-sm btn-info" title="Ver detalle">
+                                        <a href="/comisiones/show/<?= $c['id'] ?>" class="btn btn-sm btn-info" title="Ver detalle">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <?php if ($c['estado'] === 'pendiente'): ?>
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-success" 
-                                                    title="Registrar pago"
-                                                    onclick="window.location.href='<?= url('/comisiones/pagar/' . $c['id']) ?>';">
+                                            <a href="/comisiones/pagar/<?= $c['id'] ?>" class="btn btn-sm btn-success" title="Registrar pago">
                                                 <i class="bi bi-cash-stack"></i> Pagar
-                                            </button>
+                                            </a>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
