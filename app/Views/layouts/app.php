@@ -6,6 +6,8 @@
     <meta name="description" content="Inversiones SAG">
     <title><?= $title ?? APP_NAME ?></title>
     
+    <!-- DEBUG: Layout cargado correctamente -->
+    
     <!-- Bootstrap 5 CSS (Local) -->
     <link rel="stylesheet" href="<?= asset('css/bootstrap/bootstrap.min.css') ?>">
     

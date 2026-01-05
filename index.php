@@ -14,9 +14,35 @@ if (isset($_GET['debug']) && $_GET['debug'] == '1') {
 
 // Servir archivos estáticos directamente en servidor PHP integrado
 if (php_sapi_name() === 'cli-server') {
-    $file = __DIR__ . $_SERVER['REQUEST_URI'];
+    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $file = __DIR__ . $path;
+    
+    // Si el archivo existe y es un archivo estático, servirlo directamente
     if (is_file($file)) {
-        return false;
+        // Determinar el tipo MIME
+        $extension = pathinfo($file, PATHINFO_EXTENSION);
+        $mimeTypes = [
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+            'json' => 'application/json',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'ico' => 'image/x-icon',
+            'woff' => 'font/woff',
+            'woff2' => 'font/woff2',
+            'ttf' => 'font/ttf',
+            'eot' => 'application/vnd.ms-fontobject'
+        ];
+        
+        if (isset($mimeTypes[$extension])) {
+            header('Content-Type: ' . $mimeTypes[$extension]);
+        }
+        
+        readfile($file);
+        return true;
     }
 }
 

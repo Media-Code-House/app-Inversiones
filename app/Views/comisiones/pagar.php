@@ -48,8 +48,8 @@
                     <?php endif; ?>
 
                     <!-- Formulario de Pago -->
-                    <form action="<?= url('/comisiones/procesar-pago/' . $comision['id']) ?>" method="POST">
-                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                    <form action="<?= url('/comisiones/registrar-pago/' . $comision['id']) ?>" method="POST">
+                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
                         <div class="row">
                             <!-- Fecha de Pago -->

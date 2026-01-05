@@ -140,7 +140,7 @@
                                         </a>
                                         <?php if ($c['estado'] === 'pendiente'): ?>
                                             <a href="/comisiones/pagar/<?= $c['id'] ?>" class="btn btn-sm btn-success" title="Registrar pago">
-                                                <i class="bi bi-cash-stack"></i>
+                                                <i class="bi bi-cash-stack"></i> Pagar
                                             </a>
                                         <?php endif; ?>
                                     </td>

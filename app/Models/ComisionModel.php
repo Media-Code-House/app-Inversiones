@@ -30,8 +30,8 @@ class ComisionModel
                     p.nombre as proyecto_nombre,
                     cl.nombre as cliente_nombre
                 FROM comisiones c
-                INNER JOIN users u ON c.vendedor_id = u.id
-                LEFT JOIN vendedores v ON u.id = v.user_id
+                INNER JOIN vendedores v ON c.vendedor_id = v.id
+                INNER JOIN users u ON v.user_id = u.id
                 INNER JOIN lotes l ON c.lote_id = l.id
                 INNER JOIN proyectos p ON l.proyecto_id = p.id
                 LEFT JOIN clientes cl ON l.cliente_id = cl.id
@@ -85,8 +85,8 @@ class ComisionModel
                     cl.nombre as cliente_nombre,
                     cl.numero_documento as cliente_documento
                 FROM comisiones c
-                INNER JOIN users u ON c.vendedor_id = u.id
-                LEFT JOIN vendedores v ON u.id = v.user_id
+                INNER JOIN vendedores v ON c.vendedor_id = v.id
+                INNER JOIN users u ON v.user_id = u.id
                 INNER JOIN lotes l ON c.lote_id = l.id
                 INNER JOIN proyectos p ON l.proyecto_id = p.id
                 LEFT JOIN clientes cl ON l.cliente_id = cl.id

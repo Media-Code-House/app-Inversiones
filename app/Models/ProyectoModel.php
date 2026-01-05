@@ -132,22 +132,21 @@ class ProyectoModel
                 codigo = ?, 
                 nombre = ?, 
                 ubicacion = ?, 
-                descripcion = ?,
                 plano_imagen = ?,
                 estado = ?, 
                 fecha_inicio = ?,
-                fecha_finalizacion = ?
+                observaciones = ?,
+                updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?";
         
         $params = [
             $data['codigo'],
             $data['nombre'],
             $data['ubicacion'] ?? null,
-            $data['descripcion'] ?? null,
             $data['plano_imagen'] ?? null,
             $data['estado'],
             $data['fecha_inicio'] ?? null,
-            $data['fecha_finalizacion'] ?? null,
+            $data['observaciones'] ?? null,
             $id
         ];
 

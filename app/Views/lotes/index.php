@@ -130,6 +130,7 @@
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             <?php endif; ?>
+                                            
                                             <?php if ($lote['estado'] === 'vendido'): ?>
                                                 <?php if ($lote['tiene_amortizacion'] > 0): ?>
                                                 <a href="/lotes/amortizacion/show/<?= $lote['id'] ?>" 
@@ -146,6 +147,17 @@
                                                     <i class="bi bi-calendar-plus"></i>
                                                 </a>
                                                 <?php endif; ?>
+                                            <?php endif; ?>
+                                            
+                                            <!-- Botón Eliminar (solo administrador) -->
+                                            <?php if (isset($_SESSION['user']) && $_SESSION['user']['rol'] === 'administrador'): ?>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger" 
+                                                    data-bs-toggle="tooltip" 
+                                                    title="Eliminar lote"
+                                                    onclick="confirmarEliminacionLote(<?= $lote['id'] ?>, '<?= htmlspecialchars($lote['codigo_lote'], ENT_QUOTES) ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -222,12 +234,7 @@
     </div>
 </div>
 
-<script>
-// Inicializar tooltips
-document.addEventListener('DOMContentLoaded', function() {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-});
-</script>
+<!-- Formulario oculto para eliminar lote -->
+<form id="formEliminarLote" method="POST" style="display: none;">
+    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+</form>

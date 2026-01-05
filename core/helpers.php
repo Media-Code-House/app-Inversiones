@@ -253,7 +253,7 @@ function can($permission)
             'ver_reportes', 'exportar_datos'
         ],
         'vendedor' => [
-            'ver_lotes', 'crear_lotes', 'editar_lotes', 'eliminar_lotes',
+            'ver_lotes', 'crear_lotes', 'editar_lotes',
             'ver_clientes', 'crear_clientes',
             'ver_proyectos', 'crear_proyectos', 'editar_proyectos',
             'crear_amortizacion', 'ver_amortizacion', 'editar_amortizacion',
@@ -404,4 +404,23 @@ function saveErrors($errors)
 function clearErrors()
 {
     unset($_SESSION['errors']);
+}
+
+/**
+ * Genera o retorna el token CSRF de la sesión
+ */
+function csrf_token()
+{
+    if (!isset($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Valida el token CSRF
+ */
+function csrf_verify($token)
+{
+    return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
 }
