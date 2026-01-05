@@ -135,11 +135,11 @@
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-center">
-                                        <a href="/comisiones/show/<?= $c['id'] ?>" class="btn btn-sm btn-info" title="Ver detalle">
+                                        <a href="<?= url('/comisiones/show/' . $c['id']) ?>" class="btn btn-sm btn-info" title="Ver detalle">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <?php if ($c['estado'] === 'pendiente'): ?>
-                                            <a href="/comisiones/pagar/<?= $c['id'] ?>" class="btn btn-sm btn-success" title="Registrar pago">
+                                            <a href="<?= url('/comisiones/pagar/' . $c['id']) ?>" class="btn btn-sm btn-success" title="Registrar pago">
                                                 <i class="bi bi-cash-stack"></i>
                                             </a>
                                         <?php endif; ?>
