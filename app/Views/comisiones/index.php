@@ -139,12 +139,12 @@
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <?php if ($c['estado'] === 'pendiente'): ?>
-                                            <a href="<?= url('/comisiones/pagar/' . $c['id']) ?>" 
-                                               class="btn btn-sm btn-success" 
-                                               title="Registrar pago"
-                                               onclick="console.log('URL:', this.href); return true;">
-                                                <i class="bi bi-cash-stack"></i>
-                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-success" 
+                                                    title="Registrar pago"
+                                                    onclick="window.location.href='<?= url('/comisiones/pagar/' . $c['id']) ?>';">
+                                                <i class="bi bi-cash-stack"></i> Pagar
+                                            </button>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
