@@ -427,23 +427,23 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <a href="<?= url('/proyectos/crear') ?>" class="btn btn-outline-primary w-100">
+                            <a href="<?= url('/proyectos/create') ?>" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-plus-circle"></i> Nuevo Proyecto
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="<?= url('/lotes/crear') ?>" class="btn btn-outline-success w-100">
+                            <a href="<?= url('/lotes/create') ?>" class="btn btn-outline-success w-100">
                                 <i class="fas fa-th-large"></i> Nuevo Lote
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="<?= url('/clientes/crear') ?>" class="btn btn-outline-info w-100">
+                            <a href="<?= url('/clientes/create') ?>" class="btn btn-outline-info w-100">
                                 <i class="fas fa-user-plus"></i> Nuevo Cliente
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="<?= url('/pagos/registrar') ?>" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-hand-holding-usd"></i> Registrar Pago
+                            <a href="<?= url('/lotes') ?>" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-th-large"></i> Ver Lotes
                             </a>
                         </div>
                     </div>
