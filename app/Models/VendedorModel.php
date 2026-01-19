@@ -164,37 +164,58 @@ class VendedorModel
      */
     public function create($data)
     {
-        $sql = "INSERT INTO vendedores (
-                    user_id, codigo_vendedor, tipo_documento, numero_documento,
-                    nombres, apellidos, telefono, celular, email,
-                    direccion, ciudad, fecha_ingreso, tipo_contrato,
-                    porcentaje_comision_default, banco, tipo_cuenta, numero_cuenta,
-                    estado, observaciones
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $this->db->execute($sql, [
-            $data['user_id'],
-            $data['codigo_vendedor'],
-            $data['tipo_documento'] ?? 'CC',
-            $data['numero_documento'],
-            $data['nombres'],
-            $data['apellidos'],
-            $data['telefono'] ?? null,
-            $data['celular'] ?? null,
-            $data['email'],
-            $data['direccion'] ?? null,
-            $data['ciudad'] ?? null,
-            $data['fecha_ingreso'],
-            $data['tipo_contrato'] ?? 'indefinido',
-            $data['porcentaje_comision_default'] ?? 3.00,
-            $data['banco'] ?? null,
-            $data['tipo_cuenta'] ?? null,
-            $data['numero_cuenta'] ?? null,
-            $data['estado'] ?? 'activo',
-            $data['observaciones'] ?? null
-        ]);
-        
-        return $this->db->lastInsertId();
+        try {
+            \Logger::info('VendedorModel::create - Iniciando creación de vendedor');
+            \Logger::info('VendedorModel::create - Datos recibidos: ' . json_encode($data));
+            
+            $sql = "INSERT INTO vendedores (
+                        user_id, codigo_vendedor, tipo_documento, numero_documento,
+                        nombres, apellidos, telefono, celular, email,
+                        direccion, ciudad, fecha_ingreso, tipo_contrato,
+                        porcentaje_comision_default, banco, tipo_cuenta, numero_cuenta,
+                        estado, observaciones
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            $params = [
+                $data['user_id'],
+                $data['codigo_vendedor'],
+                $data['tipo_documento'] ?? 'CC',
+                $data['numero_documento'],
+                $data['nombres'],
+                $data['apellidos'],
+                $data['telefono'] ?? null,
+                $data['celular'] ?? null,
+                $data['email'],
+                $data['direccion'] ?? null,
+                $data['ciudad'] ?? null,
+                $data['fecha_ingreso'],
+                $data['tipo_contrato'] ?? 'indefinido',
+                $data['porcentaje_comision_default'] ?? 3.00,
+                $data['banco'] ?? null,
+                $data['tipo_cuenta'] ?? null,
+                $data['numero_cuenta'] ?? null,
+                $data['estado'] ?? 'activo',
+                $data['observaciones'] ?? null
+            ];
+            
+            \Logger::info('VendedorModel::create - Parámetros preparados: ' . json_encode($params));
+            \Logger::info('VendedorModel::create - Ejecutando INSERT...');
+            
+            $result = $this->db->execute($sql, $params);
+            
+            \Logger::info('VendedorModel::create - Execute result: ' . ($result ? 'TRUE' : 'FALSE'));
+            
+            $lastId = $this->db->lastInsertId();
+            \Logger::info('VendedorModel::create - Last Insert ID: ' . $lastId);
+            
+            return $lastId;
+            
+        } catch (\Exception $e) {
+            \Logger::error('VendedorModel::create - ERROR: ' . $e->getMessage());
+            \Logger::error('VendedorModel::create - Archivo: ' . $e->getFile() . ' línea ' . $e->getLine());
+            \Logger::error('VendedorModel::create - Código SQL: ' . $e->getCode());
+            throw $e;
+        }
     }
 
     /**
