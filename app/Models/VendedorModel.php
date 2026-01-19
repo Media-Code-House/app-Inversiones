@@ -275,15 +275,32 @@ class VendedorModel
      */
     public function codigoExists($codigo, $excludeId = null)
     {
-        $sql = "SELECT id FROM vendedores WHERE codigo_vendedor = ?";
-        $params = [$codigo];
-        
-        if ($excludeId) {
-            $sql .= " AND id != ?";
-            $params[] = $excludeId;
+        try {
+            \Logger::info("VendedorModel::codigoExists - Verificando código: '$codigo', excludeId: " . ($excludeId ?? 'null'));
+            
+            $sql = "SELECT COUNT(*) as count FROM vendedores WHERE codigo_vendedor = ?";
+            $params = [$codigo];
+            
+            if ($excludeId) {
+                $sql .= " AND id != ?";
+                $params[] = $excludeId;
+            }
+            
+            \Logger::info("VendedorModel::codigoExists - SQL: $sql");
+            \Logger::info("VendedorModel::codigoExists - Params: " . json_encode($params));
+            
+            $result = $this->db->fetch($sql, $params);
+            $exists = ($result && $result['count'] > 0);
+            
+            \Logger::info("VendedorModel::codigoExists - Resultado: " . ($exists ? 'EXISTE' : 'NO EXISTE'));
+            \Logger::info("VendedorModel::codigoExists - Count: " . ($result['count'] ?? 'NULL'));
+            
+            return $exists;
+            
+        } catch (\Exception $e) {
+            \Logger::error("VendedorModel::codigoExists - ERROR: " . $e->getMessage());
+            throw $e;
         }
-        
-        return $this->db->fetch($sql, $params) !== null;
     }
 
     /**
@@ -291,15 +308,28 @@ class VendedorModel
      */
     public function documentoExists($documento, $excludeId = null)
     {
-        $sql = "SELECT id FROM vendedores WHERE numero_documento = ?";
-        $params = [$documento];
-        
-        if ($excludeId) {
-            $sql .= " AND id != ?";
-            $params[] = $excludeId;
+        try {
+            \Logger::info("VendedorModel::documentoExists - Verificando documento: '$documento', excludeId: " . ($excludeId ?? 'null'));
+            
+            $sql = "SELECT COUNT(*) as count FROM vendedores WHERE numero_documento = ?";
+            $params = [$documento];
+            
+            if ($excludeId) {
+                $sql .= " AND id != ?";
+                $params[] = $excludeId;
+            }
+            
+            $result = $this->db->fetch($sql, $params);
+            $exists = ($result && $result['count'] > 0);
+            
+            \Logger::info("VendedorModel::documentoExists - Resultado: " . ($exists ? 'EXISTE' : 'NO EXISTE'));
+            
+            return $exists;
+            
+        } catch (\Exception $e) {
+            \Logger::error("VendedorModel::documentoExists - ERROR: " . $e->getMessage());
+            throw $e;
         }
-        
-        return $this->db->fetch($sql, $params) !== null;
     }
 
     /**
