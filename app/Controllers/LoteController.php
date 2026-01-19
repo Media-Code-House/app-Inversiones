@@ -50,10 +50,8 @@ class LoteController extends Controller
             'per_page' => $perPage
         ];
         
-        // RBAC: Filtrar por vendedor si el usuario es vendedor
-        if ($user['rol'] === 'vendedor') {
-            $filters['vendedor_id'] = $user['id'];
-        }
+        // RBAC: Los vendedores pueden ver todos los lotes
+        // (Filtro de vendedor_id removido para permitir acceso completo)
 
         // Obtener lotes paginados con JOINs completos
         $result = $this->loteModel->getAllPaginated($filters);
