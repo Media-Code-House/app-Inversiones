@@ -363,7 +363,7 @@
             <div class="card">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-money-bill-wave"></i> Últimos Pagos Registrados</h5>
-                    <a href="<?= url('/pagos') ?>" class="btn btn-sm btn-light">Ver todos</a>
+                    <a href="<?= url('/lotes') ?>" class="btn btn-sm btn-light">Ver Lotes</a>
                 </div>
                 <div class="card-body">
                     <?php if (empty($ultimosPagos)): ?>
