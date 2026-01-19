@@ -175,9 +175,30 @@ class VendedorController extends Controller
              ORDER BY u.nombre"
         );
 
-        // Generar código sugerido
-        $ultimoVendedor = $db->fetch("SELECT codigo_vendedor FROM vendedores ORDER BY id DESC LIMIT 1");
-        $codigoSugerido = 'VEND-' . str_pad((count($db->fetchAll("SELECT id FROM vendedores")) + 1), 4, '0', STR_PAD_LEFT);
+        // Generar código sugerido (buscar el último número usado en códigos VEND-XXXX)
+        $ultimoVendedor = $db->fetch(
+            "SELECT codigo_vendedor FROM vendedores 
+             WHERE codigo_vendedor LIKE 'VEND-%' 
+             ORDER BY CAST(SUBSTRING(codigo_vendedor, 6) AS UNSIGNED) DESC 
+             LIMIT 1"
+        );
+        
+        if ($ultimoVendedor && preg_match('/VEND-(\d+)/', $ultimoVendedor['codigo_vendedor'], $matches)) {
+            $ultimoNumero = intval($matches[1]);
+            $nuevoNumero = $ultimoNumero + 1;
+        } else {
+            $nuevoNumero = 1;
+        }
+        
+        $codigoSugerido = 'VEND-' . str_pad($nuevoNumero, 4, '0', STR_PAD_LEFT);
+        
+        // Verificar que el código sugerido no exista (por seguridad)
+        $intento = 0;
+        while ($this->vendedorModel->codigoExists($codigoSugerido) && $intento < 100) {
+            $nuevoNumero++;
+            $codigoSugerido = 'VEND-' . str_pad($nuevoNumero, 4, '0', STR_PAD_LEFT);
+            $intento++;
+        }
 
         $this->view('vendedores/create', [
             'title' => 'Crear Vendedor',
