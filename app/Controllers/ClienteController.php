@@ -136,7 +136,7 @@ class ClienteController extends Controller
             }
 
             $_SESSION['success'] = 'Cliente creado exitosamente';
-            redirect('/clientes/show/' . $clienteId);
+            redirect('/clientes/create');
 
         } catch (\Exception $e) {
             if (isset($_POST['ajax'])) {
@@ -152,10 +152,6 @@ class ClienteController extends Controller
             saveOldInput($_POST);
             redirect('/clientes/create');
         }
-        
-        // Limpiar datos antiguos y errores
-        clearOldInput();
-        clearErrors();
     }
 
     /**

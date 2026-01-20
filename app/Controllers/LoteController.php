@@ -50,10 +50,8 @@ class LoteController extends Controller
             'per_page' => $perPage
         ];
         
-        // RBAC: Filtrar por vendedor si el usuario es vendedor
-        if ($user['rol'] === 'vendedor') {
-            $filters['vendedor_id'] = $user['id'];
-        }
+        // RBAC: Los vendedores pueden ver todos los lotes
+        // (Filtro de vendedor_id removido para permitir acceso completo)
 
         // Obtener lotes paginados con JOINs completos
         $result = $this->loteModel->getAllPaginated($filters);
@@ -303,8 +301,8 @@ function confirmarEliminacionLote(loteId, codigoLote) {
     {
         $this->requireAuth();
         
-        // RBAC: Solo administrador y consulta pueden editar lotes
-        $this->requireRole(['administrador', 'consulta']);
+        // RBAC: Solo administrador, consulta y vendedor pueden editar lotes
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
         
         $lote = $this->loteModel->findById($id);
 
@@ -362,8 +360,8 @@ function confirmarEliminacionLote(loteId, codigoLote) {
     {
         $this->requireAuth();
         
-        // RBAC: Solo administrador y consulta pueden actualizar lotes
-        $this->requireRole(['administrador', 'consulta']);
+        // RBAC: Solo administrador, consulta y vendedor pueden actualizar lotes
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
         
         try {
             $lote = $this->loteModel->findById($id);

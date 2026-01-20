@@ -164,37 +164,58 @@ class VendedorModel
      */
     public function create($data)
     {
-        $sql = "INSERT INTO vendedores (
-                    user_id, codigo_vendedor, tipo_documento, numero_documento,
-                    nombres, apellidos, telefono, celular, email,
-                    direccion, ciudad, fecha_ingreso, tipo_contrato,
-                    porcentaje_comision_default, banco, tipo_cuenta, numero_cuenta,
-                    estado, observaciones
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $this->db->execute($sql, [
-            $data['user_id'],
-            $data['codigo_vendedor'],
-            $data['tipo_documento'] ?? 'CC',
-            $data['numero_documento'],
-            $data['nombres'],
-            $data['apellidos'],
-            $data['telefono'] ?? null,
-            $data['celular'] ?? null,
-            $data['email'],
-            $data['direccion'] ?? null,
-            $data['ciudad'] ?? null,
-            $data['fecha_ingreso'],
-            $data['tipo_contrato'] ?? 'indefinido',
-            $data['porcentaje_comision_default'] ?? 3.00,
-            $data['banco'] ?? null,
-            $data['tipo_cuenta'] ?? null,
-            $data['numero_cuenta'] ?? null,
-            $data['estado'] ?? 'activo',
-            $data['observaciones'] ?? null
-        ]);
-        
-        return $this->db->lastInsertId();
+        try {
+            \Logger::info('VendedorModel::create - Iniciando creación de vendedor');
+            \Logger::info('VendedorModel::create - Datos recibidos: ' . json_encode($data));
+            
+            $sql = "INSERT INTO vendedores (
+                        user_id, codigo_vendedor, tipo_documento, numero_documento,
+                        nombres, apellidos, telefono, celular, email,
+                        direccion, ciudad, fecha_ingreso, tipo_contrato,
+                        porcentaje_comision_default, banco, tipo_cuenta, numero_cuenta,
+                        estado, observaciones
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            $params = [
+                $data['user_id'],
+                $data['codigo_vendedor'],
+                $data['tipo_documento'] ?? 'CC',
+                $data['numero_documento'],
+                $data['nombres'],
+                $data['apellidos'],
+                $data['telefono'] ?? null,
+                $data['celular'] ?? null,
+                $data['email'],
+                $data['direccion'] ?? null,
+                $data['ciudad'] ?? null,
+                $data['fecha_ingreso'],
+                $data['tipo_contrato'] ?? 'indefinido',
+                $data['porcentaje_comision_default'] ?? 3.00,
+                $data['banco'] ?? null,
+                $data['tipo_cuenta'] ?? null,
+                $data['numero_cuenta'] ?? null,
+                $data['estado'] ?? 'activo',
+                $data['observaciones'] ?? null
+            ];
+            
+            \Logger::info('VendedorModel::create - Parámetros preparados: ' . json_encode($params));
+            \Logger::info('VendedorModel::create - Ejecutando INSERT...');
+            
+            $result = $this->db->execute($sql, $params);
+            
+            \Logger::info('VendedorModel::create - Execute result: ' . ($result ? 'TRUE' : 'FALSE'));
+            
+            $lastId = $this->db->lastInsertId();
+            \Logger::info('VendedorModel::create - Last Insert ID: ' . $lastId);
+            
+            return $lastId;
+            
+        } catch (\Exception $e) {
+            \Logger::error('VendedorModel::create - ERROR: ' . $e->getMessage());
+            \Logger::error('VendedorModel::create - Archivo: ' . $e->getFile() . ' línea ' . $e->getLine());
+            \Logger::error('VendedorModel::create - Código SQL: ' . $e->getCode());
+            throw $e;
+        }
     }
 
     /**
@@ -254,15 +275,32 @@ class VendedorModel
      */
     public function codigoExists($codigo, $excludeId = null)
     {
-        $sql = "SELECT id FROM vendedores WHERE codigo_vendedor = ?";
-        $params = [$codigo];
-        
-        if ($excludeId) {
-            $sql .= " AND id != ?";
-            $params[] = $excludeId;
+        try {
+            \Logger::info("VendedorModel::codigoExists - Verificando código: '$codigo', excludeId: " . ($excludeId ?? 'null'));
+            
+            $sql = "SELECT COUNT(*) as count FROM vendedores WHERE codigo_vendedor = ?";
+            $params = [$codigo];
+            
+            if ($excludeId) {
+                $sql .= " AND id != ?";
+                $params[] = $excludeId;
+            }
+            
+            \Logger::info("VendedorModel::codigoExists - SQL: $sql");
+            \Logger::info("VendedorModel::codigoExists - Params: " . json_encode($params));
+            
+            $result = $this->db->fetch($sql, $params);
+            $exists = ($result && $result['count'] > 0);
+            
+            \Logger::info("VendedorModel::codigoExists - Resultado: " . ($exists ? 'EXISTE' : 'NO EXISTE'));
+            \Logger::info("VendedorModel::codigoExists - Count: " . ($result['count'] ?? 'NULL'));
+            
+            return $exists;
+            
+        } catch (\Exception $e) {
+            \Logger::error("VendedorModel::codigoExists - ERROR: " . $e->getMessage());
+            throw $e;
         }
-        
-        return $this->db->fetch($sql, $params) !== null;
     }
 
     /**
@@ -270,15 +308,28 @@ class VendedorModel
      */
     public function documentoExists($documento, $excludeId = null)
     {
-        $sql = "SELECT id FROM vendedores WHERE numero_documento = ?";
-        $params = [$documento];
-        
-        if ($excludeId) {
-            $sql .= " AND id != ?";
-            $params[] = $excludeId;
+        try {
+            \Logger::info("VendedorModel::documentoExists - Verificando documento: '$documento', excludeId: " . ($excludeId ?? 'null'));
+            
+            $sql = "SELECT COUNT(*) as count FROM vendedores WHERE numero_documento = ?";
+            $params = [$documento];
+            
+            if ($excludeId) {
+                $sql .= " AND id != ?";
+                $params[] = $excludeId;
+            }
+            
+            $result = $this->db->fetch($sql, $params);
+            $exists = ($result && $result['count'] > 0);
+            
+            \Logger::info("VendedorModel::documentoExists - Resultado: " . ($exists ? 'EXISTE' : 'NO EXISTE'));
+            
+            return $exists;
+            
+        } catch (\Exception $e) {
+            \Logger::error("VendedorModel::documentoExists - ERROR: " . $e->getMessage());
+            throw $e;
         }
-        
-        return $this->db->fetch($sql, $params) !== null;
     }
 
     /**

@@ -45,7 +45,7 @@ class InicialController extends Controller
     public function create($loteId)
     {
         $this->requireAuth();
-        $this->requireRole(['administrador', 'consulta']);
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
 
         try {
             // Obtener información del lote
@@ -98,7 +98,7 @@ class InicialController extends Controller
     public function store($loteId)
     {
         $this->requireAuth();
-        $this->requireRole(['administrador', 'consulta']);
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
 
         // Validar CSRF
         if (!$this->validateCsrf()) {
@@ -228,7 +228,7 @@ class InicialController extends Controller
     public function pago($loteId)
     {
         $this->requireAuth();
-        $this->requireRole(['administrador', 'consulta']);
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
 
         try {
             // Obtener información del lote
@@ -305,7 +305,7 @@ class InicialController extends Controller
     public function registrarPago($loteId)
     {
         $this->requireAuth();
-        $this->requireRole(['administrador', 'consulta']);
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
 
         try {
             $this->db->beginTransaction();

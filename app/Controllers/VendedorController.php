@@ -175,9 +175,30 @@ class VendedorController extends Controller
              ORDER BY u.nombre"
         );
 
-        // Generar código sugerido
-        $ultimoVendedor = $db->fetch("SELECT codigo_vendedor FROM vendedores ORDER BY id DESC LIMIT 1");
-        $codigoSugerido = 'VEND-' . str_pad((count($db->fetchAll("SELECT id FROM vendedores")) + 1), 4, '0', STR_PAD_LEFT);
+        // Generar código sugerido (buscar el último número usado en códigos VEND-XXXX)
+        $ultimoVendedor = $db->fetch(
+            "SELECT codigo_vendedor FROM vendedores 
+             WHERE codigo_vendedor LIKE 'VEND-%' 
+             ORDER BY CAST(SUBSTRING(codigo_vendedor, 6) AS UNSIGNED) DESC 
+             LIMIT 1"
+        );
+        
+        if ($ultimoVendedor && preg_match('/VEND-(\d+)/', $ultimoVendedor['codigo_vendedor'], $matches)) {
+            $ultimoNumero = intval($matches[1]);
+            $nuevoNumero = $ultimoNumero + 1;
+        } else {
+            $nuevoNumero = 1;
+        }
+        
+        $codigoSugerido = 'VEND-' . str_pad($nuevoNumero, 4, '0', STR_PAD_LEFT);
+        
+        // Verificar que el código sugerido no exista (por seguridad)
+        $intento = 0;
+        while ($this->vendedorModel->codigoExists($codigoSugerido) && $intento < 100) {
+            $nuevoNumero++;
+            $codigoSugerido = 'VEND-' . str_pad($nuevoNumero, 4, '0', STR_PAD_LEFT);
+            $intento++;
+        }
 
         $this->view('vendedores/create', [
             'title' => 'Crear Vendedor',
@@ -196,27 +217,37 @@ class VendedorController extends Controller
         $this->requireRole(['administrador']);
 
         try {
+            \Logger::info('VendedorController::store - Iniciando almacenamiento');
+            \Logger::info('VendedorController::store - POST data: ' . json_encode($_POST));
+            
             // Validar campos requeridos
             $required = ['user_id', 'codigo_vendedor', 'numero_documento', 'nombres', 'apellidos', 'email', 'fecha_ingreso'];
             foreach ($required as $field) {
                 if (empty($_POST[$field])) {
+                    \Logger::error("VendedorController::store - Campo requerido vacío: $field");
                     throw new \Exception("El campo {$field} es obligatorio");
                 }
             }
+            
+            \Logger::info('VendedorController::store - Validación de campos OK');
 
             // Validar unicidad
+            \Logger::info('VendedorController::store - Validando código vendedor...');
             if ($this->vendedorModel->codigoExists($_POST['codigo_vendedor'])) {
                 throw new \Exception("El código de vendedor ya existe");
             }
-
+            
+            \Logger::info('VendedorController::store - Validando documento...');
             if ($this->vendedorModel->documentoExists($_POST['numero_documento'])) {
                 throw new \Exception("El número de documento ya está registrado");
             }
-
-            // Validar user_id no tenga vendedor ya
+            
+            \Logger::info('VendedorController::store - Validando user_id...');
             if ($this->vendedorModel->findByUserId($_POST['user_id'])) {
                 throw new \Exception("Este usuario ya tiene un perfil de vendedor");
             }
+            
+            \Logger::info('VendedorController::store - Validaciones de unicidad OK');
 
             $data = [
                 'user_id' => (int)$_POST['user_id'],
@@ -239,8 +270,13 @@ class VendedorController extends Controller
                 'estado' => 'activo',
                 'observaciones' => $_POST['observaciones'] ?? null
             ];
+            
+            \Logger::info('VendedorController::store - Data preparada para insertar');
+            \Logger::info('VendedorController::store - Llamando a vendedorModel->create()...');
 
             $vendedorId = $this->vendedorModel->create($data);
+            
+            \Logger::info('VendedorController::store - Vendedor creado con ID: ' . $vendedorId);
 
             \Logger::info("Vendedor creado", [
                 'vendedor_id' => $vendedorId,
@@ -253,6 +289,10 @@ class VendedorController extends Controller
             $this->redirect('/vendedores/show/' . $vendedorId);
 
         } catch (\Exception $e) {
+            \Logger::error('VendedorController::store - ERROR: ' . $e->getMessage());
+            \Logger::error('VendedorController::store - Archivo: ' . $e->getFile() . ' línea ' . $e->getLine());
+            \Logger::error('VendedorController::store - Stack trace: ' . $e->getTraceAsString());
+            
             $this->flash('error', 'Error: ' . $e->getMessage());
             $this->redirect('/vendedores/create');
         }

@@ -63,11 +63,29 @@ class ProyectoModel
 
     /**
      * Obtiene resumen de proyectos con estadísticas
-     * Usa la vista creada en schema.sql
      */
     public function getResumenProyectos()
     {
-        $sql = "SELECT * FROM vista_proyectos_resumen ORDER BY nombre ASC";
+        $sql = "SELECT 
+                    p.id,
+                    p.codigo,
+                    p.nombre,
+                    p.ubicacion,
+                    p.estado,
+                    p.total_lotes,
+                    COUNT(DISTINCT CASE WHEN l.estado = 'disponible' THEN l.id END) as lotes_disponibles,
+                    COUNT(DISTINCT CASE WHEN l.estado = 'vendido' THEN l.id END) as lotes_vendidos,
+                    COUNT(DISTINCT CASE WHEN l.estado = 'reservado' THEN l.id END) as lotes_reservados,
+                    COUNT(DISTINCT CASE WHEN l.estado = 'bloqueado' THEN l.id END) as lotes_bloqueados,
+                    SUM(CASE WHEN l.estado IN ('disponible', 'reservado') THEN l.precio_lista ELSE 0 END) as valor_inventario,
+                    SUM(CASE WHEN l.estado = 'vendido' THEN COALESCE(l.precio_venta, l.precio_lista) ELSE 0 END) as valor_ventas,
+                    ROUND((COUNT(DISTINCT CASE WHEN l.estado = 'vendido' THEN l.id END) / NULLIF(p.total_lotes, 0)) * 100, 1) as porcentaje_vendido
+                FROM proyectos p
+                LEFT JOIN lotes l ON p.id = l.proyecto_id
+                WHERE p.estado = 'activo'
+                GROUP BY p.id, p.codigo, p.nombre, p.ubicacion, p.estado, p.total_lotes
+                ORDER BY p.nombre ASC";
+        
         return $this->db->fetchAll($sql);
     }
 
