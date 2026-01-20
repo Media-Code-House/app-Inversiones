@@ -301,8 +301,8 @@ function confirmarEliminacionLote(loteId, codigoLote) {
     {
         $this->requireAuth();
         
-        // RBAC: Solo administrador y consulta pueden editar lotes
-        $this->requireRole(['administrador', 'consulta']);
+        // RBAC: Solo administrador, consulta y vendedor pueden editar lotes
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
         
         $lote = $this->loteModel->findById($id);
 
@@ -360,8 +360,8 @@ function confirmarEliminacionLote(loteId, codigoLote) {
     {
         $this->requireAuth();
         
-        // RBAC: Solo administrador y consulta pueden actualizar lotes
-        $this->requireRole(['administrador', 'consulta']);
+        // RBAC: Solo administrador, consulta y vendedor pueden actualizar lotes
+        $this->requireRole(['administrador', 'consulta', 'vendedor']);
         
         try {
             $lote = $this->loteModel->findById($id);
